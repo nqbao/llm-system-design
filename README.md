@@ -6,6 +6,16 @@ See the live site at [nqbao.github.io/llm-system-design](https://nqbao.github.io
 
 ## Setup
 
+Copy `.env` (or create one) with your API credentials:
+
+| Variable | Description | Default |
+|---|---|---|
+| `LLM_API_KEY` | API key (OpenAI or any OpenAI-compatible provider) | `sk-placeholder` |
+| `LLM_BASE_URL` | API base URL | `https://api.openai.com/v1` |
+| `LLM_MODEL` | Model name to use | `gpt-4` |
+
+For OpenAI, set `LLM_API_KEY` to your OpenAI key; `LLM_BASE_URL` defaults to the OpenAI endpoint.
+
 - **9 questions** across 4 tiers: easy (URL shortener), medium (chat, news feed, Twitter), hard (rate limiter, job scheduler, YouTube), chaos (metrics pipeline, object store)
 - **9 models**: claude-sonnet-4.6, deepseek-v4-pro, gemini-3.1-pro, gemma-4-31b-it, gpt-5.4, gpt-oss-120b, gpt-oss-20b, kimi-k2.6, minimax-m2.7
 - **3 judges**: claude-sonnet-4.6, deepseek-v4-pro, kimi-k2.6 — each scores every transcript independently

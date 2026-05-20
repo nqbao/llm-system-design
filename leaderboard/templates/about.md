@@ -13,6 +13,8 @@ Each model is given a **cold prompt** (generic system design instructions with n
 
 The evaluation pipeline and analysis scripts were developed with assistance from DeepSeek V4 Pro and Claude Sonnet/Opus 4.6.
 
+For more details on the evaluation pipeline, raw data, and analysis scripts, check the [GitHub repository](https://github.com/nqbao/llm-system-design).
+
 ## Model Selection
 
 I picked 3 top-tier models (gpt-5.4, claude-sonnet-4.6, kimi-k2.6), 3 mid-tier, and 3 bottom-tier models based on general popularity and availability. Opus is too expensive to run through this pipeline, but I plan to add it later.

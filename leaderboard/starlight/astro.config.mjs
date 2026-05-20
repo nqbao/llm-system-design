@@ -24,6 +24,16 @@ export default defineConfig({
 			],
 			tableOfContents: false,
 			sidebar,
+			head: [
+				{
+					tag: 'script',
+					attrs: {
+						'data-goatcounter': 'https://nqbao.goatcounter.com/count',
+						async: true,
+						src: '//gc.zgo.at/count.js',
+					},
+				},
+			],
 		}),
 	],
 });
