@@ -9,6 +9,12 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 
+from annotation_analysis import (
+    compute_dimension_score_profiles,
+    compute_model_annotation_profile,
+    format_annotation_report,
+    load_reasoning_texts,
+)
 from lib import HERE, pearson_r
 
 
@@ -127,6 +133,19 @@ def compute_inter_judge_agreement(judgment_rows: list) -> dict:
     return result
 
 
+def _slope(xs: list[float], ys: list[float]) -> float:
+    n = len(xs)
+    if n < 2:
+        return 0.0
+    mx = statistics.mean(xs)
+    my = statistics.mean(ys)
+    num = sum((x - mx) * (y - my) for x, y in zip(xs, ys))
+    den = sum((x - mx) ** 2 for x in xs)
+    if den == 0:
+        return 0.0
+    return num / den
+
+
 def compute_length_regression(judgment_rows: list, run_data: dict) -> dict:
     transcript_scores: dict[tuple, list[float]] = defaultdict(list)
     for judge_id, qid, variant, model, dim, score in judgment_rows:
@@ -141,16 +160,18 @@ def compute_length_regression(judgment_rows: list, run_data: dict) -> dict:
         ys.append(statistics.mean(scores))
 
     if len(xs) < 3:
-        return {"r2": 0, "r": 0, "n_points": len(xs), "notes": "insufficient data (need ≥3 transcripts)"}
+        return {"r2": 0, "r": 0, "slope": 0, "n_points": len(xs), "notes": "insufficient data (need ≥3 transcripts)"}
 
     r = pearson_r(xs, ys)
     r2 = r * r
+    b = _slope(xs, ys)
 
     return {
         "r2": round(r2, 3),
         "r": round(r, 3),
+        "slope": round(b, 4),
         "n_points": len(xs),
-        "notes": f"score ~ log(words); R²={r2:.3f} (length explains {r2*100:.1f}% of score variance)",
+        "notes": f"score ~ log(words); R²={r2:.3f}, slope={b:+.4f} (length explains {r2*100:.1f}% of score variance)",
     }
 
 
@@ -179,7 +200,7 @@ def compute_disagreement_gallery(judgment_rows: list, top_n: int = 20) -> list[d
     return disagreements[:top_n]
 
 
-def format_report(leaderboard, agreement, judge_corr, regression, gallery, runs, judgment_rows, unparseable_count) -> str:
+def format_report(leaderboard, agreement, judge_corr, regression, gallery, runs, judgment_rows, unparseable_count, annotation_report="") -> str:
     lines = []
     lines.append("# System Design Benchmark Report\n")
 
@@ -199,8 +220,8 @@ def format_report(leaderboard, agreement, judge_corr, regression, gallery, runs,
         lines.append("| Judge A | Judge B | r |")
         lines.append("|---------|---------|---|")
         for ja, jb, corr in judge_corr["judge_correlations"]:
-            label = "consistent" if corr > 0.6 else ("noisy" if corr > 0.3 else "unreliable")
-            icon = "✅" if corr > 0.6 else ("⚠️" if corr > 0.3 else "❌")
+            label = "consistent" if corr >= 0.7 else ("borderline" if corr >= 0.5 else "noisy")
+            icon = "✅" if corr >= 0.7 else ("⚠️" if corr >= 0.5 else "❌")
             lines.append(f"| {ja} | {jb} | {corr} ({icon} {label}) |")
     else:
         lines.append("Insufficient data: need multiple transcripts with all judges to compute correlation.")
@@ -215,12 +236,15 @@ def format_report(leaderboard, agreement, judge_corr, regression, gallery, runs,
     lines.append("")
 
     lines.append("## Length Bias Analysis\n")
-    lines.append(f"- R² (score ~ log words): **{regression['r2']}**")
-    lines.append(f"- N points: {regression['n_points']}")
-    lines.append(f"- {regression['notes']}")
-    if regression["r2"] > 0.3:
-        lines.append(f"- WARNING: Length explains {regression['r2']*100:.1f}% of score variance — rubric may need anti-length-bias instructions")
-    lines.append("")
+    r2 = regression["r2"]
+    b = regression["slope"]
+    n = regression["n_points"]
+    lines.append(
+        f"Longer transcripts tend to score higher "
+        f"(slope={b}, R²={r2}, n={n}) — "
+        f"length explains {r2*100:.1f}% of score variance, "
+        f"worth monitoring for judge verbosity bias.\n"
+    )
 
     if len(judge_corr["judges"]) >= 2 and gallery:
         lines.append("## Disagreement Gallery\n")
@@ -231,6 +255,9 @@ def format_report(leaderboard, agreement, judge_corr, regression, gallery, runs,
             means_str = ", ".join(f"{j}:{m}" for j, m in item["judge_means"].items())
             lines.append(f"| {item['model']} | {item['question_id']} | {item['variant']} | {means_str} | {item['spread']} |")
         lines.append("")
+
+    if annotation_report:
+        lines.append(annotation_report)
 
     lines.append("---")
     n_runs = len(runs)
@@ -258,7 +285,12 @@ def main():
     regression = compute_length_regression(judgment_rows, run_data)
     gallery = compute_disagreement_gallery(judgment_rows)
 
-    report = format_report(leaderboard, agreement, judge_corr, regression, gallery, run_data, judgment_rows, unparseable_count)
+    reasoning_records = load_reasoning_texts(HERE / "judgments")
+    model_profiles = compute_model_annotation_profile(reasoning_records) if reasoning_records else []
+    dim_profiles = compute_dimension_score_profiles(reasoning_records) if reasoning_records else {}
+    annotation_report = format_annotation_report(model_profiles, dim_profiles) if model_profiles else ""
+
+    report = format_report(leaderboard, agreement, judge_corr, regression, gallery, run_data, judgment_rows, unparseable_count, annotation_report)
     Path(args.output).write_text(report)
     print(f"Report written to {args.output}")
     print(report)

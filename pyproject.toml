@@ -28,4 +28,5 @@ py-modules = [
     "run_interview",
     "run_judges",
     "eval",
+    "annotation_analysis",
 ]

@@ -8,7 +8,20 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 
+import sys
+
 import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from annotation_analysis import (
+    compute_judge_agreement,
+    compute_judge_correlations,
+    compute_length_regression,
+    format_judge_agreement_html,
+    format_length_regression_html,
+    load_reasoning_texts,
+)
 
 HERE = Path(__file__).resolve().parent
 SITE = HERE / "starlight" / "src" / "content" / "docs"
@@ -199,9 +212,18 @@ def build_index(models, questions, leaderboard):
     )
 
 
-def build_about():
-    """Generate about.md — methodology page."""
-    return (TEMPLATES / "about.md").read_text()
+def build_about(results_html: str = ""):
+    """Generate about.md — methodology page with Results section."""
+    content = (TEMPLATES / "about.md").read_text()
+    if results_html:
+        content += "\n\n---\n\n## Results\n\n"
+        content += (
+            '<p><em>Model scores and rankings are on the <a href="/">leaderboard</a>. '
+            "Below are some additional observations about the judges themselves.</em></p>\n\n"
+        )
+        content += results_html
+        content += "\n"
+    return content
 
 
 def build_model_md(model, questions, leaderboard):
@@ -351,7 +373,13 @@ def main():
     print("✓ index.md")
 
     # About
-    _write_md(SITE / "about.md", build_about())
+    reasoning_records = load_reasoning_texts(JUDGMENTS)
+    correlations = compute_judge_correlations(reasoning_records) if reasoning_records else {"judges": [], "judge_correlations": [], "n_runs": 0}
+    agreement = compute_judge_agreement(reasoning_records) if reasoning_records else {}
+    regression = compute_length_regression(reasoning_records, RUNS) if reasoning_records else {"r2": 0, "n_points": 0}
+    agreement_html = format_judge_agreement_html(correlations, agreement)
+    regression_html = format_length_regression_html(regression)
+    _write_md(SITE / "about.md", build_about(f"{agreement_html}\n\n{regression_html}"))
     print("✓ about.md")
 
     # Per-model pages
