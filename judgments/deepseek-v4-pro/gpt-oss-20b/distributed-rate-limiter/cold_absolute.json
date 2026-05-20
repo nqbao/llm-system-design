@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-20b/distributed-rate-limiter_cold.json",
+  "question_id": "distributed-rate-limiter",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-20b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T07:30:24.982271+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design starts with a clear problem statement including functional and non-functional requirements. It provides quantified SLAs (latency <40ms p95, consistency >=99.999%), explicit assumptions (10k qps, 1M users), and a non-goal (duplicate detection). The only gap to a 5 is the absence of a broader non-goal or differentiation at extreme scales.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives QPS, Redis operations, per-node load, and memory from assumptions. Numbers drive design decisions (3-node Redis cluster, 10k ops/s per node). It flags a fragile assumption (1% active users) and sanity-checks memory usage. However, it does not explicitly call out a sanity-check question like 'does that make sense?' but the table provides rationale. This merits a 4.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against requirements (Redis for atomicity, LB for consistent hashing, async IO for low latency). Data flow is traceable. The diagram is clear. Components are not decorative; choices like Redis over Memcached are supported. Deep connections between capacity and architecture are present (node count based on ops/s). This is a solid 4.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response provides multiple deep-dives: Redis Lua script with pseudocode, token bucket parameters, Redis cluster configuration with sharding and failover, and RL node caching. It explains mechanisms and tradeoffs (e.g., why Lua over INCRBYFLOAT, why token bucket over sliding window). It addresses edge cases like clock skew using Redis TIME. However, it does not surface a truly non-obvious edge case like thundering herd or hot keys. This is a strong 4.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design explicitly presents a tradeoff table with alternatives, costs, and rationale. Failure modes are detailed with specific mitigations (circuit breaker, fail-fast, Redis TIME). It acknowledges limits (idempotent markers out of scope) and covers non-obvious failure like clock drift. However, it misses potential thundering herd or hot key issues. Still an impressive 4.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The design starts with a clear problem statement including functional and non-functional requirements. It provides quantified SLAs (latency <40ms p95, consistency >=99.999%), explicit assumptions (10k qps, 1M users), and a non-goal (duplicate detection). The only gap to a 5 is the absence of a broader non-goal or differentiation at extreme scales.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The response derives QPS, Redis operations, per-node load, and memory from assumptions. Numbers drive design decisions (3-node Redis cluster, 10k ops/s per node). It flags a fragile assumption (1% active users) and sanity-checks memory usage. However, it does not explicitly call out a sanity-check question like 'does that make sense?' but the table provides rationale. This merits a 4.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified against requirements (Redis for atomicity, LB for consistent hashing, async IO for low latency). Data flow is traceable. The diagram is clear. Components are not decorative; choices like Redis over Memcached are supported. Deep connections between capacity and architecture are present (node count based on ops/s). This is a solid 4.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"The response provides multiple deep-dives: Redis Lua script with pseudocode, token bucket parameters, Redis cluster configuration with sharding and failover, and RL node caching. It explains mechanisms and tradeoffs (e.g., why Lua over INCRBYFLOAT, why token bucket over sliding window). It addresses edge cases like clock skew using Redis TIME. However, it does not surface a truly non-obvious edge case like thundering herd or hot keys. This is a strong 4.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The design explicitly presents a tradeoff table with alternatives, costs, and rationale. Failure modes are detailed with specific mitigations (circuit breaker, fail-fast, Redis TIME). It acknowledges limits (idempotent markers out of scope) and covers non-obvious failure like clock drift. However, it misses potential thundering herd or hot key issues. Still an impressive 4.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

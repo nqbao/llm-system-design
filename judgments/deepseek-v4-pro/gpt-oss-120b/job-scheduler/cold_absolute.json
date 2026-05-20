@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-120b/job-scheduler_cold.json",
+  "question_id": "job-scheduler",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-06T05:35:28.520187+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response clearly states both functional and non-functional requirements in a table. Non-functional requirements are quantified with specific targets (≥10K jobs/s throughput, ≤200ms scheduling latency, 99.99% availability). Assumptions are explicitly stated and justified in the capacity planning section. However, no explicit non-goals are set, and no ambiguity from the prompt is identified or resolved.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The response provides a full estimation chain: assumptions (payload size, execution time, worker specs) → QPS → compute, storage, and bandwidth → component sizing. Numbers drive later design decisions (e.g., 20 workers needed, Kafka broker sizing). A weak sanity check is performed (11.5 TiB disk usage is deemed feasible with modern NVMe). Fragile assumptions are not explicitly flagged, but the chain is complete.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component in the architecture is justified against a specific requirement or capacity number, and the data flow is traceable end-to-end from submission to notification. The diagram and component descriptions are informative and free of hallucinations. No decorative components are included, but also no explicit identification of a less obvious anti-pattern or a more correct but non-obvious choice.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response provides one meaningful deep-dive into the Kafka queue design and offset commit strategy to guarantee at-least-once semantics, which qualifies as a concrete mechanism (queue semantics). The Postgres index design is briefly sketched but not deeply explored. Other areas like scheduler matching algorithm are not detailed. No deep-dive presents a named tradeoff with reasoning, so it falls short of level 4.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response explicitly lists multiple tradeoffs tied to specific decisions (push vs pull, Kafka vs Redis, etc.) and quantifies some tradeoff aspects (e.g., pull adds ≤100ms latency). The failure scenarios section is thorough with specific mitigations for each. However, the design does not explicitly acknowledge its own limits (e.g., 'cannot handle X') and does not surface a truly non-obvious failure mode like thundering herd or GC tail latency.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response clearly states both functional and non-functional requirements in a table. Non-functional requirements are quantified with specific targets (≥10K jobs/s throughput, ≤200ms scheduling latency, 99.99% availability). Assumptions are explicitly stated and justified in the capacity planning section. However, no explicit non-goals are set, and no ambiguity from the prompt is identified or resolved.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The response provides a full estimation chain: assumptions (payload size, execution time, worker specs) → QPS → compute, storage, and bandwidth → component sizing. Numbers drive later design decisions (e.g., 20 workers needed, Kafka broker sizing). A weak sanity check is performed (11.5 TiB disk usage is deemed feasible with modern NVMe). Fragile assumptions are not explicitly flagged, but the chain is complete.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component in the architecture is justified against a specific requirement or capacity number, and the data flow is traceable end-to-end from submission to notification. The diagram and component descriptions are informative and free of hallucinations. No decorative components are included, but also no explicit identification of a less obvious anti-pattern or a more correct but non-obvious choice.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response provides one meaningful deep-dive into the Kafka queue design and offset commit strategy to guarantee at-least-once semantics, which qualifies as a concrete mechanism (queue semantics). The Postgres index design is briefly sketched but not deeply explored. Other areas like scheduler matching algorithm are not detailed. No deep-dive presents a named tradeoff with reasoning, so it falls short of level 4.\",\n    \"score\": 3\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The response explicitly lists multiple tradeoffs tied to specific decisions (push vs pull, Kafka vs Redis, etc.) and quantifies some tradeoff aspects (e.g., pull adds ≤100ms latency). The failure scenarios section is thorough with specific mitigations for each. However, the design does not explicitly acknowledge its own limits (e.g., 'cannot handle X') and does not surface a truly non-obvious failure mode like thundering herd or GC tail latency.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

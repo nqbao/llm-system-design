@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemini-3.1-pro/news-feed_cold.json",
+  "question_id": "news-feed",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T09:16:36.224599+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists both functional (publish, view feed, follow) and non-functional (high availability, low latency target <100ms, eventual consistency) requirements. It states an explicit assumption about scale (300M DAU, similar to Twitter). However, it does not set explicit non-goals, resolve ambiguities, or quantify availability/durability guarantees, so it does not reach level 4.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "A full estimation chain is present: assumptions (300M DAU, 100 reads/day, 1% posting) → QPS (read peak 700K, write peak 70) → storage (600GB/day, 220TB/year) → memory cache (96GB). The read/write ratio directly drives the hybrid push/pull choice and the tradeoff between memory and compute, showing numbers propagate into design decisions. No explicit fragility flagging or sanity check is performed, so level 5 is not reached.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (API Gateway, Post Service, Kafka, Fanout Workers, Redis Feed Cache, Cassandra, Graph DB, S3) is justified by a specific requirement or capacity number (e.g., Kafka for async fanout due to eventual consistency, Redis for O(1) reads). The data flow is traceable end-to-end in the write and read paths. The architecture description is genuinely informative, clearly explaining the hybrid push/pull rationale. The hybrid approach is a standard pattern, not a less obvious choice, and no anti-pattern is explicitly called out, so it does not reach level 5.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response provides at least two deep-dives with concrete mechanisms: the hybrid fanout strategy (explaining push vs pull, celebrity handling, and Kafka-based async push) and the data models (Cassandra partition key as user_id, clustering by Snowflake post_id; Redis ZSET with timestamp score and 500-item cap; Graph DB with is_celebrity denormalization). Tradeoffs are named and reasoned (Cassandra vs relational). A non-obvious edge case (hot partitions in Cassandra) is surfaced and mitigated in the failure section, but it is not directly within the deep-dive section, so the response does not quite reach level 5.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design explicitly lists three tradeoffs (eventual vs strong consistency, storage vs compute, Cassandra vs relational) tied to specific decisions with some quantification (2-3 second delay, 350K QPS). Failure modes include four scenarios (thundering herd, Redis crash, Kafka lag, hot partitions) with specific mitigations (local celebrity cache, fallback to pull, priority queues, user_id partition key). The thundering herd is a non-obvious failure mode. However, the design does not explicitly acknowledge its own limits in a 'cannot handle X' statement, so it does not reach level 5.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response lists both functional (publish, view feed, follow) and non-functional (high availability, low latency target <100ms, eventual consistency) requirements. It states an explicit assumption about scale (300M DAU, similar to Twitter). However, it does not set explicit non-goals, resolve ambiguities, or quantify availability/durability guarantees, so it does not reach level 4.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"A full estimation chain is present: assumptions (300M DAU, 100 reads/day, 1% posting) → QPS (read peak 700K, write peak 70) → storage (600GB/day, 220TB/year) → memory cache (96GB). The read/write ratio directly drives the hybrid push/pull choice and the tradeoff between memory and compute, showing numbers propagate into design decisions. No explicit fragility flagging or sanity check is performed, so level 5 is not reached.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (API Gateway, Post Service, Kafka, Fanout Workers, Redis Feed Cache, Cassandra, Graph DB, S3) is justified by a specific requirement or capacity number (e.g., Kafka for async fanout due to eventual consistency, Redis for O(1) reads). The data flow is traceable end-to-end in the write and read paths. The architecture description is genuinely informative, clearly explaining the hybrid push/pull rationale. The hybrid approach is a standard pattern, not a less obvious choice, and no anti-pattern is explicitly called out, so it does not reach level 5.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response provides at least two deep-dives with concrete mechanisms: the hybrid fanout strategy (explaining push vs pull, celebrity handling, and Kafka-based async push) and the data models (Cassandra partition key as user_id, clustering by Snowflake post_id; Redis ZSET with timestamp score and 500-item cap; Graph DB with is_celebrity denormalization). Tradeoffs are named and reasoned (Cassandra vs relational). A non-obvious edge case (hot partitions in Cassandra) is surfaced and mitigated in the failure section, but it is not directly within the deep-dive section, so the response does not quite reach level 5.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The design explicitly lists three tradeoffs (eventual vs strong consistency, storage vs compute, Cassandra vs relational) tied to specific decisions with some quantification (2-3 second delay, 350K QPS). Failure modes include four scenarios (thundering herd, Redis crash, Kafka lag, hot partitions) with specific mitigations (local celebrity cache, fallback to pull, priority queues, user_id partition key). The thundering herd is a non-obvious failure mode. However, the design does not explicitly acknowledge its own limits in a 'cannot handle X' statement, so it does not reach level 5.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

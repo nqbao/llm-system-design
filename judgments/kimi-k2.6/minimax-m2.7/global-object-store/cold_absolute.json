@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/minimax-m2.7/global-object-store_cold.json",
+  "question_id": "global-object-store",
+  "variant": "cold",
+  "model_under_test": "minimax-m2.7",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T06:50:05.448523+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with a prioritized list (durability, availability, scalability, low latency, consistency) but these are generic buzzwords without quantification. No explicit assumptions about scale (number of users, objects, request rates) are stated. No non-functional requirements with specific targets (p99 latency, availability percentage, durability guarantee) are provided. The 'Overview' mentions 'exabytes' and 'millions of requests per second' but this is aspirational framing, not scoped assumptions. No non-goals are stated, and no ambiguity in the prompt is resolved. The requirements section is essentially a feature list without scoping rigor.",
+        "score": 2
+      },
+      "capacity_estimation": {
+        "reasoning": "Section 7 contains 'Example Capacity Math' with 10 PB assumption and erasure coding overhead calculation (10 PB * 1.6 = 16 PB vs 30 PB for 3x replication). However, this is a single isolated calculation with no derivation chain. No QPS estimation, no bandwidth calculations, no component sizing based on load. The 10 PB number appears pulled from thin air without justification. The math does not propagate into design choices (e.g., 'we need N shards because...'). No sanity checks or fragile assumption flags. The capacity planning is decorative rather than driving design.",
+        "score": 2
+      },
+      "architecture_coherence": {
+        "reasoning": "Components are listed with clear textual descriptions and Mermaid diagrams. Every major component (Edge, API, Metadata, Storage, Replication, Cache) connects to stated requirements. No hallucinated services. However, some connections are superficial: 'Redis Cluster' appears in per-region architecture but its role is vaguely defined (Cache -.-> Storage with dashed line unexplained). The Metadata Layer specifies CockroachDB/Spanner but doesn't justify this over alternatives. The consistent hashing ring for storage nodes is sensible. Data flow traces are present in sequence diagrams. Architecture is informative but lacks rigorous justification for specific technology choices.",
+        "score": 3
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response includes several component explorations: erasure coding with concrete Reed-Solomon example (10+6 scheme), quorum-based replication (N=3, W=2, R=2), Raft consensus for metadata, and sequence diagrams for PUT/GET flows. However, most deep-dives state mechanisms without tradeoff reasoning. The erasure coding section explains HOW but not WHY 10+6 specifically. The metadata sharding 'by bucket or key prefix' is mentioned without addressing hotspot risks. No non-obvious edge cases are surfaced (e.g., no discussion of small-object erasure coding inefficiency, thundering herd on cache miss, or partial network partition behavior). The deep-dives are concrete but shallow on tradeoff reasoning.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 9 explicitly lists three tradeoffs (strong vs eventual consistency, sync vs async replication, erasure coding vs replication) with basic latency/cost reasoning. Section 5 covers failure handling: node failure, data center failure, split-brain, backups. However, tradeoffs are generic and not quantified (no '20ms p99' or similar). Failure mode mitigations are shallow: 'Geo-DNS routes traffic' doesn't address DNS propagation delays; 'Raft prevents split-brain' is stated without addressing leader election timing or partial partitions; 'background scrubbing' is mentioned without rate or detection probability. No explicit acknowledgment of design limits. No non-obvious failure modes like thundering herd, write amplification, or GC tail latency are surfaced.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with a prioritized list (durability, availability, scalability, low latency, consistency) but these are generic buzzwords without quantification. No explicit assumptions about scale (number of users, objects, request rates) are stated. No non-functional requirements with specific targets (p99 latency, availability percentage, durability guarantee) are provided. The 'Overview' mentions 'exabytes' and 'millions of requests per second' but this is aspirational framing, not scoped assumptions. No non-goals are stated, and no ambiguity in the prompt is resolved. The requirements section is essentially a feature list without scoping rigor.\", \"score\": 2}, \"capacity_estimation\": {\"reasoning\": \"Section 7 contains 'Example Capacity Math' with 10 PB assumption and erasure coding overhead calculation (10 PB * 1.6 = 16 PB vs 30 PB for 3x replication). However, this is a single isolated calculation with no derivation chain. No QPS estimation, no bandwidth calculations, no component sizing based on load. The 10 PB number appears pulled from thin air without justification. The math does not propagate into design choices (e.g., 'we need N shards because...'). No sanity checks or fragile assumption flags. The capacity planning is decorative rather than driving design.\", \"score\": 2}, \"architecture_coherence\": {\"reasoning\": \"Components are listed with clear textual descriptions and Mermaid diagrams. Every major component (Edge, API, Metadata, Storage, Replication, Cache) connects to stated requirements. No hallucinated services. However, some connections are superficial: 'Redis Cluster' appears in per-region architecture but its role is vaguely defined (Cache -.-> Storage with dashed line unexplained). The Metadata Layer specifies CockroachDB/Spanner but doesn't justify this over alternatives. The consistent hashing ring for storage nodes is sensible. Data flow traces are present in sequence diagrams. Architecture is informative but lacks rigorous justification for specific technology choices.\", \"score\": 3}, \"deep_dive_depth\": {\"reasoning\": \"The response includes several component explorations: erasure coding with concrete Reed-Solomon example (10+6 scheme), quorum-based replication (N=3, W=2, R=2), Raft consensus for metadata, and sequence diagrams for PUT/GET flows. However, most deep-dives state mechanisms without tradeoff reasoning. The erasure coding section explains HOW but not WHY 10+6 specifically. The metadata sharding 'by bucket or key prefix' is mentioned without addressing hotspot risks. No non-obvious edge cases are surfaced (e.g., no discussion of small-object erasure coding inefficiency, thundering herd on cache miss, or partial network partition behavior). The deep-dives are concrete but shallow on tradeoff reasoning.\", \"score\": 3}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 9 explicitly lists three tradeoffs (strong vs eventual consistency, sync vs async replication, erasure coding vs replication) with basic latency/cost reasoning. Section 5 covers failure handling: node failure, data center failure, split-brain, backups. However, tradeoffs are generic and not quantified (no '20ms p99' or similar). Failure mode mitigations are shallow: 'Geo-DNS routes traffic' doesn't address DNS propagation delays; 'Raft prevents split-brain' is stated without addressing leader election timing or partial partitions; 'background scrubbing' is mentioned without rate or detection probability. No explicit acknowledgment of design limits. No non-obvious failure modes like thundering herd, write amplification, or GC tail latency are surfaced.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

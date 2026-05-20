@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/minimax-m2.7/url-shortener_cold.json",
+  "question_id": "url-shortener",
+  "variant": "cold",
+  "model_under_test": "minimax-m2.7",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T06:47:38.074850+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response clearly defines both functional and non-functional requirements with quantified SLAs (e.g., p50 < 20ms, p99 < 100ms, 99.99% uptime, specific scale targets). Assumptions are stated through year-1 and year-3 traffic projections, though no explicit ‘non-goals’ section or resolution of an ambiguity from the prompt.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "A full estimation chain is present: traffic assumptions → QPS, storage per component (links, analytics, cache), compute needs (instances derived from QPS and latency), and cost. The numbers drive later design choices like the 50k writes/sec shard threshold, but no explicit sanity-checking of results is performed.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "All components (CDN, ID generator, Redis, Kafka, etc.) are justified against specific requirements or capacity numbers. The data flow is traceable end-to-end, and the architecture description is informative. No hallucinated services or anti-patterns, but no non-obvious choice is highlighted with a strong rationale to exceed a 4.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are provided—short-code generation (Snowflake vs random, with tradeoff), storage (SQL vs NoSQL reasoning), caching (write-through vs write-behind tradeoff), and analytics pipeline—each with concrete mechanisms. The caching deep-dive touches on hot-set pinning but does not explore a non-obvious failure mode like thundering herd or write amplification.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Tradeoffs are explicitly tied to decisions (deterministic vs random, SQL vs NoSQL, write-through vs write-behind) with some concrete scoping (e.g., 50k writes/sec migration threshold). The failure modes section lists specific scenarios with detailed mitigations (e.g., Redis outage fallback, Kafka dead-letter table). The design acknowledges its own limits (e.g., scaling beyond current capacity), but no non-obvious failure mode (e.g., partial network partition) is surfaced.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response clearly defines both functional and non-functional requirements with quantified SLAs (e.g., p50 < 20ms, p99 < 100ms, 99.99% uptime, specific scale targets). Assumptions are stated through year-1 and year-3 traffic projections, though no explicit ‘non-goals’ section or resolution of an ambiguity from the prompt.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"A full estimation chain is present: traffic assumptions → QPS, storage per component (links, analytics, cache), compute needs (instances derived from QPS and latency), and cost. The numbers drive later design choices like the 50k writes/sec shard threshold, but no explicit sanity-checking of results is performed.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"All components (CDN, ID generator, Redis, Kafka, etc.) are justified against specific requirements or capacity numbers. The data flow is traceable end-to-end, and the architecture description is informative. No hallucinated services or anti-patterns, but no non-obvious choice is highlighted with a strong rationale to exceed a 4.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives are provided—short-code generation (Snowflake vs random, with tradeoff), storage (SQL vs NoSQL reasoning), caching (write-through vs write-behind tradeoff), and analytics pipeline—each with concrete mechanisms. The caching deep-dive touches on hot-set pinning but does not explore a non-obvious failure mode like thundering herd or write amplification.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Tradeoffs are explicitly tied to decisions (deterministic vs random, SQL vs NoSQL, write-through vs write-behind) with some concrete scoping (e.g., 50k writes/sec migration threshold). The failure modes section lists specific scenarios with detailed mitigations (e.g., Redis outage fallback, Kafka dead-letter table). The design acknowledges its own limits (e.g., scaling beyond current capacity), but no non-obvious failure mode (e.g., partial network partition) is surfaced.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

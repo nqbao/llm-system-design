@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemini-3.1-pro/metrics-aggregation_cold.json",
+  "question_id": "metrics-aggregation",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T06:46:52.735988+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with explicit functional requirements (real-time metrics aggregation, 100B events/day) and derives non-functional requirements through capacity planning (peak throughput, latency implied by 1-min windows, availability implied by 24h Kafka retention). However, it lacks explicit non-goals ('we are NOT building X') and does not resolve ambiguities in the prompt—it simply accepts 100B events as given without exploring design changes at different scales. Assumptions are stated (3x peak ratio, 200 bytes payload, 10x aggregation reduction) but not justified beyond 'common in global traffic.'",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "Full estimation chain present: 100B events/day → 1.15M EPS average → 3.45M peak → 690 MB/s ingress → 20 TB/day raw → 2 TB/day aggregated. Numbers demonstrably drive component sizing: 175 CPU cores → 20 instances of 16-core; 512 Kafka partitions → 512 Flink slots; 690 MB/s with RF=3 → 12 i4i.4xlarge brokers. However, no sanity-check on results ('does 20 TB/day make sense?') and no explicit flagging of fragile assumptions. The 10x aggregation ratio is stated without derivation or sensitivity analysis.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component connects to specific requirements: Go/Rust ingestion for low memory footprint at high concurrency; Kafka as shock-absorber decoupling; Flink for stateful 1-min tumbling windows; ClickHouse for columnar OLAP; S3 for cold storage. Data flow is traceable end-to-end in the Mermaid diagram. No hallucinated services. However, the 'Query API Gateway' and 'Grafana' are somewhat decorative—no sizing or mechanism discussed. The architecture doesn't explicitly justify why ClickHouse over Druid/InfluxDB, or why Flink over Spark Streaming.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives with concrete mechanisms: (1) Kafka partitioning strategy with specific key design (hash of tenant_id, metric_name) and explicit partition count (512); (2) Flink state backend (RocksDB), checkpoint destination (S3), window type (1-min tumbling), and percentile algorithm (T-Digest); (3) ClickHouse ingestion strategy (100K rows or 5s batches). Tradeoffs named with reasoning: pre-aggregation vs raw, exactly-once vs at-least-once, push vs pull. However, no deep-dive surfaces a non-obvious edge case at the 5 level—hot partitions and cardinality explosion are standard Flink/Kafka issues. Missing: why T-Digest specifically, how ReplacingMergeTree works mechanistically, or GC tail latency in Flink.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Three specific tradeoffs tied to concrete decisions with quantified impact (0.01% inaccuracy, 3x throughput increase, milliseconds vs seconds). Four failure modes with specific mitigations: data skew with salting and two-stage aggregation; cardinality explosion with dynamic blocklist and circuit breaker; ClickHouse outage with backpressure and 24h Kafka retention; poison pills with DLQ. Acknowledges design limits (sub-minute granularity lost, 0.01% inaccuracy accepted). However, no explicit 'this design cannot handle X' statement—closest is the sub-minute granularity loss. No non-obvious failure modes like partial network partitions, time-of-check-to-time-of-use, or GC tail latency in Flink's RocksDB state backend.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with explicit functional requirements (real-time metrics aggregation, 100B events/day) and derives non-functional requirements through capacity planning (peak throughput, latency implied by 1-min windows, availability implied by 24h Kafka retention). However, it lacks explicit non-goals ('we are NOT building X') and does not resolve ambiguities in the prompt—it simply accepts 100B events as given without exploring design changes at different scales. Assumptions are stated (3x peak ratio, 200 bytes payload, 10x aggregation reduction) but not justified beyond 'common in global traffic.'\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"Full estimation chain present: 100B events/day → 1.15M EPS average → 3.45M peak → 690 MB/s ingress → 20 TB/day raw → 2 TB/day aggregated. Numbers demonstrably drive component sizing: 175 CPU cores → 20 instances of 16-core; 512 Kafka partitions → 512 Flink slots; 690 MB/s with RF=3 → 12 i4i.4xlarge brokers. However, no sanity-check on results ('does 20 TB/day make sense?') and no explicit flagging of fragile assumptions. The 10x aggregation ratio is stated without derivation or sensitivity analysis.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component connects to specific requirements: Go/Rust ingestion for low memory footprint at high concurrency; Kafka as shock-absorber decoupling; Flink for stateful 1-min tumbling windows; ClickHouse for columnar OLAP; S3 for cold storage. Data flow is traceable end-to-end in the Mermaid diagram. No hallucinated services. However, the 'Query API Gateway' and 'Grafana' are somewhat decorative—no sizing or mechanism discussed. The architecture doesn't explicitly justify why ClickHouse over Druid/InfluxDB, or why Flink over Spark Streaming.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives with concrete mechanisms: (1) Kafka partitioning strategy with specific key design (hash of tenant_id, metric_name) and explicit partition count (512); (2) Flink state backend (RocksDB), checkpoint destination (S3), window type (1-min tumbling), and percentile algorithm (T-Digest); (3) ClickHouse ingestion strategy (100K rows or 5s batches). Tradeoffs named with reasoning: pre-aggregation vs raw, exactly-once vs at-least-once, push vs pull. However, no deep-dive surfaces a non-obvious edge case at the 5 level—hot partitions and cardinality explosion are standard Flink/Kafka issues. Missing: why T-Digest specifically, how ReplacingMergeTree works mechanistically, or GC tail latency in Flink.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Three specific tradeoffs tied to concrete decisions with quantified impact (0.01% inaccuracy, 3x throughput increase, milliseconds vs seconds). Four failure modes with specific mitigations: data skew with salting and two-stage aggregation; cardinality explosion with dynamic blocklist and circuit breaker; ClickHouse outage with backpressure and 24h Kafka retention; poison pills with DLQ. Acknowledges design limits (sub-minute granularity lost, 0.01% inaccuracy accepted). However, no explicit 'this design cannot handle X' statement—closest is the sub-minute granularity loss. No non-obvious failure modes like partial network partitions, time-of-check-to-time-of-use, or GC tail latency in Flink's RocksDB state backend.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

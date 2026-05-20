@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-20b/design-youtube_cold.json",
+  "question_id": "design-youtube",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-20b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T07:35:33.760507+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists functional requirements (upload, storage, delivery, etc.) and explicit scale assumptions (120M DAU, 2M uploads/day), but it does not explicitly state non-functional requirements such as latency, availability, or durability targets in the scoping section; those appear later. No quantified SLAs are provided in the problem statement.",
+        "score": 2
+      },
+      "capacity_estimation": {
+        "reasoning": "The design derives storage and some QPS numbers from the initial assumptions (e.g., 200 TB/day uploads, 73 PB/year). However, calculations are inconsistent (upload QPS stated as 75, but 2M/day is ~23 QPS; view event write rate is 400k/s while 3B/day is ~35k/s). The estimation chain is present but imprecise and not fully explained.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against a specific requirement (CDN for delivery, Kafka for async processing, Redis for hot counters, Elasticsearch for search). The diagram and textual description are consistent, data flow is traceable end-to-end, and there are no hallucinations or dead-weight components.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response provides concrete mechanisms for upload (multipart upload, presigned URLs) and streaming (HLS manifests, CDN caching, cache-miss fallback). However, the deep-dives lack tradeoff reasoning (e.g., why multipart over other approaches) and do not discuss specifics like sharding keys or index designs in depth.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design includes a dedicated tradeoffs table with alternatives and rationale, a reliability section with failure modes and mitigations, and a failure scenario walk-through. Tradeoffs are tied to specific decisions and some are quantified (e.g., cost comparisons). It does not explicitly state its own limits (e.g., 'this design cannot handle X'), but overall provides strong failure analysis.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response lists functional requirements (upload, storage, delivery, etc.) and explicit scale assumptions (120M DAU, 2M uploads/day), but it does not explicitly state non-functional requirements such as latency, availability, or durability targets in the scoping section; those appear later. No quantified SLAs are provided in the problem statement.\",\n    \"score\": 2\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The design derives storage and some QPS numbers from the initial assumptions (e.g., 200 TB/day uploads, 73 PB/year). However, calculations are inconsistent (upload QPS stated as 75, but 2M/day is ~23 QPS; view event write rate is 400k/s while 3B/day is ~35k/s). The estimation chain is present but imprecise and not fully explained.\",\n    \"score\": 3\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component is justified against a specific requirement (CDN for delivery, Kafka for async processing, Redis for hot counters, Elasticsearch for search). The diagram and textual description are consistent, data flow is traceable end-to-end, and there are no hallucinations or dead-weight components.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response provides concrete mechanisms for upload (multipart upload, presigned URLs) and streaming (HLS manifests, CDN caching, cache-miss fallback). However, the deep-dives lack tradeoff reasoning (e.g., why multipart over other approaches) and do not discuss specifics like sharding keys or index designs in depth.\",\n    \"score\": 3\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The design includes a dedicated tradeoffs table with alternatives and rationale, a reliability section with failure modes and mitigations, and a failure scenario walk-through. Tradeoffs are tied to specific decisions and some are quantified (e.g., cost comparisons). It does not explicitly state its own limits (e.g., 'this design cannot handle X'), but overall provides strong failure analysis.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

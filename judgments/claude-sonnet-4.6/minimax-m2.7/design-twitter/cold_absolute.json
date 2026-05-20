@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-04/minimax-m2.7/design-twitter_cold.json",
+  "question_id": "design-twitter",
+  "variant": "cold",
+  "model_under_test": "minimax-m2.7",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T00:18:27.094464+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists functional requirements (tweets, social graph, timeline, search, etc.) but provides no explicit non-functional requirements with quantified targets — no stated p99 latency goals, availability %, or durability guarantees. There are no explicit assumptions stated upfront (scale is embedded in section 7.2 rather than declared as assumptions), no non-goals defined, and no ambiguity resolution. The capacity math section does state 300M MAU and 500M tweets/day, but these appear as inputs to math rather than justified assumptions.",
+        "score": 2
+      },
+      "capacity_estimation": {
+        "reasoning": "Section 7.2 provides a capacity math block with storage and throughput calculations derived from stated assumptions (300M MAU, 500M tweets/day). The derivation chain is present: assumptions → storage (tweets, users, social graph, timeline cache) → throughput (writes/second, reads/second, peak). However, the numbers don't clearly propagate into specific design decisions — for example, '5800 writes/second' doesn't drive a stated number of Kafka partitions or Cassandra nodes. The social graph edge count (100B edges) appears without derivation. No sanity checks or fragile assumption flags are present.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "The architecture is well-structured with a clear diagram and every major component (CDN, API Gateway, Kafka, FanoutWorker, Redis, Cassandra, Elasticsearch) is connected to a stated requirement. The fanout sequence diagram traces the write path end-to-end. The celebrity/high-follower skip-fanout optimization is mentioned. However, Neo4j is listed as an option for social graph but the schema shown is relational SQL — this inconsistency is a minor coherence issue. Kafka's role is explained (event-driven fanout, trend calculation) rather than just named.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The timeline generation section (6.1-6.3) provides concrete mechanism: sorted set structure, ZADD/ZREMRANGEBYRANK operations, 1000-tweet cap, TTL management, and the celebrity fanout bypass. The Cassandra schema shows partition key choices and clustering order. The cache structure section is specific with key patterns and TTL values. However, the sharding strategy (section 7.1) is shallow — 'shard by user_id hash' without explaining shard count or hotspot handling. The celebrity bypass is mentioned but the threshold and read-on-demand mechanism aren't detailed. Two reasonably deep dives exist but neither surfaces a non-obvious failure mode with a specific mitigation.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 9.3 explicitly states tradeoffs: eventual consistency for timelines (30s delay acceptable) vs. strong consistency for follows. The fanout strategy notes celebrity tweets skip fanout. Circuit breaker thresholds are specified. Graceful degradation scenarios are listed. However, tradeoffs are not quantified in terms of latency impact, and failure modes are fairly generic (service down → show cached data). No non-obvious failure modes are surfaced (e.g., thundering herd on cache miss for a viral tweet, hot partition in Cassandra for a celebrity's tweet_id, or timeline cache stampede). The design doesn't acknowledge its own limits.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response lists functional requirements (tweets, social graph, timeline, search, etc.) but provides no explicit non-functional requirements with quantified targets — no stated p99 latency goals, availability %, or durability guarantees. There are no explicit assumptions stated upfront (scale is embedded in section 7.2 rather than declared as assumptions), no non-goals defined, and no ambiguity resolution. The capacity math section does state 300M MAU and 500M tweets/day, but these appear as inputs to math rather than justified assumptions.\", \"score\": 2}, \"capacity_estimation\": {\"reasoning\": \"Section 7.2 provides a capacity math block with storage and throughput calculations derived from stated assumptions (300M MAU, 500M tweets/day). The derivation chain is present: assumptions → storage (tweets, users, social graph, timeline cache) → throughput (writes/second, reads/second, peak). However, the numbers don't clearly propagate into specific design decisions — for example, '5800 writes/second' doesn't drive a stated number of Kafka partitions or Cassandra nodes. The social graph edge count (100B edges) appears without derivation. No sanity checks or fragile assumption flags are present.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"The architecture is well-structured with a clear diagram and every major component (CDN, API Gateway, Kafka, FanoutWorker, Redis, Cassandra, Elasticsearch) is connected to a stated requirement. The fanout sequence diagram traces the write path end-to-end. The celebrity/high-follower skip-fanout optimization is mentioned. However, Neo4j is listed as an option for social graph but the schema shown is relational SQL — this inconsistency is a minor coherence issue. Kafka's role is explained (event-driven fanout, trend calculation) rather than just named.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"The timeline generation section (6.1-6.3) provides concrete mechanism: sorted set structure, ZADD/ZREMRANGEBYRANK operations, 1000-tweet cap, TTL management, and the celebrity fanout bypass. The Cassandra schema shows partition key choices and clustering order. The cache structure section is specific with key patterns and TTL values. However, the sharding strategy (section 7.1) is shallow — 'shard by user_id hash' without explaining shard count or hotspot handling. The celebrity bypass is mentioned but the threshold and read-on-demand mechanism aren't detailed. Two reasonably deep dives exist but neither surfaces a non-obvious failure mode with a specific mitigation.\", \"score\": 3}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 9.3 explicitly states tradeoffs: eventual consistency for timelines (30s delay acceptable) vs. strong consistency for follows. The fanout strategy notes celebrity tweets skip fanout. Circuit breaker thresholds are specified. Graceful degradation scenarios are listed. However, tradeoffs are not quantified in terms of latency impact, and failure modes are fairly generic (service down → show cached data). No non-obvious failure modes are surfaced (e.g., thundering herd on cache miss for a viral tweet, hot partition in Cassandra for a celebrity's tweet_id, or timeline cache stampede). The design doesn't acknowledge its own limits.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

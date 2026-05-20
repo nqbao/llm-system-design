@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemma-4-31b-it/url-shortener_cold.json",
+  "question_id": "url-shortener",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T05:42:06.299860+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists both functional (shortening, redirection, custom aliases, expiration) and non-functional requirements (99.99% availability is quantified, read-heavy ratio noted). However, 'low latency in milliseconds' is not quantified to a p99 target, assumptions like '500M URLs/month' are stated but not justified (why this number?), there are no explicit non-goals, and no ambiguity in the prompt is surfaced and resolved. Meets expectations but does not exceed them.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The derivation chain is present: 500M URLs/month → Write QPS (~193) → Read QPS (~19,300) → 10-year storage (~7.38 TB) → bandwidth. The 7-character Base62 choice is explicitly justified against the 60B URL requirement (3.5T >> 60B), which shows numbers propagating into design. However, component sizing is never reached — no estimate for Redis memory footprint, number of DB shards, or cache hit ratio assumptions. No sanity checks or identification of fragile assumptions.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component in the diagram serves a stated requirement: Redis is tied to the 100:1 read-heavy workload, KGS to collision-free ID generation, NoSQL to key-value access patterns and horizontal scaling. The Mermaid diagram shows a separate write and read path, and the redirection logic section traces data flow end-to-end step by step. The 302 choice is explicitly traced back to analytics requirements. Minor conflation of KGS and Zookeeper as separate diagram nodes vs. one logical unit is a small imprecision but not a contradiction.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Two substantive deep-dives are present: (1) the shortening algorithm explains the mechanism concretely (Zookeeper assigns ID ranges to servers, servers convert local counter to Base62) with the hash-vs-counter tradeoff table providing reasoning; (2) the redirection logic details a specific cache-check flow and explains the 301 vs. 302 tradeoff with business consequences. The viral URL section names thundering herd explicitly and proposes a non-obvious mitigation (local LRU on redirect service instances as a second cache tier), which is a genuine non-obvious failure mode addressed specifically.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Two concrete tradeoffs are tied to specific decisions with reasoning: hash vs. counter (stateless vs. collision-free) and 301 vs. 302 (SEO/load reduction vs. analytics). The failure table covers four distinct scenarios (Redis crash, Range Handler down, DB partition overload, data growth) each with specific mitigations (Redis Sentinel/Cluster, buffer ranges, consistent hashing, TTL). The thundering herd is a non-obvious failure mode explicitly surfaced and addressed. What prevents a 5 is the absence of quantified tradeoff costs and no explicit acknowledgment of the design's own limits.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response lists both functional (shortening, redirection, custom aliases, expiration) and non-functional requirements (99.99% availability is quantified, read-heavy ratio noted). However, 'low latency in milliseconds' is not quantified to a p99 target, assumptions like '500M URLs/month' are stated but not justified (why this number?), there are no explicit non-goals, and no ambiguity in the prompt is surfaced and resolved. Meets expectations but does not exceed them.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The derivation chain is present: 500M URLs/month → Write QPS (~193) → Read QPS (~19,300) → 10-year storage (~7.38 TB) → bandwidth. The 7-character Base62 choice is explicitly justified against the 60B URL requirement (3.5T >> 60B), which shows numbers propagating into design. However, component sizing is never reached — no estimate for Redis memory footprint, number of DB shards, or cache hit ratio assumptions. No sanity checks or identification of fragile assumptions.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component in the diagram serves a stated requirement: Redis is tied to the 100:1 read-heavy workload, KGS to collision-free ID generation, NoSQL to key-value access patterns and horizontal scaling. The Mermaid diagram shows a separate write and read path, and the redirection logic section traces data flow end-to-end step by step. The 302 choice is explicitly traced back to analytics requirements. Minor conflation of KGS and Zookeeper as separate diagram nodes vs. one logical unit is a small imprecision but not a contradiction.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Two substantive deep-dives are present: (1) the shortening algorithm explains the mechanism concretely (Zookeeper assigns ID ranges to servers, servers convert local counter to Base62) with the hash-vs-counter tradeoff table providing reasoning; (2) the redirection logic details a specific cache-check flow and explains the 301 vs. 302 tradeoff with business consequences. The viral URL section names thundering herd explicitly and proposes a non-obvious mitigation (local LRU on redirect service instances as a second cache tier), which is a genuine non-obvious failure mode addressed specifically.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Two concrete tradeoffs are tied to specific decisions with reasoning: hash vs. counter (stateless vs. collision-free) and 301 vs. 302 (SEO/load reduction vs. analytics). The failure table covers four distinct scenarios (Redis crash, Range Handler down, DB partition overload, data growth) each with specific mitigations (Redis Sentinel/Cluster, buffer ranges, consistent hashing, TTL). The thundering herd is a non-obvious failure mode explicitly surfaced and addressed. What prevents a 5 is the absence of quantified tradeoff costs and no explicit acknowledgment of the design's own limits.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

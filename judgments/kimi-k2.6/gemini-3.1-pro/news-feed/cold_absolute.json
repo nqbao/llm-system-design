@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemini-3.1-pro/news-feed_cold.json",
+  "question_id": "news-feed",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T06:42:52.406504+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with clear functional requirements (publishing, feed, social graph) and non-functional requirements (high availability, low latency, eventual consistency, scale). However, the non-functionals lack quantified targets—'fast' is stated as '< 200ms' which is good, but 'highly available' and 'massive global traffic' are not quantified with specific SLAs (e.g., 99.99% availability). No explicit non-goals are stated, and no ambiguity in the prompt is resolved. The assumptions are stated (DAU, reads, writes, followers, post size) but not justified beyond being 'typical' social media numbers.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives QPS, storage, and memory estimates from stated assumptions with clear arithmetic. The read/write ratio observation (50:1) is noted and used to justify read-optimization. The memory estimate for Redis (96 GB) is explicitly connected to the caching strategy. However, the numbers don't fully propagate into specific component sizing decisions (e.g., 'we need N shards because each handles X QPS'). No sanity-check on the 11 TB/year figure, and no fragile assumptions are flagged. The 'observation' about I/O and fanout being bottlenecks is good but not quantified.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is connected to specific requirements: Kafka for async fanout, Redis for feed cache, Cassandra for write-heavy posts, separate services for post/fanout/feed/graph. The hybrid fanout approach directly addresses the celebrity problem derived from capacity estimation. Data flow is traceable end-to-end with clear write/read path descriptions. No hallucinated services. However, the Graph DB is vaguely specified as 'Relational Sharded or Graph-specific' without committing to a mechanism, and the CDN is mentioned in the diagram but barely discussed in the narrative.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Two strong deep-dives: (1) The Hybrid Fanout mechanism with concrete threshold (100K followers), explicit merge logic, and latency math (5 extra calls < 50ms). (2) The tradeoff table with specific reasoning for Cassandra over PostgreSQL, caching IDs vs full posts, Kafka vs synchronous calls, and Snowflake IDs. The hot partition mitigation includes a concrete mechanism (user_id_YYYYMM time bucketing). However, no non-obvious edge case is surfaced in the deep-dives—the thundering herd is mentioned but as a generic failure mode, not explored with specific mechanism (e.g., how circuit breaker thresholds are set, or how the 'popular' feed is constructed).",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Four specific tradeoffs are quantified and tied to decisions in the table format. Failure modes section addresses four scenarios with specific mitigations: Redis down (circuit breaker + graceful degradation), Kafka lag (auto-scale), hot partitions (time bucketing), spam (rate limiting). The thundering herd is named specifically. However, tradeoffs are not quantified with numbers (e.g., no 'strong consistency adds ~20ms p99'). The design does not explicitly acknowledge its own limits with 'this design cannot handle X; if that becomes a requirement we'd need Y'. No non-obvious failure mode like partial network partition, GC tail latency, or time-of-check-to-time-of-use is surfaced.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with clear functional requirements (publishing, feed, social graph) and non-functional requirements (high availability, low latency, eventual consistency, scale). However, the non-functionals lack quantified targets—'fast' is stated as '< 200ms' which is good, but 'highly available' and 'massive global traffic' are not quantified with specific SLAs (e.g., 99.99% availability). No explicit non-goals are stated, and no ambiguity in the prompt is resolved. The assumptions are stated (DAU, reads, writes, followers, post size) but not justified beyond being 'typical' social media numbers.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The response derives QPS, storage, and memory estimates from stated assumptions with clear arithmetic. The read/write ratio observation (50:1) is noted and used to justify read-optimization. The memory estimate for Redis (96 GB) is explicitly connected to the caching strategy. However, the numbers don't fully propagate into specific component sizing decisions (e.g., 'we need N shards because each handles X QPS'). No sanity-check on the 11 TB/year figure, and no fragile assumptions are flagged. The 'observation' about I/O and fanout being bottlenecks is good but not quantified.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component is connected to specific requirements: Kafka for async fanout, Redis for feed cache, Cassandra for write-heavy posts, separate services for post/fanout/feed/graph. The hybrid fanout approach directly addresses the celebrity problem derived from capacity estimation. Data flow is traceable end-to-end with clear write/read path descriptions. No hallucinated services. However, the Graph DB is vaguely specified as 'Relational Sharded or Graph-specific' without committing to a mechanism, and the CDN is mentioned in the diagram but barely discussed in the narrative.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Two strong deep-dives: (1) The Hybrid Fanout mechanism with concrete threshold (100K followers), explicit merge logic, and latency math (5 extra calls < 50ms). (2) The tradeoff table with specific reasoning for Cassandra over PostgreSQL, caching IDs vs full posts, Kafka vs synchronous calls, and Snowflake IDs. The hot partition mitigation includes a concrete mechanism (user_id_YYYYMM time bucketing). However, no non-obvious edge case is surfaced in the deep-dives—the thundering herd is mentioned but as a generic failure mode, not explored with specific mechanism (e.g., how circuit breaker thresholds are set, or how the 'popular' feed is constructed).\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Four specific tradeoffs are quantified and tied to decisions in the table format. Failure modes section addresses four scenarios with specific mitigations: Redis down (circuit breaker + graceful degradation), Kafka lag (auto-scale), hot partitions (time bucketing), spam (rate limiting). The thundering herd is named specifically. However, tradeoffs are not quantified with numbers (e.g., no 'strong consistency adds ~20ms p99'). The design does not explicitly acknowledge its own limits with 'this design cannot handle X; if that becomes a requirement we'd need Y'. No non-obvious failure mode like partial network partition, GC tail latency, or time-of-check-to-time-of-use is surfaced.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

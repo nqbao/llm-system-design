@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-120b/metrics-aggregation_cold.json",
+  "question_id": "metrics-aggregation",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-06T05:33:00.616067+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design starts with a clear problem statement (100B events/day, ≤few-second latency, HA, cost-aware) and includes both functional (ingest, aggregate, store, query) and non-functional requirements (throughput, latency, exactly-once, durability, availability, observability). Explicit assumptions are stated (event size, key cardinality) and quantified SLAs are provided (99.9% availability, RPO ~30s, RTO ~2min). However, it does not set explicit non-goals (e.g., 'not building a sub-100ms alerting pipeline'), which prevents a score of 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The response provides a detailed estimation chain: starting from 100B events/day, it derives 1.2M events/s, event size (60B), bandwidth (72MB/s raw, 1.8Gbps with replication), daily volume (3TB after compression), state size (1.92GB for 30M keys), CPU requirements (18 vCPU → 40 with headroom), and network I/O. These numbers drive design choices (10k partitions, 64 Flink slots, ClickHouse shard sizing). It flags fragile assumptions (safety factors for CPU 30%, network 40%) and sanity-checks with rounding and real-world variance considerations, meeting level 5 criteria.",
+        "score": 5
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (Kafka, Flink, ClickHouse, Redis, API) is justified against specific requirements (e.g., Kafka for durability/exactly-once, Flink for low-latency windows, ClickHouse for columnar analytics). The data flow is traceable end-to-end (Producer → Kafka → Flink → ClickHouse/Redis → API → Dashboard). ASCII and Mermaid diagrams reinforce coherence. No hallucinations; all choices are standard and well-explained. While it does not explicitly avoid a non-obvious anti-pattern, the connections are sensible and the architecture is genuinely informative, earning a score of 4.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The design zooms into multiple components with concrete mechanisms: Flink job graph (window types, watermarks, side outputs), RocksDB state backend (checkpointing, SSD sizing), ClickHouse schema (ReplicatedMergeTree, sharding key, partition by date), and Redis cache (population via side-output, TTL, LRU). Tradeoffs are named (e.g., RocksDB I/O bottleneck, write amplification for ClickHouse, late events handled via side-output). An edge case (late-arriving events beyond watermark) is specifically addressed, demonstrating depth. This meets level 5 criteria.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "A dedicated trade-offs section compares 6 design choices (Kafka vs Spark, RocksDB vs StateFun, ClickHouse vs Druid, Redis vs Materialized Views, ProtoBuf vs JSON, multi-AZ vs single) with pros, cons, and when to pick alternatives. Failure modes are enumerated in a table for each component (Kafka broker down, Flink crash, RocksDB corruption, ClickHouse node loss, Redis miss) with detection, mitigation, and recovery steps. Specific mitigations include idempotent producers, incremental checkpoints, and replica promotion. The design acknowledges its limits (e.g., 'if latency <1s is not critical, a micro-batch system may be simpler') and surfaces non-obvious failures (RocksDB I/O bottleneck, write amplification in ClickHouse, late-event handling). This satisfies level 5.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The design starts with a clear problem statement (100B events/day, ≤few-second latency, HA, cost-aware) and includes both functional (ingest, aggregate, store, query) and non-functional requirements (throughput, latency, exactly-once, durability, availability, observability). Explicit assumptions are stated (event size, key cardinality) and quantified SLAs are provided (99.9% availability, RPO ~30s, RTO ~2min). However, it does not set explicit non-goals (e.g., 'not building a sub-100ms alerting pipeline'), which prevents a score of 5.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The response provides a detailed estimation chain: starting from 100B events/day, it derives 1.2M events/s, event size (60B), bandwidth (72MB/s raw, 1.8Gbps with replication), daily volume (3TB after compression), state size (1.92GB for 30M keys), CPU requirements (18 vCPU → 40 with headroom), and network I/O. These numbers drive design choices (10k partitions, 64 Flink slots, ClickHouse shard sizing). It flags fragile assumptions (safety factors for CPU 30%, network 40%) and sanity-checks with rounding and real-world variance considerations, meeting level 5 criteria.\",\n    \"score\": 5\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (Kafka, Flink, ClickHouse, Redis, API) is justified against specific requirements (e.g., Kafka for durability/exactly-once, Flink for low-latency windows, ClickHouse for columnar analytics). The data flow is traceable end-to-end (Producer → Kafka → Flink → ClickHouse/Redis → API → Dashboard). ASCII and Mermaid diagrams reinforce coherence. No hallucinations; all choices are standard and well-explained. While it does not explicitly avoid a non-obvious anti-pattern, the connections are sensible and the architecture is genuinely informative, earning a score of 4.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The design zooms into multiple components with concrete mechanisms: Flink job graph (window types, watermarks, side outputs), RocksDB state backend (checkpointing, SSD sizing), ClickHouse schema (ReplicatedMergeTree, sharding key, partition by date), and Redis cache (population via side-output, TTL, LRU). Tradeoffs are named (e.g., RocksDB I/O bottleneck, write amplification for ClickHouse, late events handled via side-output). An edge case (late-arriving events beyond watermark) is specifically addressed, demonstrating depth. This meets level 5 criteria.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"A dedicated trade-offs section compares 6 design choices (Kafka vs Spark, RocksDB vs StateFun, ClickHouse vs Druid, Redis vs Materialized Views, ProtoBuf vs JSON, multi-AZ vs single) with pros, cons, and when to pick alternatives. Failure modes are enumerated in a table for each component (Kafka broker down, Flink crash, RocksDB corruption, ClickHouse node loss, Redis miss) with detection, mitigation, and recovery steps. Specific mitigations include idempotent producers, incremental checkpoints, and replica promotion. The design acknowledges its limits (e.g., 'if latency <1s is not critical, a micro-batch system may be simpler') and surfaces non-obvious failures (RocksDB I/O bottleneck, write amplification in ClickHouse, late-event handling). This satisfies level 5.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-02/kimi-k2.6/news-feed_cold.json",
+  "question_id": "news-feed",
+  "variant": "cold",
+  "model_under_test": "kimi-k2.6",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-03T00:14:30.258045+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response includes both functional and non-functional requirements with quantified targets: p99 feed load < 200ms, 99.99% availability, 250M DAU, 10 reads/DAU/day. It states explicit assumptions (scale, read/write ratio, fan-out threshold). However, it does not set explicit non-goals ('we are NOT building X') nor does it resolve an ambiguity in the prompt by acknowledging the choice and noting where the design changes at different scales. It comes close to a 4 but lacks the non-goals and ambiguity-resolution that would push it to a 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The response has a full estimation chain: DAU → feed reads RPS (with peak multiplier) → post write rate → fan-out writes → storage (post metadata, media, timeline cache) → 5-year storage with replication. Numbers propagate into design decisions: the 4TB Redis figure drives the Redis cluster sizing, the 215k peak fan-out writes/s drives the 40-node Redis cluster justification, and the fan-out threshold is derived from the follower distribution. The response also sanity-checks the Redis cluster capacity ('40-node Redis Cluster, we have headroom for 4M+ ops/s aggregate'). It does not explicitly flag which assumptions are fragile or do a full sanity check like '10PB/year — does that make sense?' but it's very close to a 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against a specific requirement or capacity number: Cassandra for write-heavy post storage, Redis for O(1) timeline reads, Kafka for async fan-out decoupling, Elasticsearch for search, distributed SQL for ACID graph operations. The Mermaid diagram provides a clear end-to-end data flow. The hybrid fan-out is explicitly justified against the celebrity write-storm problem. The response also identifies and avoids an anti-pattern: pure push fails at celebrity scale, pure pull destroys latency. No hallucinated services are present.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are present: (1) Cassandra schema with specific partition key rationale, consistency level choices, and LeveledCompactionStrategy; (2) Redis timeline design with ZSET, ID-only storage rationale, TTL with jitter, and rebuild strategy; (3) Social graph dual-table design with sharding rationale; (4) Hybrid fan-out mechanism with concrete write and read path steps. Each deep-dive includes named tradeoffs with reasoning. Non-obvious failure modes are surfaced: hot key celebrity read stampede with singleflight coalescing, cache stampede with probabilistic early refresh, and staggered TTLs to avoid mass expiry. This is genuinely exceptional depth.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The tradeoffs table explicitly compares alternatives with quantified or concretely scoped reasoning (e.g., '50M writes/post' for celebrity push, '4TB RAM' cost for materialized timelines). Six distinct failure modes are addressed with specific mitigations: Kafka backpressure with degradation switch, celebrity read stampede with singleflight, Redis timeline loss with rebuild, cache stampede with circuit breaker, social graph split-brain with Raft consensus, and cascading failure with bulkheads. The design acknowledges its own limits implicitly (e.g., 1-2 second eventual consistency delay, 20-minute rebuild time). Non-obvious failure modes like thundering herd and cascading failure via thread pool exhaustion are explicitly addressed. This is exceptional.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response includes both functional and non-functional requirements with quantified targets: p99 feed load < 200ms, 99.99% availability, 250M DAU, 10 reads/DAU/day. It states explicit assumptions (scale, read/write ratio, fan-out threshold). However, it does not set explicit non-goals ('we are NOT building X') nor does it resolve an ambiguity in the prompt by acknowledging the choice and noting where the design changes at different scales. It comes close to a 4 but lacks the non-goals and ambiguity-resolution that would push it to a 5.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The response has a full estimation chain: DAU → feed reads RPS (with peak multiplier) → post write rate → fan-out writes → storage (post metadata, media, timeline cache) → 5-year storage with replication. Numbers propagate into design decisions: the 4TB Redis figure drives the Redis cluster sizing, the 215k peak fan-out writes/s drives the 40-node Redis cluster justification, and the fan-out threshold is derived from the follower distribution. The response also sanity-checks the Redis cluster capacity ('40-node Redis Cluster, we have headroom for 4M+ ops/s aggregate'). It does not explicitly flag which assumptions are fragile or do a full sanity check like '10PB/year — does that make sense?' but it's very close to a 5.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified against a specific requirement or capacity number: Cassandra for write-heavy post storage, Redis for O(1) timeline reads, Kafka for async fan-out decoupling, Elasticsearch for search, distributed SQL for ACID graph operations. The Mermaid diagram provides a clear end-to-end data flow. The hybrid fan-out is explicitly justified against the celebrity write-storm problem. The response also identifies and avoids an anti-pattern: pure push fails at celebrity scale, pure pull destroys latency. No hallucinated services are present.\", \"score\": 5}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives are present: (1) Cassandra schema with specific partition key rationale, consistency level choices, and LeveledCompactionStrategy; (2) Redis timeline design with ZSET, ID-only storage rationale, TTL with jitter, and rebuild strategy; (3) Social graph dual-table design with sharding rationale; (4) Hybrid fan-out mechanism with concrete write and read path steps. Each deep-dive includes named tradeoffs with reasoning. Non-obvious failure modes are surfaced: hot key celebrity read stampede with singleflight coalescing, cache stampede with probabilistic early refresh, and staggered TTLs to avoid mass expiry. This is genuinely exceptional depth.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The tradeoffs table explicitly compares alternatives with quantified or concretely scoped reasoning (e.g., '50M writes/post' for celebrity push, '4TB RAM' cost for materialized timelines). Six distinct failure modes are addressed with specific mitigations: Kafka backpressure with degradation switch, celebrity read stampede with singleflight, Redis timeline loss with rebuild, cache stampede with circuit breaker, social graph split-brain with Raft consensus, and cascading failure with bulkheads. The design acknowledges its own limits implicitly (e.g., 1-2 second eventual consistency delay, 20-minute rebuild time). Non-obvious failure modes like thundering herd and cascading failure via thread pool exhaustion are explicitly addressed. This is exceptional.\", \"score\": 5}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

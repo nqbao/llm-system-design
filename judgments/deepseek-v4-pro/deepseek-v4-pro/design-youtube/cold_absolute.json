@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/deepseek-v4-pro/design-youtube_cold.json",
+  "question_id": "design-youtube",
+  "variant": "cold",
+  "model_under_test": "deepseek-v4-pro",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T07:25:53.326136+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response clearly lists functional and non-functional requirements with specific quantified targets (99.95% uptime, <2s latency, 500M DAU, 1B video watches/day). It also provides an explicit 'Out of scope' list as non-goals and implicitly resolves scale ambiguity by setting these numbers, meeting all criteria for a score of 5.",
+        "score": 5
+      },
+      "capacity_estimation": {
+        "reasoning": "The capacity estimation is thorough, deriving QPS, storage, and bandwidth from stated assumptions and using them to drive design choices (e.g., CDN bandwidth drives multi-CDN strategy, metadata QPS drives caching). However, it does not explicitly flag fragile assumptions or include a sanity check on the results (e.g., '1.3 EB/year — does that make sense?'), so it does not meet the criteria for a 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against requirements or capacity numbers, and the data flow is clearly traceable (e.g., upload → Kafka → processing → S3 → CDN). The diagram and descriptions are informative and free of hallucinations. It fully meets the criteria for a 4, but lacks a stronger architectural insight like explicitly avoiding an anti-pattern to reach 5.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response includes multiple deep-dives with concrete mechanisms, such as the upload flow with chunking and idempotency, transcoding pipeline with compute scaling and cost tradeoff, and CDN with origin shielding to avoid thundering herd. The thundering herd and hot partition issues are specifically addressed, meeting the criteria for a 5 by surfacing a non-obvious edge case.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design includes explicit tradeoffs tied to specific decisions (e.g., pre-compute vs. on-demand transcoding, SQL vs. NoSQL) and a dedicated failure analysis section with mitigations for non-obvious failures like thundering herd CDN cache cascades and hot partition in metadata. It also acknowledges long-term cost challenges as a limit, meeting the criteria for a 5.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response clearly lists functional and non-functional requirements with specific quantified targets (99.95% uptime, <2s latency, 500M DAU, 1B video watches/day). It also provides an explicit 'Out of scope' list as non-goals and implicitly resolves scale ambiguity by setting these numbers, meeting all criteria for a score of 5.\",\n    \"score\": 5\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The capacity estimation is thorough, deriving QPS, storage, and bandwidth from stated assumptions and using them to drive design choices (e.g., CDN bandwidth drives multi-CDN strategy, metadata QPS drives caching). However, it does not explicitly flag fragile assumptions or include a sanity check on the results (e.g., '1.3 EB/year — does that make sense?'), so it does not meet the criteria for a 5.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component is justified against requirements or capacity numbers, and the data flow is clearly traceable (e.g., upload → Kafka → processing → S3 → CDN). The diagram and descriptions are informative and free of hallucinations. It fully meets the criteria for a 4, but lacks a stronger architectural insight like explicitly avoiding an anti-pattern to reach 5.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response includes multiple deep-dives with concrete mechanisms, such as the upload flow with chunking and idempotency, transcoding pipeline with compute scaling and cost tradeoff, and CDN with origin shielding to avoid thundering herd. The thundering herd and hot partition issues are specifically addressed, meeting the criteria for a 5 by surfacing a non-obvious edge case.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The design includes explicit tradeoffs tied to specific decisions (e.g., pre-compute vs. on-demand transcoding, SQL vs. NoSQL) and a dedicated failure analysis section with mitigations for non-obvious failures like thundering herd CDN cache cascades and hot partition in metadata. It also acknowledges long-term cost challenges as a limit, meeting the criteria for a 5.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

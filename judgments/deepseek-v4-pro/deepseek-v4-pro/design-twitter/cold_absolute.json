@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/deepseek-v4-pro/design-twitter_cold.json",
+  "question_id": "design-twitter",
+  "variant": "cold",
+  "model_under_test": "deepseek-v4-pro",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T07:17:57.074395+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists both functional and non-functional requirements with quantified targets (99.99% uptime, <200ms post latency, <500ms p95 timeline latency). Assumptions on scale (500M users, 300M DAU) are explicit. It sets non-goals in an 'Out of Scope' section, though there is a minor contradiction with functional search including trending hashtags. This meets level 4.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Derives QPS, storage, and bandwidth from stated assumptions (e.g., 2 tweets/user/day, 5 timeline refreshes). The numbers drive design decisions: fanout volume of 700k pushes/s justifies Redis capacity, media storage estimates justify S3/CDN separation. However, component sizing is qualitative rather than quantified (e.g., nodes, shards). Level 4.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component in the diagram (Tweet Service, Timeline Service, Kafka, Redis, Cassandra, Elasticsearch) is tied to a specific requirement (posting, timeline, async fanout, caching, persistent storage, search). Data flow is traceable: write path through Kafka to fanout and indexing, read path with cache-first, pull fallback. The design is coherent with no hallucinations. Level 4.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The fanout logic deep-dive provides concrete mechanism (push to Redis lists with trimming, pull for heavy followees with threshold) and a named tradeoff. The Cassandra data model deep-dive details partition keys, clustering keys, and per-user table. At least two deep-dives with reasoning about tradeoffs. Level 4.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "A table of failure scenarios with specific mitigations (e.g., Redis crash -> circuit breaker to DB, Kafka lag -> monitor, auto-scale). Tradeoffs section explicitly compares push vs pull, eventual consistency, media storage, etc. Failure modes are detailed. Level 4.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response lists both functional and non-functional requirements with quantified targets (99.99% uptime, <200ms post latency, <500ms p95 timeline latency). Assumptions on scale (500M users, 300M DAU) are explicit. It sets non-goals in an 'Out of Scope' section, though there is a minor contradiction with functional search including trending hashtags. This meets level 4.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Derives QPS, storage, and bandwidth from stated assumptions (e.g., 2 tweets/user/day, 5 timeline refreshes). The numbers drive design decisions: fanout volume of 700k pushes/s justifies Redis capacity, media storage estimates justify S3/CDN separation. However, component sizing is qualitative rather than quantified (e.g., nodes, shards). Level 4.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component in the diagram (Tweet Service, Timeline Service, Kafka, Redis, Cassandra, Elasticsearch) is tied to a specific requirement (posting, timeline, async fanout, caching, persistent storage, search). Data flow is traceable: write path through Kafka to fanout and indexing, read path with cache-first, pull fallback. The design is coherent with no hallucinations. Level 4.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The fanout logic deep-dive provides concrete mechanism (push to Redis lists with trimming, pull for heavy followees with threshold) and a named tradeoff. The Cassandra data model deep-dive details partition keys, clustering keys, and per-user table. At least two deep-dives with reasoning about tradeoffs. Level 4.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"A table of failure scenarios with specific mitigations (e.g., Redis crash -> circuit breaker to DB, Kafka lag -> monitor, auto-scale). Tradeoffs section explicitly compares push vs pull, eventual consistency, media storage, etc. Failure modes are detailed. Level 4.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

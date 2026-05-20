@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemma-4-31b-it/design-twitter_cold.json",
+  "question_id": "design-twitter",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T06:11:20.094549+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Both functional and non-functional requirements are clearly stated with explicit scale assumptions (300M MAU, 200M DAU, 100:1 read/write ratio). One NFR is quantified (<200ms feed latency). However, no availability percentage or durability guarantee is stated, no non-goals are declared, and no ambiguities from the prompt are resolved with explicit reasoning about what changes at different scales. Assumptions are stated but not justified.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "A solid derivation chain exists: DAU to tweets/day to Write QPS (~1,160), DAU to feed requests/day to Read QPS (~23,148), peak at 3x (~70k). Storage for text (~10TB/year), media (~3.6PB/year), and social graph (~640GB) are all derived. However, numbers only partially propagate into design decisions — the 70k read QPS is not used to size Redis nodes or shards, and the 3.6PB media figure is not used to justify CDN or S3 tiering. No fragile assumptions are flagged and no sanity checks are performed.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component serves a stated requirement: Cassandra for high write throughput, Redis for low-latency feed reads, Kafka for async fan-out, Elasticsearch for search, S3+CDN for media. Data flow is traceable end-to-end and a Mermaid diagram is present. The hybrid fan-out approach is a non-obvious but more correct choice over pure push or pull, and the response explains why both naive approaches fail before introducing the hybrid. No hallucinated or decorative components are present.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "There are multiple concrete deep-dives: the Cassandra schema specifies partition key (user_id) and clustering key (tweet_id, time-sorted); the Redis feed cache specifies Sorted Set with timestamp scores and a 1,000 tweet-ID retention cap; the hybrid fan-out threshold is set at 100k followers with explicit reasoning. The tradeoff between push and pull is explained with asymptotic complexity. However, no non-obvious edge case or failure mode is surfaced within the deep-dives themselves (the thundering herd is addressed separately in failure analysis but not integrated into the component design).",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Four specific failure modes are identified with mitigations: thundering herd (read-through caching), Redis memory exhaustion (LRU eviction + cold recompute), Kafka consumer lag (partition by user_id, horizontal scaling), and Cassandra hotspots (composite partition key). The tradeoff table ties decisions to specific justifications. However, tradeoffs are not quantified (e.g., no latency cost assigned to the pull merge step for celebrities), the design does not acknowledge its own limits, and the thundering herd mitigation mentions Varnish without explaining how it interacts with the existing Redis layer.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"Both functional and non-functional requirements are clearly stated with explicit scale assumptions (300M MAU, 200M DAU, 100:1 read/write ratio). One NFR is quantified (<200ms feed latency). However, no availability percentage or durability guarantee is stated, no non-goals are declared, and no ambiguities from the prompt are resolved with explicit reasoning about what changes at different scales. Assumptions are stated but not justified.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"A solid derivation chain exists: DAU to tweets/day to Write QPS (~1,160), DAU to feed requests/day to Read QPS (~23,148), peak at 3x (~70k). Storage for text (~10TB/year), media (~3.6PB/year), and social graph (~640GB) are all derived. However, numbers only partially propagate into design decisions — the 70k read QPS is not used to size Redis nodes or shards, and the 3.6PB media figure is not used to justify CDN or S3 tiering. No fragile assumptions are flagged and no sanity checks are performed.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component serves a stated requirement: Cassandra for high write throughput, Redis for low-latency feed reads, Kafka for async fan-out, Elasticsearch for search, S3+CDN for media. Data flow is traceable end-to-end and a Mermaid diagram is present. The hybrid fan-out approach is a non-obvious but more correct choice over pure push or pull, and the response explains why both naive approaches fail before introducing the hybrid. No hallucinated or decorative components are present.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"There are multiple concrete deep-dives: the Cassandra schema specifies partition key (user_id) and clustering key (tweet_id, time-sorted); the Redis feed cache specifies Sorted Set with timestamp scores and a 1,000 tweet-ID retention cap; the hybrid fan-out threshold is set at 100k followers with explicit reasoning. The tradeoff between push and pull is explained with asymptotic complexity. However, no non-obvious edge case or failure mode is surfaced within the deep-dives themselves (the thundering herd is addressed separately in failure analysis but not integrated into the component design).\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Four specific failure modes are identified with mitigations: thundering herd (read-through caching), Redis memory exhaustion (LRU eviction + cold recompute), Kafka consumer lag (partition by user_id, horizontal scaling), and Cassandra hotspots (composite partition key). The tradeoff table ties decisions to specific justifications. However, tradeoffs are not quantified (e.g., no latency cost assigned to the pull merge step for celebrities), the design does not acknowledge its own limits, and the thundering herd mitigation mentions Varnish without explaining how it interacts with the existing Redis layer.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/claude-sonnet-4.6/distributed-rate-limiter_cold.json",
+  "question_id": "distributed-rate-limiter",
+  "variant": "cold",
+  "model_under_test": "claude-sonnet-4.6",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T15:02:16.188082+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with explicit functional requirements (5 bullet points covering dimensions, plans, window semantics, headers, rule engine) and non-functional requirements in a table with quantified targets (P99 < 2ms, 500K RPS, ≤0.1% over-admission, 99.99% Redis availability, <5s config propagation). It states assumptions implicitly through these targets but does not set explicit non-goals or resolve ambiguities in the prompt (the prompt itself is not shown, so we cannot verify this). The requirements are well-scoped and justified by the design that follows, but lack explicit 'we are NOT building X' statements or ambiguity resolution from a prompt.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Full estimation chain present: 500K RPS → 10K RPS/node (50 nodes) → 1.5M Redis ops/sec without L1 → 300K with 80% L1 hit rate → 100K ops/primary. Memory sizing: 60M keys × 170B = 10.2GB cluster-wide, ~3.4GB per primary. Latency budget weighted average calculated: 0.14ms avg, 1.5ms P99. Gateway memory: 20MB/node. Numbers demonstrably drive design (100K/primary 'well within Redis 200K limit', 3.4GB 'comfortable on 16GB nodes', 0.14ms 'within 2ms budget'). However, no explicit sanity-check on totals ('does 10.2GB make sense?') or fragility flags on assumptions (e.g., what if L1 hit rate drops to 60%?).",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified: LB (edge routing), Gateway nodes (L1 cache + middleware), Redis Cluster (L2 source of truth with slot distribution), Config Service (etcd-backed, gRPC watch), Analytics Sink (Kafka→ClickHouse). Data flow is traceable end-to-end with mermaid diagrams. No hallucinated services—Redis, etcd, Kafka, ClickHouse are standard and appropriately used. The design explicitly avoids anti-patterns: 'no cross-region synchronous calls' (section 11), server-side timestamps in Lua (section 12). Architecture description is genuinely informative with specific slot ranges (0-5460, etc.).",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep dives with concrete mechanisms: (1) Sliding window counter formula with worked example (800×0.25+200=400), error bound analysis; (2) L1 token bucket with node_weight formula and sync interval; (3) Redis data model with key schema, hash tags, TTL math; (4) Complete Lua script with all parameters and return values; (5) Multi-region reconciler with quota redistribution algorithm. Tradeoffs named with reasoning: sliding window counter chosen over token bucket 'needs CRDT or Lua CAS loop'. Edge case addressed: 'Worst-case over-admission: global_limit × (1 + skew_factor)'. However, no explicit discussion of hot key problems (what if one API key dominates a shard?) or GC tail latency in Lua.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Six explicit tradeoffs in table format (section 16), each with chosen, alternative, and reason—quantified where possible ('5-10× Redis load reduction with <0.5% accuracy loss'). Failure modes table in section 12 covers: single primary down, full cluster unreachable, network partition, gateway node failure, config service failure, clock skew, thundering herd on reconnect—with specific mitigations (fail-open with 50% limits, staggered reconnect with jitter formula, circuit breaker half-open after 5s). Design acknowledges its own limits: 'Worst-case over-admission: global_limit × (1 + skew_factor) for one reconcile cycle'. Non-obvious failure mode: thundering herd on Redis reconnect with specific jitter formula. Missing: explicit 'this design cannot handle X' statement for a fundamental limitation.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with explicit functional requirements (5 bullet points covering dimensions, plans, window semantics, headers, rule engine) and non-functional requirements in a table with quantified targets (P99 < 2ms, 500K RPS, ≤0.1% over-admission, 99.99% Redis availability, <5s config propagation). It states assumptions implicitly through these targets but does not set explicit non-goals or resolve ambiguities in the prompt (the prompt itself is not shown, so we cannot verify this). The requirements are well-scoped and justified by the design that follows, but lack explicit 'we are NOT building X' statements or ambiguity resolution from a prompt.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"Full estimation chain present: 500K RPS → 10K RPS/node (50 nodes) → 1.5M Redis ops/sec without L1 → 300K with 80% L1 hit rate → 100K ops/primary. Memory sizing: 60M keys × 170B = 10.2GB cluster-wide, ~3.4GB per primary. Latency budget weighted average calculated: 0.14ms avg, 1.5ms P99. Gateway memory: 20MB/node. Numbers demonstrably drive design (100K/primary 'well within Redis 200K limit', 3.4GB 'comfortable on 16GB nodes', 0.14ms 'within 2ms budget'). However, no explicit sanity-check on totals ('does 10.2GB make sense?') or fragility flags on assumptions (e.g., what if L1 hit rate drops to 60%?).\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified: LB (edge routing), Gateway nodes (L1 cache + middleware), Redis Cluster (L2 source of truth with slot distribution), Config Service (etcd-backed, gRPC watch), Analytics Sink (Kafka→ClickHouse). Data flow is traceable end-to-end with mermaid diagrams. No hallucinated services—Redis, etcd, Kafka, ClickHouse are standard and appropriately used. The design explicitly avoids anti-patterns: 'no cross-region synchronous calls' (section 11), server-side timestamps in Lua (section 12). Architecture description is genuinely informative with specific slot ranges (0-5460, etc.).\", \"score\": 5}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep dives with concrete mechanisms: (1) Sliding window counter formula with worked example (800×0.25+200=400), error bound analysis; (2) L1 token bucket with node_weight formula and sync interval; (3) Redis data model with key schema, hash tags, TTL math; (4) Complete Lua script with all parameters and return values; (5) Multi-region reconciler with quota redistribution algorithm. Tradeoffs named with reasoning: sliding window counter chosen over token bucket 'needs CRDT or Lua CAS loop'. Edge case addressed: 'Worst-case over-admission: global_limit × (1 + skew_factor)'. However, no explicit discussion of hot key problems (what if one API key dominates a shard?) or GC tail latency in Lua.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Six explicit tradeoffs in table format (section 16), each with chosen, alternative, and reason—quantified where possible ('5-10× Redis load reduction with <0.5% accuracy loss'). Failure modes table in section 12 covers: single primary down, full cluster unreachable, network partition, gateway node failure, config service failure, clock skew, thundering herd on reconnect—with specific mitigations (fail-open with 50% limits, staggered reconnect with jitter formula, circuit breaker half-open after 5s). Design acknowledges its own limits: 'Worst-case over-admission: global_limit × (1 + skew_factor) for one reconcile cycle'. Non-obvious failure mode: thundering herd on Redis reconnect with specific jitter formula. Missing: explicit 'this design cannot handle X' statement for a fundamental limitation.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

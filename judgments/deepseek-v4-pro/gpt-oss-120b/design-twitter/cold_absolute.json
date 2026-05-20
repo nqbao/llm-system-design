@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-120b/design-twitter_cold.json",
+  "question_id": "design-twitter",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-06T05:37:01.998539+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Clear functional and non-functional requirements. Non-functionals quantified with SLA targets (latency, availability, RPO/RTO). Explicit scale assumptions (100M DAU, 5 tweets/user, burst factor). No explicit non-goals stated, nor resolution of prompt ambiguity (e.g., 'the prompt doesn't specify, so we pick 100M users'). So score 4.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Full estimation chain from assumptions to QPS (15k write TPS, 150k read TPS), storage (150 GB/day, 22 TB/year), bandwidth, and component sizing (25 Cassandra nodes, 10 Redis nodes, etc.). A safety buffer is mentioned, but no explicit sanity-check like 'does 22 TB/year make sense?'. Numbers drive design choices. So score 4.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (Auth, Tweet, Timeline, etc.) serves a stated requirement. Data flow traceable end-to-end via Kafka and API gateway. Hybrid fan-out choice is justified against celebrity write amplification, avoiding a naive push-everything anti-pattern. No hallucinations. Score 4.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives: fan-out on write with batching to Cassandra, hybrid read-pull for high-fan-out accounts, Redis caching with TTL, Cassandra home_timeline schema. Each has concrete mechanisms. The hybrid fan-out explicitly addresses a non-obvious edge case (hot partition from celebrities) with mitigation (flagging, fallback to pull). This meets the 5-level requirement of surfacing a non-obvious failure mode (hot key/thundering herd) and addressing it.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Comprehensive tradeoffs table covering consistency models, fan-out strategies, and storage choices, all tied to decisions. Failure scenarios table lists specific failures with detection and mitigations (Cassandra node loss, hot partition, etc.). However, tradeoffs are not quantified with specific latency penalties (e.g., 'strong consistency adds ~20ms p99'), and the design does not explicitly acknowledge its own limits (e.g., 'this design cannot handle X'). Score 4.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"Clear functional and non-functional requirements. Non-functionals quantified with SLA targets (latency, availability, RPO/RTO). Explicit scale assumptions (100M DAU, 5 tweets/user, burst factor). No explicit non-goals stated, nor resolution of prompt ambiguity (e.g., 'the prompt doesn't specify, so we pick 100M users'). So score 4.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Full estimation chain from assumptions to QPS (15k write TPS, 150k read TPS), storage (150 GB/day, 22 TB/year), bandwidth, and component sizing (25 Cassandra nodes, 10 Redis nodes, etc.). A safety buffer is mentioned, but no explicit sanity-check like 'does 22 TB/year make sense?'. Numbers drive design choices. So score 4.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (Auth, Tweet, Timeline, etc.) serves a stated requirement. Data flow traceable end-to-end via Kafka and API gateway. Hybrid fan-out choice is justified against celebrity write amplification, avoiding a naive push-everything anti-pattern. No hallucinations. Score 4.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives: fan-out on write with batching to Cassandra, hybrid read-pull for high-fan-out accounts, Redis caching with TTL, Cassandra home_timeline schema. Each has concrete mechanisms. The hybrid fan-out explicitly addresses a non-obvious edge case (hot partition from celebrities) with mitigation (flagging, fallback to pull). This meets the 5-level requirement of surfacing a non-obvious failure mode (hot key/thundering herd) and addressing it.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Comprehensive tradeoffs table covering consistency models, fan-out strategies, and storage choices, all tied to decisions. Failure scenarios table lists specific failures with detection and mitigations (Cassandra node loss, hot partition, etc.). However, tradeoffs are not quantified with specific latency penalties (e.g., 'strong consistency adds ~20ms p99'), and the design does not explicitly acknowledge its own limits (e.g., 'this design cannot handle X'). Score 4.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

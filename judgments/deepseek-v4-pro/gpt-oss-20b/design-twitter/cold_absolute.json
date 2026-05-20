@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-20b/design-twitter_cold.json",
+  "question_id": "design-twitter",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-20b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T07:37:10.593178+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design starts with a clear, scoped problem statement and explicit scale assumptions (500M users justified). Both functional and non-functional requirements are stated, and non-functionals are quantified with specific targets (99.99% availability, ≤150ms p95 latency). Assumptions are stated and justified. However, it does not set explicit non-goals or resolve an ambiguity with a stated threshold, so it does not reach level 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Detailed capacity calculations are present: derives QPS (11k writes/s, 46k reads/s, peak 150k reads, 20k writes), storage estimates (320 GB/day, 36 TB over 3 years), and compute sizing (104 node equivalents). The numbers propagate into component sizing (node counts per service). However, it does not flag fragile assumptions or sanity-check results, so it does not meet level 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "The architecture is clearly described with a diagram, and every component serves a stated requirement. Connections are sensible, and data flow is traceable end-to-end. The component deep-dive table provides justification for technology choices, making the description genuinely informative. No hallucinations or dead weight. It does not explicitly avoid an anti-pattern, but it is highly coherent.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response includes one concrete deep-dive in the 'Tweet Post' micro-service flow, which details steps including auth, validation, Cassandra write with replication, Kafka publish, and timeline service update with pipelining. It mentions concrete mechanisms like kafka partitioning by user_id. However, only one deep-dive is provided; two or more are required for level 4, and the deep-dive does not surface a non-obvious edge case for level 5.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design explicitly presents tradeoffs (push-vs-pull, Cassandra choice, Redis for followers) tied to specific decisions, and includes a dedicated failure modes section with specific mitigations. However, tradeoffs are not quantified or concretely scoped (e.g., latency impacts), and it does not acknowledge its own limits explicitly or surface a non-obvious failure mode, keeping it at level 3.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The design starts with a clear, scoped problem statement and explicit scale assumptions (500M users justified). Both functional and non-functional requirements are stated, and non-functionals are quantified with specific targets (99.99% availability, ≤150ms p95 latency). Assumptions are stated and justified. However, it does not set explicit non-goals or resolve an ambiguity with a stated threshold, so it does not reach level 5.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Detailed capacity calculations are present: derives QPS (11k writes/s, 46k reads/s, peak 150k reads, 20k writes), storage estimates (320 GB/day, 36 TB over 3 years), and compute sizing (104 node equivalents). The numbers propagate into component sizing (node counts per service). However, it does not flag fragile assumptions or sanity-check results, so it does not meet level 5.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"The architecture is clearly described with a diagram, and every component serves a stated requirement. Connections are sensible, and data flow is traceable end-to-end. The component deep-dive table provides justification for technology choices, making the description genuinely informative. No hallucinations or dead weight. It does not explicitly avoid an anti-pattern, but it is highly coherent.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response includes one concrete deep-dive in the 'Tweet Post' micro-service flow, which details steps including auth, validation, Cassandra write with replication, Kafka publish, and timeline service update with pipelining. It mentions concrete mechanisms like kafka partitioning by user_id. However, only one deep-dive is provided; two or more are required for level 4, and the deep-dive does not surface a non-obvious edge case for level 5.\",\n    \"score\": 3\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The design explicitly presents tradeoffs (push-vs-pull, Cassandra choice, Redis for followers) tied to specific decisions, and includes a dedicated failure modes section with specific mitigations. However, tradeoffs are not quantified or concretely scoped (e.g., latency impacts), and it does not acknowledge its own limits explicitly or surface a non-obvious failure mode, keeping it at level 3.\",\n    \"score\": 3\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/claude-sonnet-4.6/news-feed_cold.json",
+  "question_id": "news-feed",
+  "variant": "cold",
+  "model_under_test": "claude-sonnet-4.6",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T15:01:17.676083+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response provides both functional requirements (post, follow, feed, like/comment/share, notifications, pagination, global) and quantified non-functional requirements (p99 < 300ms, 99.99% uptime, 10-second eventual consistency, 100:1 read/write ratio). An explicit Out of Scope section lists search, ads, trending, and DMs. Scale assumptions are stated (500M total users, 150M DAU, 300 avg follows). What prevents a 5: the response doesn't resolve explicit ambiguities from the prompt, doesn't note where the design would change at a different scale, and assumptions are stated but not individually justified.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Full derivation chain is present: DAU to posts/day to posts/sec (3,500 avg, 10,500 peak), reads/day to reads/sec (17,500 avg, 52,000 peak), post metadata storage (110 TB/year), fan-out entries (90B/day, 720 GB/day in Redis). Numbers demonstrably propagate: Redis RAM calculation (150M x 6.4 KB ~960 GB, 2.88 TB with replication) drives specific hardware sizing. Fan-out worker parallelism is calculated (300 followers x 0.1ms = 30ms). However, some component sizing is asserted without derivation (20 Cassandra nodes, 32 Kafka partitions), and no fragile assumptions are flagged or sanity-checked.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every major component is justified against a specific requirement or constraint: Cassandra for write-heavy post storage, MySQL for strongly consistent social graph, Redis Sorted Sets for O(log N) feed reads, Kafka for async decoupling of fan-out, Feed Merger for celebrity pull. Data flow is traceable end-to-end via both a high-level flowchart and two detailed sequence diagrams. The hybrid push-pull is the non-obvious correct choice and is explicitly chosen over pure push or pure pull, with the celebrity fan-out storm identified as the specific anti-pattern avoided. No hallucinated services are present.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple genuine deep dives are present: Fan-out Service with specific threshold (1M followers), batch sizing (1,000/batch), and worker wall-time calculation; Feed Redis with 32-shard cluster, concrete memory math propagated to specific hardware, LRU eviction, and cold-start timing (~200ms); Post Service with idempotency keys, presigned S3 URLs, and Snowflake ID semantics. Named tradeoffs appear in each. The thundering herd on cache rebuild is identified as a non-obvious failure mode and addressed with probabilistic early expiration and TTL jitter. Falls short of 5 because Cassandra-specific failure modes (tombstone accumulation, GC tail latency) are not explored.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Tradeoffs are tied to specific decisions: push vs. pull fan-out with full comparison table, cursor vs. offset pagination with reasoning, eventual consistency scoped to social feeds vs. financial transactions, and feed ranking with a hybrid recommendation. The failure modes table covers 8 scenarios with specific mitigations, including the non-obvious thundering herd addressed with probabilistic early expiration and TTL jitter. What prevents a 5: no tradeoff is quantified with concrete latency or cost numbers, and the design never explicitly acknowledges its own limits ('this design cannot handle X; if that requirement arises we would need Y').",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response provides both functional requirements (post, follow, feed, like/comment/share, notifications, pagination, global) and quantified non-functional requirements (p99 < 300ms, 99.99% uptime, 10-second eventual consistency, 100:1 read/write ratio). An explicit Out of Scope section lists search, ads, trending, and DMs. Scale assumptions are stated (500M total users, 150M DAU, 300 avg follows). What prevents a 5: the response doesn't resolve explicit ambiguities from the prompt, doesn't note where the design would change at a different scale, and assumptions are stated but not individually justified.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"Full derivation chain is present: DAU to posts/day to posts/sec (3,500 avg, 10,500 peak), reads/day to reads/sec (17,500 avg, 52,000 peak), post metadata storage (110 TB/year), fan-out entries (90B/day, 720 GB/day in Redis). Numbers demonstrably propagate: Redis RAM calculation (150M x 6.4 KB ~960 GB, 2.88 TB with replication) drives specific hardware sizing. Fan-out worker parallelism is calculated (300 followers x 0.1ms = 30ms). However, some component sizing is asserted without derivation (20 Cassandra nodes, 32 Kafka partitions), and no fragile assumptions are flagged or sanity-checked.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every major component is justified against a specific requirement or constraint: Cassandra for write-heavy post storage, MySQL for strongly consistent social graph, Redis Sorted Sets for O(log N) feed reads, Kafka for async decoupling of fan-out, Feed Merger for celebrity pull. Data flow is traceable end-to-end via both a high-level flowchart and two detailed sequence diagrams. The hybrid push-pull is the non-obvious correct choice and is explicitly chosen over pure push or pure pull, with the celebrity fan-out storm identified as the specific anti-pattern avoided. No hallucinated services are present.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple genuine deep dives are present: Fan-out Service with specific threshold (1M followers), batch sizing (1,000/batch), and worker wall-time calculation; Feed Redis with 32-shard cluster, concrete memory math propagated to specific hardware, LRU eviction, and cold-start timing (~200ms); Post Service with idempotency keys, presigned S3 URLs, and Snowflake ID semantics. Named tradeoffs appear in each. The thundering herd on cache rebuild is identified as a non-obvious failure mode and addressed with probabilistic early expiration and TTL jitter. Falls short of 5 because Cassandra-specific failure modes (tombstone accumulation, GC tail latency) are not explored.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Tradeoffs are tied to specific decisions: push vs. pull fan-out with full comparison table, cursor vs. offset pagination with reasoning, eventual consistency scoped to social feeds vs. financial transactions, and feed ranking with a hybrid recommendation. The failure modes table covers 8 scenarios with specific mitigations, including the non-obvious thundering herd addressed with probabilistic early expiration and TTL jitter. What prevents a 5: no tradeoff is quantified with concrete latency or cost numbers, and the design never explicitly acknowledges its own limits ('this design cannot handle X; if that requirement arises we would need Y').\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

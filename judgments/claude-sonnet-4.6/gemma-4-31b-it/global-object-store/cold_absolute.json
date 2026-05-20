@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemma-4-31b-it/global-object-store_cold.json",
+  "question_id": "global-object-store",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T06:01:38.517250+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists both functional and non-functional requirements with quantified SLAs (11 nines durability, 99.99% availability, strong consistency). It states explicit scale assumptions (10 EB, 100K write RPS, 1M read RPS). However, it does not set explicit non-goals or resolve any ambiguity in the prompt, which would be required for a 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives total objects from storage and average object size, then computes write and read throughput. It propagates the storage number into an EC decision (14 EB raw) and propagates the metadata count into a distributed DB decision (10 PB metadata). However, it does not size the number of storage nodes, does not flag which assumptions are fragile, and does not sanity-check results (e.g., 'does 14 EB across N nodes make sense?'). The chain is solid but stops short of full component sizing.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every major component (API Gateway, Metadata Service, Placement Service, Blob Store, Scrubber) is present and connected to a stated requirement or capacity number. The Mermaid diagram clearly separates control plane, data plane, and background maintenance. The end-to-end PUT lifecycle in Section 7 makes the data flow fully traceable. No hallucinated or decorative services are present.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "There are at least three genuine deep dives: (1) the Metadata Service with a concrete schema, LSM-tree indexing justification, and Raft/Paxos consensus for strong consistency; (2) the Data Plane with a specific 10+4 EC scheme, parallel shard streaming, and reconstruction logic; (3) the Placement Service with consistent hashing and failure-domain spreading. Each includes a named mechanism and at least one tradeoff. The thundering herd failure mode is addressed with a CDN/cache mitigation, which is a non-obvious edge case.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The tradeoffs table is concrete and tied to specific decisions (EC vs replication justified by cost at EB scale, LSM vs B-tree justified by write throughput, CP over AP for metadata partitions). Four distinct failure modes are analyzed with specific mitigations: bit rot with scrubbing/checksums, rack failure with EC rebalancing, metadata partition with quorum/CP, and thundering herd with CDN. The response does not explicitly acknowledge the limits of the design (e.g., 'this design cannot handle X') which would be needed for a 5.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response lists both functional and non-functional requirements with quantified SLAs (11 nines durability, 99.99% availability, strong consistency). It states explicit scale assumptions (10 EB, 100K write RPS, 1M read RPS). However, it does not set explicit non-goals or resolve any ambiguity in the prompt, which would be required for a 5.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The response derives total objects from storage and average object size, then computes write and read throughput. It propagates the storage number into an EC decision (14 EB raw) and propagates the metadata count into a distributed DB decision (10 PB metadata). However, it does not size the number of storage nodes, does not flag which assumptions are fragile, and does not sanity-check results (e.g., 'does 14 EB across N nodes make sense?'). The chain is solid but stops short of full component sizing.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every major component (API Gateway, Metadata Service, Placement Service, Blob Store, Scrubber) is present and connected to a stated requirement or capacity number. The Mermaid diagram clearly separates control plane, data plane, and background maintenance. The end-to-end PUT lifecycle in Section 7 makes the data flow fully traceable. No hallucinated or decorative services are present.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"There are at least three genuine deep dives: (1) the Metadata Service with a concrete schema, LSM-tree indexing justification, and Raft/Paxos consensus for strong consistency; (2) the Data Plane with a specific 10+4 EC scheme, parallel shard streaming, and reconstruction logic; (3) the Placement Service with consistent hashing and failure-domain spreading. Each includes a named mechanism and at least one tradeoff. The thundering herd failure mode is addressed with a CDN/cache mitigation, which is a non-obvious edge case.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The tradeoffs table is concrete and tied to specific decisions (EC vs replication justified by cost at EB scale, LSM vs B-tree justified by write throughput, CP over AP for metadata partitions). Four distinct failure modes are analyzed with specific mitigations: bit rot with scrubbing/checksums, rack failure with EC rebalancing, metadata partition with quorum/CP, and thundering herd with CDN. The response does not explicitly acknowledge the limits of the design (e.g., 'this design cannot handle X') which would be needed for a 5.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-120b/design-youtube_cold.json",
+  "question_id": "design-youtube",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-06T05:36:19.122140+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response starts with a clear overview, lists functional and non-functional requirements in detail with quantified targets (e.g., 99.99% API availability, <2s video startup). It explicitly states assumptions like 200M MAU, 70M DAU, and watch time, which are then used to drive capacity planning. However, it does not include an explicit non-goals section, though future extensions hint at out-of-scope items.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "A full estimation chain is present: traffic assumptions → QPS, storage, bandwidth → component sizing (e.g., deriving ~25 Tbps CDN egress, object store exabyte scale, 2M RPS API). Numbers demonstrably drive later design decisions like database node counts and cache sizes. The response includes a sanity check by comparing to YouTube's scale, but does not explicitly flag fragile assumptions.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "The architecture diagram and descriptions connect each component to specific requirements. Every service serves a stated functional need, and data flow is traceable from client to CDN and API to storage. The scaling table justifies component choices against capacity numbers, and there are no hallucinations or irrelevant components.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are provided (upload, transcoding, metadata, comments, caching, etc.) with concrete mechanisms like sharding keys, replication strategies, and cache-coherent patterns. Tradeoffs are discussed (e.g., Cassandra for write spikes, NewSQL for metadata ACID). The caching deep-dive addresses stampedes with request coalescing and stale-while-revalidate, showing awareness of edge cases.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "A dedicated tradeoffs table covers at least 7 decisions with chosen approaches and reasoning (e.g., eventual consistency for view counts, hybrid recommendations). Failure scenarios are detailed with specific mitigations (CDN rerouting, cache stampede handling, CRDTs for partitions). The design implies limits by listing future extensions, but does not explicitly state 'this design cannot handle X' in a direct sentence, though graceful degradation paths are provided.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response starts with a clear overview, lists functional and non-functional requirements in detail with quantified targets (e.g., 99.99% API availability, <2s video startup). It explicitly states assumptions like 200M MAU, 70M DAU, and watch time, which are then used to drive capacity planning. However, it does not include an explicit non-goals section, though future extensions hint at out-of-scope items.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"A full estimation chain is present: traffic assumptions → QPS, storage, bandwidth → component sizing (e.g., deriving ~25 Tbps CDN egress, object store exabyte scale, 2M RPS API). Numbers demonstrably drive later design decisions like database node counts and cache sizes. The response includes a sanity check by comparing to YouTube's scale, but does not explicitly flag fragile assumptions.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"The architecture diagram and descriptions connect each component to specific requirements. Every service serves a stated functional need, and data flow is traceable from client to CDN and API to storage. The scaling table justifies component choices against capacity numbers, and there are no hallucinations or irrelevant components.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives are provided (upload, transcoding, metadata, comments, caching, etc.) with concrete mechanisms like sharding keys, replication strategies, and cache-coherent patterns. Tradeoffs are discussed (e.g., Cassandra for write spikes, NewSQL for metadata ACID). The caching deep-dive addresses stampedes with request coalescing and stale-while-revalidate, showing awareness of edge cases.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"A dedicated tradeoffs table covers at least 7 decisions with chosen approaches and reasoning (e.g., eventual consistency for view counts, hybrid recommendations). Failure scenarios are detailed with specific mitigations (CDN rerouting, cache stampede handling, CRDTs for partitions). The design implies limits by listing future extensions, but does not explicitly state 'this design cannot handle X' in a direct sentence, though graceful degradation paths are provided.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

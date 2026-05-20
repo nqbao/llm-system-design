@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-02/deepseek-v4-pro/design-youtube_cold.json",
+  "question_id": "design-youtube",
+  "variant": "cold",
+  "model_under_test": "deepseek-v4-pro",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-02T23:10:04.228837+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response includes both functional requirements (upload, transcoding, delivery, search, interactions, recommendations, auth) and non-functional requirements with quantified targets (99.95% uptime, <2s start time, 11-nines durability). It states scale assumptions (500 hours/min upload, 5B daily views). However, it does not explicitly set non-goals ('we are NOT building X') nor does it resolve ambiguities in the prompt or justify why specific scale numbers were chosen. The NFRs are quantified but not all justified (e.g., why 11 nines durability specifically).",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The estimation chain is thorough: raw upload rate → storage per minute → annual storage → transcoding CPU cores → processed storage with erasure coding overhead → bandwidth with CDN absorption. Numbers are derived step-by-step and propagate into design decisions (e.g., 90K CPU cores drives the Kubernetes auto-scaling and GPU/CPU hybrid transcoding decision; 95% CDN hit ratio drives origin shield design). However, the response does not flag which assumptions are fragile (e.g., the 15 Mbps raw bitrate assumption is critical and unvalidated) nor does it sanity-check results (1.78 EB/year raw storage is enormous — no cross-check against known YouTube figures or cost implications).",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every major component is tied to a stated requirement: Upload Service → resumable upload requirement; Transcoding Workers → processing requirement; CDN + Origin Shield → low-latency delivery requirement; Redis counters with HyperLogLog → high-write social interactions. Data flow is traceable end-to-end from client upload through queue to transcoding to permanent store to CDN. The Mermaid diagram provides a clear visual. No hallucinated services detected. The choice of CockroachDB/Spanner is justified against global consistency needs.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are present: (1) Video processing pipeline with split-merge temporal parallelism, specific codec choices (H.265/VP9), HLS/DASH segmentation, retry/DLQ mechanics; (2) Storage tier with specific erasure coding parameters (RS(12,8)), intelligent tiering timeline (90 days), and durability math; (3) Counters using Redis + HyperLogLog with async flush. Each includes a named tradeoff (CPU vs GPU transcoding with 5-10x speedup quantification; erasure coding 1.5x overhead vs 3x replication). The split-merge pattern for transcoding is a non-obvious choice that's explained. However, no deep-dive surfaces a truly non-obvious failure mode like thundering herd on manifest requests or write amplification in erasure coding during reconstruction.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The tradeoffs section covers SQL vs NoSQL (with specific reasoning about ACID and write scaling), object vs block storage, CPU vs GPU transcoding (quantified at 5-10x), strong vs eventual consistency (differentiated by use case), and monolith vs microservices. Failure modes table covers 8 scenarios with specific mitigations. However, no tradeoff is quantified with latency/cost numbers (e.g., 'strong consistency adds ~20ms'), and the design doesn't explicitly acknowledge its own limits ('this design cannot handle X'). No truly non-obvious failure mode is surfaced (e.g., thundering herd when a viral video first hits CDN before cache warm-up, or hot-key problem in Redis for a video getting 10M concurrent likes).",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response includes both functional requirements (upload, transcoding, delivery, search, interactions, recommendations, auth) and non-functional requirements with quantified targets (99.95% uptime, <2s start time, 11-nines durability). It states scale assumptions (500 hours/min upload, 5B daily views). However, it does not explicitly set non-goals ('we are NOT building X') nor does it resolve ambiguities in the prompt or justify why specific scale numbers were chosen. The NFRs are quantified but not all justified (e.g., why 11 nines durability specifically).\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The estimation chain is thorough: raw upload rate → storage per minute → annual storage → transcoding CPU cores → processed storage with erasure coding overhead → bandwidth with CDN absorption. Numbers are derived step-by-step and propagate into design decisions (e.g., 90K CPU cores drives the Kubernetes auto-scaling and GPU/CPU hybrid transcoding decision; 95% CDN hit ratio drives origin shield design). However, the response does not flag which assumptions are fragile (e.g., the 15 Mbps raw bitrate assumption is critical and unvalidated) nor does it sanity-check results (1.78 EB/year raw storage is enormous — no cross-check against known YouTube figures or cost implications).\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every major component is tied to a stated requirement: Upload Service → resumable upload requirement; Transcoding Workers → processing requirement; CDN + Origin Shield → low-latency delivery requirement; Redis counters with HyperLogLog → high-write social interactions. Data flow is traceable end-to-end from client upload through queue to transcoding to permanent store to CDN. The Mermaid diagram provides a clear visual. No hallucinated services detected. The choice of CockroachDB/Spanner is justified against global consistency needs.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives are present: (1) Video processing pipeline with split-merge temporal parallelism, specific codec choices (H.265/VP9), HLS/DASH segmentation, retry/DLQ mechanics; (2) Storage tier with specific erasure coding parameters (RS(12,8)), intelligent tiering timeline (90 days), and durability math; (3) Counters using Redis + HyperLogLog with async flush. Each includes a named tradeoff (CPU vs GPU transcoding with 5-10x speedup quantification; erasure coding 1.5x overhead vs 3x replication). The split-merge pattern for transcoding is a non-obvious choice that's explained. However, no deep-dive surfaces a truly non-obvious failure mode like thundering herd on manifest requests or write amplification in erasure coding during reconstruction.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The tradeoffs section covers SQL vs NoSQL (with specific reasoning about ACID and write scaling), object vs block storage, CPU vs GPU transcoding (quantified at 5-10x), strong vs eventual consistency (differentiated by use case), and monolith vs microservices. Failure modes table covers 8 scenarios with specific mitigations. However, no tradeoff is quantified with latency/cost numbers (e.g., 'strong consistency adds ~20ms'), and the design doesn't explicitly acknowledge its own limits ('this design cannot handle X'). No truly non-obvious failure mode is surfaced (e.g., thundering herd when a viral video first hits CDN before cache warm-up, or hot-key problem in Redis for a video getting 10M concurrent likes).\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

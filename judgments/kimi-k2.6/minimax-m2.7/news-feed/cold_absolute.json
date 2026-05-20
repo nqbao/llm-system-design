@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/minimax-m2.7/news-feed_cold.json",
+  "question_id": "news-feed",
+  "variant": "cold",
+  "model_under_test": "minimax-m2.7",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T06:48:36.037031+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response starts with explicit functional requirements (post creation, feed retrieval, social graph, engagement, real-time updates) and non-functional requirements (latency <200ms p99, millions of concurrent users, 99.9% uptime, near-real-time updates, 1M+ followers). However, there are no explicit assumptions stated about scale, read/write ratio, or user behavior patterns. No non-goals are defined, and no ambiguities in the prompt are resolved. The requirements are well-structured but lack quantified SLAs beyond latency and missing justification for chosen targets.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives QPS (4,600 writes/sec, 23,000 reads/sec) and storage (200 GB/day, 365 TB over 5 years) from DAU and user behavior assumptions. However, the numbers are stated without propagation into specific design choices—nowhere does it say 'therefore we need N shards' or size components based on these figures. The 500 bytes/post assumption is not validated. No sanity checks are performed (e.g., 'does 365 TB make sense?'). The follower count max of 5000 is introduced but not used to calculate worst-case fanout load.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is connected to a requirement: Redis for feed latency, Cassandra for write-optimized post storage, message queue for decoupled fanout. The hybrid push/pull model directly addresses the celebrity problem. No hallucinated services—each component has a clear purpose. Data flow is traceable end-to-end with mermaid diagrams. However, some connections are decorative: the consistent hashing diagram shows 'user_id % N' which is not consistent hashing, and the '1 primary + 1 replica per shard' target of ~1000 users per Redis instance is disconnected from the 200M DAU figure (would need 200K shards). The architecture description is informative but contains this internal inconsistency.",
+        "score": 3
+      },
+      "deep_dive_depth": {
+        "reasoning": "Two deep-dives with concrete mechanisms: (1) Redis ZSET structure with specific operations (ZADD, ZREMRANGEBYRANK, ZREVRANGE) and TTL/max entries, and (2) fanout service with batching by 1000, LPUSH/LTRIM workflow. However, the sharding deep-dive is flawed—claims 'consistent hashing' but shows 'user_id % N' which is modulo hashing, and the ~1000 users per instance doesn't scale to 200M users. The ranking formula is presented but no tradeoff reasoning (why these weights? why 6h half-life?). No non-obvious edge cases surfaced in deep-dives. The Cassandra schema uses TIMEUUID but doesn't explain why over regular UUID for ordering.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Three specific tradeoffs are identified: storage vs latency (pre-computed feeds), consistency vs availability (5s eventual consistency), celebrity handling (push vs pull). Each has a specific decision tied to it. Failure scenarios include Redis down (fallback to pull), fanout queue backup (priority queue), database slow (read replicas), hot user (rate limiting). However, tradeoffs are not quantified (no '20ms penalty for strong consistency'). The design does not acknowledge its own limits explicitly—no 'this cannot handle X' statement. The thundering herd problem is not addressed despite being highly relevant to celebrity posts. The 'hot user' mitigation is generic without specifics of how rate limiting would work with 1M followers hitting simultaneously.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response starts with explicit functional requirements (post creation, feed retrieval, social graph, engagement, real-time updates) and non-functional requirements (latency <200ms p99, millions of concurrent users, 99.9% uptime, near-real-time updates, 1M+ followers). However, there are no explicit assumptions stated about scale, read/write ratio, or user behavior patterns. No non-goals are defined, and no ambiguities in the prompt are resolved. The requirements are well-structured but lack quantified SLAs beyond latency and missing justification for chosen targets.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The response derives QPS (4,600 writes/sec, 23,000 reads/sec) and storage (200 GB/day, 365 TB over 5 years) from DAU and user behavior assumptions. However, the numbers are stated without propagation into specific design choices—nowhere does it say 'therefore we need N shards' or size components based on these figures. The 500 bytes/post assumption is not validated. No sanity checks are performed (e.g., 'does 365 TB make sense?'). The follower count max of 5000 is introduced but not used to calculate worst-case fanout load.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component is connected to a requirement: Redis for feed latency, Cassandra for write-optimized post storage, message queue for decoupled fanout. The hybrid push/pull model directly addresses the celebrity problem. No hallucinated services—each component has a clear purpose. Data flow is traceable end-to-end with mermaid diagrams. However, some connections are decorative: the consistent hashing diagram shows 'user_id % N' which is not consistent hashing, and the '1 primary + 1 replica per shard' target of ~1000 users per Redis instance is disconnected from the 200M DAU figure (would need 200K shards). The architecture description is informative but contains this internal inconsistency.\", \"score\": 3}, \"deep_dive_depth\": {\"reasoning\": \"Two deep-dives with concrete mechanisms: (1) Redis ZSET structure with specific operations (ZADD, ZREMRANGEBYRANK, ZREVRANGE) and TTL/max entries, and (2) fanout service with batching by 1000, LPUSH/LTRIM workflow. However, the sharding deep-dive is flawed—claims 'consistent hashing' but shows 'user_id % N' which is modulo hashing, and the ~1000 users per instance doesn't scale to 200M users. The ranking formula is presented but no tradeoff reasoning (why these weights? why 6h half-life?). No non-obvious edge cases surfaced in deep-dives. The Cassandra schema uses TIMEUUID but doesn't explain why over regular UUID for ordering.\", \"score\": 3}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Three specific tradeoffs are identified: storage vs latency (pre-computed feeds), consistency vs availability (5s eventual consistency), celebrity handling (push vs pull). Each has a specific decision tied to it. Failure scenarios include Redis down (fallback to pull), fanout queue backup (priority queue), database slow (read replicas), hot user (rate limiting). However, tradeoffs are not quantified (no '20ms penalty for strong consistency'). The design does not acknowledge its own limits explicitly—no 'this cannot handle X' statement. The thundering herd problem is not addressed despite being highly relevant to celebrity posts. The 'hot user' mitigation is generic without specifics of how rate limiting would work with 1M followers hitting simultaneously.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

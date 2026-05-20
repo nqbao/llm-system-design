@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-02/gpt-5.4/distributed-rate-limiter_cold.json",
+  "question_id": "distributed-rate-limiter",
+  "variant": "cold",
+  "model_under_test": "gpt-5.4",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-02T23:22:00.290596+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response includes both functional requirements (7 items covering enforcement dimensions, algorithms, responses, dynamic updates, global/regional/hierarchical limits) and non-functional requirements (latency, throughput, availability, consistency, scalability, observability, graceful degradation). It states explicit assumptions (10 regions, 5M req/s, 50M active keys, 2.5 checks/request). However, it does not quantify SLAs with specific targets (e.g., 'p99 < 2ms', '99.99% availability'), does not state explicit non-goals, and does not resolve ambiguities in the prompt. The assumptions are stated but not deeply justified.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives a full estimation chain: 5M req/s × 2.5 checks = 12.5M ops/s → 25M datastore ops/s without leases, then with leases reduces to ~1.475M ops/s, then divides across 30 shards to get ~49k ops/shard/s. Memory is estimated at 50M keys × 150 bytes = 7.5GB, with RF3 = 22.5GB. The numbers demonstrably drive design decisions (leases are justified by the 12.5M→1.475M reduction). The response also flags the fragile assumption of lease size and notes the overshoot bound calculation. It does not explicitly sanity-check results against known benchmarks or flag which assumptions are most fragile beyond lease size.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (gateway local limiter, policy distribution service, regional coordinator, quota lease service, metrics pipeline) is tied to a specific requirement or capacity number. The data flow is traceable end-to-end via the request flow section and the end-to-end example. The Mermaid diagram is present and coherent. The response explicitly avoids per-request cross-region coordination and justifies why (latency at 5M req/s). No hallucinated services are present. The choice of hierarchical regional budgets over true global serialization is justified against the capacity numbers.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are present: (1) token bucket math with atomic refill logic and distributed atomicity requirement; (2) lease-based optimization with concrete sizing math, adaptive lease sizing, and worst-case overshoot calculation; (3) sharding strategy with hash partitioning, hot key mitigations including key splitting and dedicated shards; (4) multi-limit evaluation with atomicity tradeoffs (sequential vs reserve-then-commit). Each deep-dive names a concrete tradeoff with reasoning. The lease oversubscription failure mode (section 31) and the hot-key shard saturation are non-obvious edge cases that are explicitly surfaced and addressed.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response covers multiple tradeoffs tied to specific decisions: fail-open vs fail-closed per policy class, lease size vs coordinator load vs overshoot, regional budget allocation vs exact global enforcement, sequential token consumption vs reserve-then-commit. Failure modes are extensive: coordinator unavailability (with policy-based degradation), policy service outage, gateway restart, clock skew, network partition, lease oversubscription, hot tenant shard saturation, fallback misconfiguration. The design explicitly acknowledges its own limits ('system only provides bounded approximation' for global limits, section 31 item 5). The overshoot is quantified with a concrete example. Non-obvious failure modes like clock skew causing refill errors and fallback misconfiguration causing backend outage are surfaced.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response includes both functional requirements (7 items covering enforcement dimensions, algorithms, responses, dynamic updates, global/regional/hierarchical limits) and non-functional requirements (latency, throughput, availability, consistency, scalability, observability, graceful degradation). It states explicit assumptions (10 regions, 5M req/s, 50M active keys, 2.5 checks/request). However, it does not quantify SLAs with specific targets (e.g., 'p99 < 2ms', '99.99% availability'), does not state explicit non-goals, and does not resolve ambiguities in the prompt. The assumptions are stated but not deeply justified.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The response derives a full estimation chain: 5M req/s × 2.5 checks = 12.5M ops/s → 25M datastore ops/s without leases, then with leases reduces to ~1.475M ops/s, then divides across 30 shards to get ~49k ops/shard/s. Memory is estimated at 50M keys × 150 bytes = 7.5GB, with RF3 = 22.5GB. The numbers demonstrably drive design decisions (leases are justified by the 12.5M→1.475M reduction). The response also flags the fragile assumption of lease size and notes the overshoot bound calculation. It does not explicitly sanity-check results against known benchmarks or flag which assumptions are most fragile beyond lease size.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component (gateway local limiter, policy distribution service, regional coordinator, quota lease service, metrics pipeline) is tied to a specific requirement or capacity number. The data flow is traceable end-to-end via the request flow section and the end-to-end example. The Mermaid diagram is present and coherent. The response explicitly avoids per-request cross-region coordination and justifies why (latency at 5M req/s). No hallucinated services are present. The choice of hierarchical regional budgets over true global serialization is justified against the capacity numbers.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives are present: (1) token bucket math with atomic refill logic and distributed atomicity requirement; (2) lease-based optimization with concrete sizing math, adaptive lease sizing, and worst-case overshoot calculation; (3) sharding strategy with hash partitioning, hot key mitigations including key splitting and dedicated shards; (4) multi-limit evaluation with atomicity tradeoffs (sequential vs reserve-then-commit). Each deep-dive names a concrete tradeoff with reasoning. The lease oversubscription failure mode (section 31) and the hot-key shard saturation are non-obvious edge cases that are explicitly surfaced and addressed.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The response covers multiple tradeoffs tied to specific decisions: fail-open vs fail-closed per policy class, lease size vs coordinator load vs overshoot, regional budget allocation vs exact global enforcement, sequential token consumption vs reserve-then-commit. Failure modes are extensive: coordinator unavailability (with policy-based degradation), policy service outage, gateway restart, clock skew, network partition, lease oversubscription, hot tenant shard saturation, fallback misconfiguration. The design explicitly acknowledges its own limits ('system only provides bounded approximation' for global limits, section 31 item 5). The overshoot is quantified with a concrete example. Non-obvious failure modes like clock skew causing refill errors and fallback misconfiguration causing backend outage are surfaced.\", \"score\": 5}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

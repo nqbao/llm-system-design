@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemini-3.1-pro/design-youtube_cold.json",
+  "question_id": "design-youtube",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T09:19:05.779697+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design starts with core features and explicitly lists out-of-scope items (live streaming, ads, ML models). It describes system characteristics (high availability, read-heavy) but does not quantify SLAs (e.g., no latency target or availability percentage). Assumptions are stated in capacity planning, not in scoping section. This matches level 3: functional and non-functional stated, explicit assumptions, no quantified SLAs.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The capacity section derives QPS, storage, and bandwidth from assumptions (500M DAU, 5 views/day, etc.). The egress bandwidth estimate (2.9 TB/sec) explicitly drives the decision to use a global CDN, and the QPS number (29k) justifies asynchronous view counts. This is a full estimation chain with numbers demonstrably driving design choices and a sanity check on egress, meeting level 4.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (CDN, Kafka, S3, Redis, etc.) is connected to a stated requirement, with clear data flow described end-to-end via a diagram and text. Components are justified: presigned URLs avoid API bottlenecks, CDN handles massive egress, async view counts prevent DB contention. No hallucinations, and the microservices decision is justified by differing hardware profiles. This meets level 4.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response includes deep-dives into the write path (presigned URLs, multipart upload, event-driven transcoding, HLS manifest generation) and the read path (ABR streaming, CDN hierarchy), plus data model choices (PostgreSQL sharding, Cassandra for interactions). Each provides concrete mechanisms and tradeoffs (e.g., presigned URLs vs. API upload, HLS over UDP because it is CDN-cacheable). This satisfies level 4 (two or more deep-dives with named tradeoffs).",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "A dedicated tradeoffs table compares four explicit decisions (direct S3 upload, HLS, async view counts, microservices) with alternatives and reasoning, making tradeoffs concrete. The failure section addresses thundering herd, worker crashes, CDN outage, and view fraud with specific mitigations (PERF, idempotent Kafka reprocessing, multi-CDN, stream processing). The out-of-scope list implicitly acknowledges limits. This aligns with level 4.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The design starts with core features and explicitly lists out-of-scope items (live streaming, ads, ML models). It describes system characteristics (high availability, read-heavy) but does not quantify SLAs (e.g., no latency target or availability percentage). Assumptions are stated in capacity planning, not in scoping section. This matches level 3: functional and non-functional stated, explicit assumptions, no quantified SLAs.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The capacity section derives QPS, storage, and bandwidth from assumptions (500M DAU, 5 views/day, etc.). The egress bandwidth estimate (2.9 TB/sec) explicitly drives the decision to use a global CDN, and the QPS number (29k) justifies asynchronous view counts. This is a full estimation chain with numbers demonstrably driving design choices and a sanity check on egress, meeting level 4.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (CDN, Kafka, S3, Redis, etc.) is connected to a stated requirement, with clear data flow described end-to-end via a diagram and text. Components are justified: presigned URLs avoid API bottlenecks, CDN handles massive egress, async view counts prevent DB contention. No hallucinations, and the microservices decision is justified by differing hardware profiles. This meets level 4.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response includes deep-dives into the write path (presigned URLs, multipart upload, event-driven transcoding, HLS manifest generation) and the read path (ABR streaming, CDN hierarchy), plus data model choices (PostgreSQL sharding, Cassandra for interactions). Each provides concrete mechanisms and tradeoffs (e.g., presigned URLs vs. API upload, HLS over UDP because it is CDN-cacheable). This satisfies level 4 (two or more deep-dives with named tradeoffs).\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"A dedicated tradeoffs table compares four explicit decisions (direct S3 upload, HLS, async view counts, microservices) with alternatives and reasoning, making tradeoffs concrete. The failure section addresses thundering herd, worker crashes, CDN outage, and view fraud with specific mitigations (PERF, idempotent Kafka reprocessing, multi-CDN, stream processing). The out-of-scope list implicitly acknowledges limits. This aligns with level 4.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

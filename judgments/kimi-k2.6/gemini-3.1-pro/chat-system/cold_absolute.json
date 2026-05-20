@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemini-3.1-pro/chat-system_cold.json",
+  "question_id": "chat-system",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T06:41:06.827753+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with clearly separated functional and non-functional requirements, including specific quantified targets (99.99% uptime, <200ms latency, 500-member group limit). It explicitly states out-of-scope items (E2EE key exchange, voice/video calling, media storage deep-dive) and resolves an ambiguity by choosing a specific scale tier ('tier-1 messaging app' with 50M DAU). The assumptions are stated and used throughout the design.",
+        "score": 5
+      },
+      "capacity_estimation": {
+        "reasoning": "Full estimation chain is present: DAU → messages/day → write QPS (average and peak) → read QPS (3x write with stated assumption) → daily/yearly/5-year storage → WebSocket server count derived from concurrent connection capacity. Numbers demonstrably drive design decisions (Cassandra chosen due to 120k write QPS, 100-150 WS servers needed). However, lacks explicit sanity-check on results and does not flag fragile assumptions (e.g., 'messages per user per day = 100' is stated without justification or sensitivity analysis).",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against specific requirements: WebSockets for low latency, Cassandra for write throughput, PostgreSQL for ACID metadata, Redis Pub/Sub for sub-millisecond routing, Snowflake for ordering. Data flow is traceable end-to-end for both 1-on-1 and group chat. No hallucinated services. The architecture description is genuinely informative with the Mermaid diagram and detailed component explanations. One minor gap: the hybrid fanout approach for massive channels is mentioned but not integrated into the main architecture diagram.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple concrete deep-dives: (1) Cassandra schema with specific partition key (chat_id) and clustering key (message_id/Snowflake) with justification for sequential reads; (2) Redis session mechanism with specific key structure, TTL, and heartbeat interval; (3) Snowflake ID structure broken down to bit level (41-bit timestamp + worker IDs + sequence numbers) with explicit problem it solves (clock drift). Tradeoffs with reasoning are present in each deep-dive. However, no non-obvious edge case surfaced within the deep-dive itself—the thundering herd and hot partitions appear in the failure modes section rather than being integrated into component deep-dives.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Three specific, quantified tradeoffs tied to concrete decisions (WebSocket vs long polling with latency/bandwidth numbers, Redis Pub/Sub vs Kafka with persistence/latency tradeoff, fanout-on-write vs fanout-on-read with group size thresholds). Four distinct failure modes with specific mitigations: thundering herd (exponential backoff with jitter), Cassandra hot partitions (time-bucketing with composite key), message out of order (Snowflake mechanism), and silent WebSocket crash (client ACK + replay). The design explicitly acknowledges its own limit (hybrid fanout for massive channels) and surfaces non-obvious failure modes (thundering herd, hot partitions, clock drift).",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with clearly separated functional and non-functional requirements, including specific quantified targets (99.99% uptime, <200ms latency, 500-member group limit). It explicitly states out-of-scope items (E2EE key exchange, voice/video calling, media storage deep-dive) and resolves an ambiguity by choosing a specific scale tier ('tier-1 messaging app' with 50M DAU). The assumptions are stated and used throughout the design.\", \"score\": 5}, \"capacity_estimation\": {\"reasoning\": \"Full estimation chain is present: DAU → messages/day → write QPS (average and peak) → read QPS (3x write with stated assumption) → daily/yearly/5-year storage → WebSocket server count derived from concurrent connection capacity. Numbers demonstrably drive design decisions (Cassandra chosen due to 120k write QPS, 100-150 WS servers needed). However, lacks explicit sanity-check on results and does not flag fragile assumptions (e.g., 'messages per user per day = 100' is stated without justification or sensitivity analysis).\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified against specific requirements: WebSockets for low latency, Cassandra for write throughput, PostgreSQL for ACID metadata, Redis Pub/Sub for sub-millisecond routing, Snowflake for ordering. Data flow is traceable end-to-end for both 1-on-1 and group chat. No hallucinated services. The architecture description is genuinely informative with the Mermaid diagram and detailed component explanations. One minor gap: the hybrid fanout approach for massive channels is mentioned but not integrated into the main architecture diagram.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple concrete deep-dives: (1) Cassandra schema with specific partition key (chat_id) and clustering key (message_id/Snowflake) with justification for sequential reads; (2) Redis session mechanism with specific key structure, TTL, and heartbeat interval; (3) Snowflake ID structure broken down to bit level (41-bit timestamp + worker IDs + sequence numbers) with explicit problem it solves (clock drift). Tradeoffs with reasoning are present in each deep-dive. However, no non-obvious edge case surfaced within the deep-dive itself—the thundering herd and hot partitions appear in the failure modes section rather than being integrated into component deep-dives.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Three specific, quantified tradeoffs tied to concrete decisions (WebSocket vs long polling with latency/bandwidth numbers, Redis Pub/Sub vs Kafka with persistence/latency tradeoff, fanout-on-write vs fanout-on-read with group size thresholds). Four distinct failure modes with specific mitigations: thundering herd (exponential backoff with jitter), Cassandra hot partitions (time-bucketing with composite key), message out of order (Snowflake mechanism), and silent WebSocket crash (client ACK + replay). The design explicitly acknowledges its own limit (hybrid fanout for massive channels) and surfaces non-obvious failure modes (thundering herd, hot partitions, clock drift).\", \"score\": 5}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

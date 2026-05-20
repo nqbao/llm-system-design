@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-120b/global-object-store_cold.json",
+  "question_id": "global-object-store",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-06T05:34:49.257715+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response clearly lists functional (F1–F12) and non-functional (N1–N10) requirements. Non-functional requirements are quantified with specific targets (e.g., eleven 9's durability, <30 ms p99 latency, 99.99% global availability). Assumptions are stated in the capacity planning section (e.g., 500 PB stored data, 150 KB average object size). However, no explicit non-goals are set, and no ambiguity in the prompt is resolved, so it meets level 4.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The capacity estimation is a dedicated section with a full chain: assumptions (500 PB, object sizes, QPS) → QPS → storage → bandwidth → component sizing. Numbers are derived (e.g., 7000 storage nodes from 500 PB / 75 TB per node, aggregate bandwidth exceeds 10 Tbps target). These numbers directly drive decisions like metadata store sizing (30 KV nodes) and network capacity. No explicit sanity-check or fragile assumption flagged, so score 4.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (Global DNS, GSLB, Frontend, Metadata, Transit, Storage, Background) is listed with responsibilities and technologies. Justifications tie components to requirements (e.g., Metadata Service for consistency and versioning, Erasure Coding for durability). Data flow is traceable end-to-end via step-by-step paths and Mermaid diagrams. No hallucinations or contradictions. This meets the criteria for level 4.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response provides deep-dives into core operations: PUT, GET, Multipart Upload, and Delete. Each includes concrete mechanisms (RS(6,2) sharding, quorum writes, parallel reads, shard concatenation). It demonstrates reasoning (e.g., zero-copy streaming avoids API server bottleneck, erasure coding reduces storage cost). Two or more deep-dives with concrete mechanisms and tradeoffs (e.g., RS(6,2) vs replication) are present. No non-obvious edge case is addressed in the deep-dives themselves, so score 4.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "A dedicated trade-off section (Table 6) compares options (e.g., durability vs cost, consistency model) and ties them to specific design decisions (e.g., erasure coding chosen, eventual consistency for overwrites). Tradeoffs are concretely scoped (e.g., 'EC halves storage cost, slight CPU increase'). The failure modes section (Table 7) lists specific scenarios with detection and mitigation. The design does not explicitly state its own limits or surface a non-obvious failure mode like thundering herd, but overall depth meets level 4.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response clearly lists functional (F1–F12) and non-functional (N1–N10) requirements. Non-functional requirements are quantified with specific targets (e.g., eleven 9's durability, <30 ms p99 latency, 99.99% global availability). Assumptions are stated in the capacity planning section (e.g., 500 PB stored data, 150 KB average object size). However, no explicit non-goals are set, and no ambiguity in the prompt is resolved, so it meets level 4.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The capacity estimation is a dedicated section with a full chain: assumptions (500 PB, object sizes, QPS) → QPS → storage → bandwidth → component sizing. Numbers are derived (e.g., 7000 storage nodes from 500 PB / 75 TB per node, aggregate bandwidth exceeds 10 Tbps target). These numbers directly drive decisions like metadata store sizing (30 KV nodes) and network capacity. No explicit sanity-check or fragile assumption flagged, so score 4.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (Global DNS, GSLB, Frontend, Metadata, Transit, Storage, Background) is listed with responsibilities and technologies. Justifications tie components to requirements (e.g., Metadata Service for consistency and versioning, Erasure Coding for durability). Data flow is traceable end-to-end via step-by-step paths and Mermaid diagrams. No hallucinations or contradictions. This meets the criteria for level 4.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response provides deep-dives into core operations: PUT, GET, Multipart Upload, and Delete. Each includes concrete mechanisms (RS(6,2) sharding, quorum writes, parallel reads, shard concatenation). It demonstrates reasoning (e.g., zero-copy streaming avoids API server bottleneck, erasure coding reduces storage cost). Two or more deep-dives with concrete mechanisms and tradeoffs (e.g., RS(6,2) vs replication) are present. No non-obvious edge case is addressed in the deep-dives themselves, so score 4.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"A dedicated trade-off section (Table 6) compares options (e.g., durability vs cost, consistency model) and ties them to specific design decisions (e.g., erasure coding chosen, eventual consistency for overwrites). Tradeoffs are concretely scoped (e.g., 'EC halves storage cost, slight CPU increase'). The failure modes section (Table 7) lists specific scenarios with detection and mitigation. The design does not explicitly state its own limits or surface a non-obvious failure mode like thundering herd, but overall depth meets level 4.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

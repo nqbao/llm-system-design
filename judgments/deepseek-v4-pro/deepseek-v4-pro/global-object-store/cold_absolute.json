@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/deepseek-v4-pro/global-object-store_cold.json",
+  "question_id": "global-object-store",
+  "variant": "cold",
+  "model_under_test": "deepseek-v4-pro",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T07:29:09.143514+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response states both functional (buckets, objects, consistency, etc.) and non-functional requirements (durability 11 nines, availability 99.99%, latency targets, scalability 100PB/1M ops/s). Non-functionals are quantified with specific targets. Assumptions are given in the capacity section (1 trillion objects, 1MB avg size) and justified as 'realistic numbers for a large‑scale deployment'. No non-goals or ambiguity resolution, so score 4.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "A full estimation chain is present: assumptions → QPS (10M ops/s, split 2M writes/8M reads) → storage (1 EB usable, 1.2 EB raw) → bandwidth (8 TB/s read, 3 TB/s write) → component sizing (API 600 nodes, metadata ~2000, block ~1300). Numbers demonstrably drive the design (e.g., metadata shard count based on ops/s per Raft group). Fragile assumption (hot buckets) is flagged, but no explicit sanity-check of a result, so score 4.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (API Gateway, IAM, Metadata Service, Block Storage, Replication Manager, GC, Monitoring) connects to a stated requirement and is justified. The flow from PUT request through auth, chunking, erasure coding, metadata commit is traceable end-to-end. The architecture diagram and descriptions are informative, not just buzzwords. No hallucinations. The choice of replication for standard storage and erasure coding for archive is tied to tradeoffs later, but the component justifications are clear, so score 4.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "At least two deep-dives are present: metadata sharding (explains consistent hashing by bucket, tablet splitting, Raft group sizing, and capacity per server) and erasure coding/data placement (specific (10,2) code, fragment placement across AZs, quorum writing, and reconstruction). The erasure coding discussion surfaces a non-obvious edge case: AZ outage with (10,2) code and calculates why it fails, then proposes a different code or replication. Hot spot mitigation and thundering herd are also mentioned with specific mechanisms. Score 5.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Tradeoffs are explicitly listed: replication vs erasure coding, strong vs eventual consistency, sharding by bucket vs key, custom vs managed DB, centralized chunk map vs DHT. Each is tied to a specific decision with reasoning. Failure modes cover disk, node, AZ outage, metadata leader election, network partitions, hot spots, and thundering herd. The design acknowledges its own limits (the need to choose replication over erasure coding for standard storage to survive AZ failure) and surfaces non-obvious failure modes (thundering herd on cache expiry, hot spots and mitigation). Score 5.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response states both functional (buckets, objects, consistency, etc.) and non-functional requirements (durability 11 nines, availability 99.99%, latency targets, scalability 100PB/1M ops/s). Non-functionals are quantified with specific targets. Assumptions are given in the capacity section (1 trillion objects, 1MB avg size) and justified as 'realistic numbers for a large‑scale deployment'. No non-goals or ambiguity resolution, so score 4.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"A full estimation chain is present: assumptions → QPS (10M ops/s, split 2M writes/8M reads) → storage (1 EB usable, 1.2 EB raw) → bandwidth (8 TB/s read, 3 TB/s write) → component sizing (API 600 nodes, metadata ~2000, block ~1300). Numbers demonstrably drive the design (e.g., metadata shard count based on ops/s per Raft group). Fragile assumption (hot buckets) is flagged, but no explicit sanity-check of a result, so score 4.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (API Gateway, IAM, Metadata Service, Block Storage, Replication Manager, GC, Monitoring) connects to a stated requirement and is justified. The flow from PUT request through auth, chunking, erasure coding, metadata commit is traceable end-to-end. The architecture diagram and descriptions are informative, not just buzzwords. No hallucinations. The choice of replication for standard storage and erasure coding for archive is tied to tradeoffs later, but the component justifications are clear, so score 4.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"At least two deep-dives are present: metadata sharding (explains consistent hashing by bucket, tablet splitting, Raft group sizing, and capacity per server) and erasure coding/data placement (specific (10,2) code, fragment placement across AZs, quorum writing, and reconstruction). The erasure coding discussion surfaces a non-obvious edge case: AZ outage with (10,2) code and calculates why it fails, then proposes a different code or replication. Hot spot mitigation and thundering herd are also mentioned with specific mechanisms. Score 5.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Tradeoffs are explicitly listed: replication vs erasure coding, strong vs eventual consistency, sharding by bucket vs key, custom vs managed DB, centralized chunk map vs DHT. Each is tied to a specific decision with reasoning. Failure modes cover disk, node, AZ outage, metadata leader election, network partitions, hot spots, and thundering herd. The design acknowledges its own limits (the need to choose replication over erasure coding for standard storage to survive AZ failure) and surfaces non-obvious failure modes (thundering herd on cache expiry, hot spots and mitigation). Score 5.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

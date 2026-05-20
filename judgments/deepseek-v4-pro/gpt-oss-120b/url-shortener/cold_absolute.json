@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-120b/url-shortener_cold.json",
+  "question_id": "url-shortener",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-06T05:31:12.724109+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Clear functional and non-functional requirements with quantified non-functional targets (p99 latency ≤50ms, 99.99% uptime, durability ≥99.999%). Scale assumptions stated (100k QPS peak, 200M URLs). No explicit non-goals section, so not a 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Full estimation chain: assumptions to QPS, storage, bandwidth, component sizing. Numbers demonstrably drive design decisions (shard counts, Redis nodes). Includes sanity check (after roll-up, aggregates <10GB).",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component serves a stated requirement, connections are sensible, data flow diagram provided. Architecture description is informative, with justifications (e.g., two-tier caching). No hallucinations or dead weight.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives: ID generation (with tradeoff comparison), sharding strategy (concrete hash-modulo, range allocation), caching layers (three tiers with TTLs and hit-rate targets), and failure handling for hot keys/cache miss cascade. Non-obvious edge case (hot key) addressed with virtual nodes and dedicated hot-key cache tier.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Extensive tradeoffs table with alternatives and when to switch. Failure modes table covers many scenarios including non-obvious ones (cache purge failure, network partition, ID generator crash with mitigation). Specific mitigations provided. Design acknowledges limits implicitly through tradeoffs.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"Clear functional and non-functional requirements with quantified non-functional targets (p99 latency ≤50ms, 99.99% uptime, durability ≥99.999%). Scale assumptions stated (100k QPS peak, 200M URLs). No explicit non-goals section, so not a 5.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Full estimation chain: assumptions to QPS, storage, bandwidth, component sizing. Numbers demonstrably drive design decisions (shard counts, Redis nodes). Includes sanity check (after roll-up, aggregates <10GB).\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component serves a stated requirement, connections are sensible, data flow diagram provided. Architecture description is informative, with justifications (e.g., two-tier caching). No hallucinations or dead weight.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives: ID generation (with tradeoff comparison), sharding strategy (concrete hash-modulo, range allocation), caching layers (three tiers with TTLs and hit-rate targets), and failure handling for hot keys/cache miss cascade. Non-obvious edge case (hot key) addressed with virtual nodes and dedicated hot-key cache tier.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Extensive tradeoffs table with alternatives and when to switch. Failure modes table covers many scenarios including non-obvious ones (cache purge failure, network partition, ID generator crash with mitigation). Specific mitigations provided. Design acknowledges limits implicitly through tradeoffs.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

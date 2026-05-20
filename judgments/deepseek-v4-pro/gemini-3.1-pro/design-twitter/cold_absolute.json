@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemini-3.1-pro/design-twitter_cold.json",
+  "question_id": "design-twitter",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T09:15:43.377401+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Lists functional (post tweets, follow, timelines) and non-functional (available, low latency, eventual consistency, celebrity problem) requirements. Quantifies latency (<200ms) but not availability or durability. States assumptions about scale (300M DAU, etc.) in capacity section but does not justify them. No explicit non-goals or ambiguity resolution.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "Derives QPS (write 1730/5000 peak, read 347K/1M peak), storage (55 TB text, 1.1 PB media), and bandwidth (36 MB/s ingress, 7.3 GB/s egress) from assumptions. The math is present and roughly correct, but the numbers are not directly used to size specific components (e.g., shard counts). They generally justify need for CDN, Redis, and fan-out, but lack explicit 'at X QPS we need N shards' linkage.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (CDN, API Gateway, microservices, Cassandra, PostgreSQL, Redis, Kafka, Fanout workers) is justified against a requirement or capacity constraint. Data flow is traceable: write path through Kafka to Redis cache, read path from Redis with pull for celebrities. No hallucinations. The diagram and text are coherent and informative.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Provides deep-dives on ID generation (Snowflake's 64-bit structure) and the timeline generation strategy (Push/Pull hybrid model). The timeline deep-dive explains mechanisms, the Justin Bieber problem, and tradeoffs (push for normal users, pull for celebrities). These are concrete and well-reasoned, but do not surface a non-obvious edge case beyond the celebrity issue (which is standard).",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Discusses specific tradeoffs (push vs. pull, celebrity threshold) and four failure modes with mitigations: cache stampede (request coalescing), Redis outage (graceful degradation to pull), Cassandra hot partitions (composite key), and fan-out backlogs (priority queues). These are tied to decisions, and mitigations are concrete. Does not explicitly state design limits, but notes caveats like slow fallback.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"Lists functional (post tweets, follow, timelines) and non-functional (available, low latency, eventual consistency, celebrity problem) requirements. Quantifies latency (<200ms) but not availability or durability. States assumptions about scale (300M DAU, etc.) in capacity section but does not justify them. No explicit non-goals or ambiguity resolution.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Derives QPS (write 1730/5000 peak, read 347K/1M peak), storage (55 TB text, 1.1 PB media), and bandwidth (36 MB/s ingress, 7.3 GB/s egress) from assumptions. The math is present and roughly correct, but the numbers are not directly used to size specific components (e.g., shard counts). They generally justify need for CDN, Redis, and fan-out, but lack explicit 'at X QPS we need N shards' linkage.\",\n    \"score\": 3\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (CDN, API Gateway, microservices, Cassandra, PostgreSQL, Redis, Kafka, Fanout workers) is justified against a requirement or capacity constraint. Data flow is traceable: write path through Kafka to Redis cache, read path from Redis with pull for celebrities. No hallucinations. The diagram and text are coherent and informative.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Provides deep-dives on ID generation (Snowflake's 64-bit structure) and the timeline generation strategy (Push/Pull hybrid model). The timeline deep-dive explains mechanisms, the Justin Bieber problem, and tradeoffs (push for normal users, pull for celebrities). These are concrete and well-reasoned, but do not surface a non-obvious edge case beyond the celebrity issue (which is standard).\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Discusses specific tradeoffs (push vs. pull, celebrity threshold) and four failure modes with mitigations: cache stampede (request coalescing), Redis outage (graceful degradation to pull), Cassandra hot partitions (composite key), and fan-out backlogs (priority queues). These are tied to decisions, and mitigations are concrete. Does not explicitly state design limits, but notes caveats like slow fallback.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

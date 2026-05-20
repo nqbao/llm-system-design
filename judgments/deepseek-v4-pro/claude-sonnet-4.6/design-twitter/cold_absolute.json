@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/claude-sonnet-4.6/design-twitter_cold.json",
+  "question_id": "design-twitter",
+  "variant": "cold",
+  "model_under_test": "claude-sonnet-4.6",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T08:47:47.156624+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response explicitly states both functional (F1–F10) and non-functional (N1–N8) requirements with quantified targets (latency p99, availability 99.99%, read:write ratio). It includes an 'Out of Scope' section defining non-goals (live streaming, ad serving, billing) and resolves ambiguity by setting specific scale assumptions (500M users, 150M DAU).",
+        "score": 5
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives QPS, storage, and bandwidth from assumptions (e.g., 60M posts/day → 18 GB/day, read QPS of ~35K sustained, peak 100K). Numbers propagate into design choices (e.g., peak 6K writes/s, media storage 13 TB/day). However, it does not flag which assumptions are fragile or perform an explicit sanity check on the results.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (Tweet Service, Fanout, Kafka, Cassandra, Redis, etc.) is explicitly justified against a requirement or capacity number. Data flow is traceable end-to-end in sequence diagrams. The design picks the less obvious hybrid fanout (push/pull) and explains why, avoiding the anti‑pattern of pure push for celebrities. Architecture description is genuinely informative.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep dives (Tweet Service with Snowflake ID, Timeline hybrid fanout with Redis structures and merge-sort, Search with sharding and mapping, Media processing pipeline) include concrete mechanisms (schemas, algorithms) and named tradeoffs (push vs. pull, sharding strategy). Edge cases like thundering herd (cache miss storm) and hot key (hot tweet likes) are surfaced and addressed with specific mitigations (counter sharding, staggered TTL).",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design includes a dedicated tradeoffs table comparing decisions (e.g., Redis vs Cassandra for timelines, hybrid vs pure fanout) with reasoning and some quantification (Redis sub‑ms). Failure scenarios are listed with detection and response (pod crash, node failure, cache miss storm, DDoS). However, it does not explicitly acknowledge the design's own limits (e.g., 'this design cannot handle real‑time analytics at scale; if needed we'd add a stream processor') beyond the out‑of‑scope items. Non‑obvious failures like thundering herd are addressed, but the explicit limit statement is missing.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response explicitly states both functional (F1–F10) and non-functional (N1–N8) requirements with quantified targets (latency p99, availability 99.99%, read:write ratio). It includes an 'Out of Scope' section defining non-goals (live streaming, ad serving, billing) and resolves ambiguity by setting specific scale assumptions (500M users, 150M DAU).\",\n    \"score\": 5\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The response derives QPS, storage, and bandwidth from assumptions (e.g., 60M posts/day → 18 GB/day, read QPS of ~35K sustained, peak 100K). Numbers propagate into design choices (e.g., peak 6K writes/s, media storage 13 TB/day). However, it does not flag which assumptions are fragile or perform an explicit sanity check on the results.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (Tweet Service, Fanout, Kafka, Cassandra, Redis, etc.) is explicitly justified against a requirement or capacity number. Data flow is traceable end-to-end in sequence diagrams. The design picks the less obvious hybrid fanout (push/pull) and explains why, avoiding the anti‑pattern of pure push for celebrities. Architecture description is genuinely informative.\",\n    \"score\": 5\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep dives (Tweet Service with Snowflake ID, Timeline hybrid fanout with Redis structures and merge-sort, Search with sharding and mapping, Media processing pipeline) include concrete mechanisms (schemas, algorithms) and named tradeoffs (push vs. pull, sharding strategy). Edge cases like thundering herd (cache miss storm) and hot key (hot tweet likes) are surfaced and addressed with specific mitigations (counter sharding, staggered TTL).\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The design includes a dedicated tradeoffs table comparing decisions (e.g., Redis vs Cassandra for timelines, hybrid vs pure fanout) with reasoning and some quantification (Redis sub‑ms). Failure scenarios are listed with detection and response (pod crash, node failure, cache miss storm, DDoS). However, it does not explicitly acknowledge the design's own limits (e.g., 'this design cannot handle real‑time analytics at scale; if needed we'd add a stream processor') beyond the out‑of‑scope items. Non‑obvious failures like thundering herd are addressed, but the explicit limit statement is missing.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/kimi-k2.6/design-twitter_cold.json",
+  "question_id": "design-twitter",
+  "variant": "cold",
+  "model_under_test": "kimi-k2.6",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T09:05:44.035041+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Response states both functional and non-functional requirements with quantified SLAs (99.99% availability, p99 latency <200ms). Capacity section states explicit assumptions (200M DAU, 500M tweets/day) that drive the design, though they are not deeply justified beyond 'Twitter-class scale'. No non-goals or ambiguity resolution, so not a 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Full estimation chain from assumptions (DAU, tweets per day) to QPS, storage, bandwidth, and component sizing (e.g., 45B inbox writes/day → 520K Redis ZADD/sec → cluster sizing). Numbers demonstrably drive decisions like hybrid fanout threshold and Redis capacity. No explicit fragility flags or sanity checks, so not a 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (Tweet Service, Cassandra, Kafka, Redis, etc.) is justified against requirements (e.g., Cassandra for tweet store as time-series pattern, Redis for fast timeline reads). Data flow is traceable end-to-end in the hybrid fanout deep-dive. Architecture diagram is clear. No hallucinations. The hybrid fanout could be seen as avoiding an anti-pattern, but it's a well-known pattern; thus score 4 rather than 5.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives (fanout, data model, media pipeline, search) each with concrete mechanisms (hybrid push/pull with 1M threshold, Redis ZSETs, Cassandra sharding) and named tradeoffs (write amplification vs read latency, SQL for ACID). Demonstrates knowing 'why'. However, none of the deep-dives explicitly surface a non-obvious edge case within the deep-dive itself (edge cases are covered in failure modes section); thus not a 5.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Explicit tradeoffs table with six decisions tied to specific requirements (e.g., hybrid fanout, denormalized timelines, SQL for graph). Failure modes section covers six realistic failures with concrete mitigations (fanout backpressure via auto-scaling, celebrity read stampede with caching and request coalescing, thundering herd). Not a 5 because the design does not explicitly acknowledge its own limits beyond what's covered, and doesn't surface a truly non-obvious failure mode (all are relatively standard).",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"Response states both functional and non-functional requirements with quantified SLAs (99.99% availability, p99 latency <200ms). Capacity section states explicit assumptions (200M DAU, 500M tweets/day) that drive the design, though they are not deeply justified beyond 'Twitter-class scale'. No non-goals or ambiguity resolution, so not a 5.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"Full estimation chain from assumptions (DAU, tweets per day) to QPS, storage, bandwidth, and component sizing (e.g., 45B inbox writes/day → 520K Redis ZADD/sec → cluster sizing). Numbers demonstrably drive decisions like hybrid fanout threshold and Redis capacity. No explicit fragility flags or sanity checks, so not a 5.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component (Tweet Service, Cassandra, Kafka, Redis, etc.) is justified against requirements (e.g., Cassandra for tweet store as time-series pattern, Redis for fast timeline reads). Data flow is traceable end-to-end in the hybrid fanout deep-dive. Architecture diagram is clear. No hallucinations. The hybrid fanout could be seen as avoiding an anti-pattern, but it's a well-known pattern; thus score 4 rather than 5.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives (fanout, data model, media pipeline, search) each with concrete mechanisms (hybrid push/pull with 1M threshold, Redis ZSETs, Cassandra sharding) and named tradeoffs (write amplification vs read latency, SQL for ACID). Demonstrates knowing 'why'. However, none of the deep-dives explicitly surface a non-obvious edge case within the deep-dive itself (edge cases are covered in failure modes section); thus not a 5.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Explicit tradeoffs table with six decisions tied to specific requirements (e.g., hybrid fanout, denormalized timelines, SQL for graph). Failure modes section covers six realistic failures with concrete mitigations (fanout backpressure via auto-scaling, celebrity read stampede with caching and request coalescing, thundering herd). Not a 5 because the design does not explicitly acknowledge its own limits beyond what's covered, and doesn't surface a truly non-obvious failure mode (all are relatively standard).\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

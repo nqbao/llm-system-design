@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemini-3.1-pro/distributed-rate-limiter_cold.json",
+  "question_id": "distributed-rate-limiter",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T09:17:23.182389+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Lists functional (limit by identifier, tiers, return 429) and non-functional requirements (latency <5ms, high availability fail-open, 1M RPS, accuracy). Quantifies latency and throughput targets. States explicit assumptions (100M active keys, 1M RPS) but does not justify them or provide non-goals, placing it at a strong 3 but not 4.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "Derives storage (~10 GB), throughput (1M ops/s), and bandwidth (~150 MB/s) from assumptions. Uses numbers to determine Redis sharding needs (15-20 nodes), showing a full estimation chain driving design choices. Lacks explicit fragility flags or sanity checks for level 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Architecture diagram and component breakdown clearly connect to requirements: API Gateway middleware reduces latency, local cache avoids rule fetches, Redis Cluster sharded by key for throughput. Each component is justified against specific requirements or capacity numbers, and data flow is end-to-end. No hallucinations or dead weight.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Deep-dives into Token Bucket algorithm with detailed Lua script mechanism, addressing race conditions via atomic execution. Second deep-dive on strict vs. relaxed local sync with concrete tradeoffs. Surfaces non-obvious thundering herd hot key issue and mitigates with local block caching, reaching level 5.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Explicit tradeoffs section quantifies latency/accuracy tradeoffs and proposes configurable toggles. Failure modes cover Redis outage, high latency, clock drift, and control plane outage with specific mitigations. Surfaces non-obvious failure modes like clock drift and thundering herd, but does not explicitly state the design's own limits (e.g., 'cannot handle X'), keeping it at 4.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"Lists functional (limit by identifier, tiers, return 429) and non-functional requirements (latency <5ms, high availability fail-open, 1M RPS, accuracy). Quantifies latency and throughput targets. States explicit assumptions (100M active keys, 1M RPS) but does not justify them or provide non-goals, placing it at a strong 3 but not 4.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Derives storage (~10 GB), throughput (1M ops/s), and bandwidth (~150 MB/s) from assumptions. Uses numbers to determine Redis sharding needs (15-20 nodes), showing a full estimation chain driving design choices. Lacks explicit fragility flags or sanity checks for level 5.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Architecture diagram and component breakdown clearly connect to requirements: API Gateway middleware reduces latency, local cache avoids rule fetches, Redis Cluster sharded by key for throughput. Each component is justified against specific requirements or capacity numbers, and data flow is end-to-end. No hallucinations or dead weight.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Deep-dives into Token Bucket algorithm with detailed Lua script mechanism, addressing race conditions via atomic execution. Second deep-dive on strict vs. relaxed local sync with concrete tradeoffs. Surfaces non-obvious thundering herd hot key issue and mitigates with local block caching, reaching level 5.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Explicit tradeoffs section quantifies latency/accuracy tradeoffs and proposes configurable toggles. Failure modes cover Redis outage, high latency, clock drift, and control plane outage with specific mitigations. Surfaces non-obvious failure modes like clock drift and thundering herd, but does not explicitly state the design's own limits (e.g., 'cannot handle X'), keeping it at 4.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

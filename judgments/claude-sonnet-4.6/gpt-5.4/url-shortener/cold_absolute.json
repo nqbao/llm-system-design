@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-02/gpt-5.4/url-shortener_cold.json",
+  "question_id": "url-shortener",
+  "variant": "cold",
+  "model_under_test": "gpt-5.4",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-02T23:15:43.644597+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response includes both functional and non-functional requirements (sections 2 and 3), lists optional features explicitly, and states scale assumptions (100M URLs/month, 10B redirects). It also explicitly scales up to 1B/100B for future growth. However, it does not quantify SLAs (no p99 latency targets in requirements, no availability % like 99.99%), and does not formally state non-goals or resolve prompt ambiguities. The latency targets appear later in section 19 but are not part of the requirements section. No explicit non-goals are stated.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives QPS from monthly assumptions with explicit arithmetic (100M/2.592M seconds ≈ 38.6 writes/sec), applies a 10x peak multiplier, scales to future growth, and estimates storage per record with breakdown (500 bytes/record × 1B = 500GB, with replication = 1.5TB). Analytics storage is separately estimated at 10TB/month. Cache sizing is also derived (20M hot links × 1KB = 20GB). Numbers do propagate into design choices (e.g., analytics storage dominates → separate pipeline; cache sizing → feasibility confirmed). However, the response doesn't explicitly connect QPS numbers to component sizing decisions (e.g., 'at 385K peak reads/sec we need N Redis nodes'), and doesn't flag fragile assumptions or sanity-check results against real-world benchmarks.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every major component is justified: Redis cache for low-latency redirects, Kafka for async analytics decoupling, Snowflake ID generator for collision-free distributed generation, CDN for global low-latency and DDoS protection. Data flow is traceable end-to-end in both the shorten and redirect flows (sections 9A and 9B). No hallucinated services are present. The architecture diagram is present and coherent. The response also makes a non-obvious choice: separating the redirect service from the write API service, and explicitly noting that analytics must not block redirects.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are present: (1) Short code generation (section 7) covers three options with pros/cons, collision analysis using birthday paradox, Snowflake ID bit layout, and Base62 capacity math. (2) Caching strategy (section 11) covers cache-aside vs read-through, TTL policy, negative caching, and sizing. (3) Failure scenarios (section 17) covers cache outage, DB outage, hot key/viral link, and ID generator failure with specific mitigations. The hot key failure mode (section 17.5) is a non-obvious edge case addressed with specific mitigations (in-process LRU, CDN caching, Redis hot key replication). Named tradeoffs with reasoning are present (e.g., sequential IDs vs random codes). The Snowflake bit layout is concrete and correct.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response has a dedicated tradeoff summary (section 26) and discusses tradeoffs inline throughout (301 vs 302 with analytics implications, dedup vs no-dedup, sync vs async analytics, SQL vs NoSQL). Failure modes in section 17 are specific with mitigations: cache outage → DB overload → circuit breakers + in-process LRU; hot key → CDN + in-process cache + Redis hot key replication. The 301 vs 302 tradeoff is concretely scoped to analytics fidelity. However, tradeoffs are not quantified numerically (e.g., no '301 reduces service traffic by X%' or 'strong consistency adds ~20ms'). The design does not explicitly acknowledge its own limits or surface a truly non-obvious failure mode like thundering herd on cache miss or write amplification.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response includes both functional and non-functional requirements (sections 2 and 3), lists optional features explicitly, and states scale assumptions (100M URLs/month, 10B redirects). It also explicitly scales up to 1B/100B for future growth. However, it does not quantify SLAs (no p99 latency targets in requirements, no availability % like 99.99%), and does not formally state non-goals or resolve prompt ambiguities. The latency targets appear later in section 19 but are not part of the requirements section. No explicit non-goals are stated.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The response derives QPS from monthly assumptions with explicit arithmetic (100M/2.592M seconds ≈ 38.6 writes/sec), applies a 10x peak multiplier, scales to future growth, and estimates storage per record with breakdown (500 bytes/record × 1B = 500GB, with replication = 1.5TB). Analytics storage is separately estimated at 10TB/month. Cache sizing is also derived (20M hot links × 1KB = 20GB). Numbers do propagate into design choices (e.g., analytics storage dominates → separate pipeline; cache sizing → feasibility confirmed). However, the response doesn't explicitly connect QPS numbers to component sizing decisions (e.g., 'at 385K peak reads/sec we need N Redis nodes'), and doesn't flag fragile assumptions or sanity-check results against real-world benchmarks.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every major component is justified: Redis cache for low-latency redirects, Kafka for async analytics decoupling, Snowflake ID generator for collision-free distributed generation, CDN for global low-latency and DDoS protection. Data flow is traceable end-to-end in both the shorten and redirect flows (sections 9A and 9B). No hallucinated services are present. The architecture diagram is present and coherent. The response also makes a non-obvious choice: separating the redirect service from the write API service, and explicitly noting that analytics must not block redirects.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives are present: (1) Short code generation (section 7) covers three options with pros/cons, collision analysis using birthday paradox, Snowflake ID bit layout, and Base62 capacity math. (2) Caching strategy (section 11) covers cache-aside vs read-through, TTL policy, negative caching, and sizing. (3) Failure scenarios (section 17) covers cache outage, DB outage, hot key/viral link, and ID generator failure with specific mitigations. The hot key failure mode (section 17.5) is a non-obvious edge case addressed with specific mitigations (in-process LRU, CDN caching, Redis hot key replication). Named tradeoffs with reasoning are present (e.g., sequential IDs vs random codes). The Snowflake bit layout is concrete and correct.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The response has a dedicated tradeoff summary (section 26) and discusses tradeoffs inline throughout (301 vs 302 with analytics implications, dedup vs no-dedup, sync vs async analytics, SQL vs NoSQL). Failure modes in section 17 are specific with mitigations: cache outage → DB overload → circuit breakers + in-process LRU; hot key → CDN + in-process cache + Redis hot key replication. The 301 vs 302 tradeoff is concretely scoped to analytics fidelity. However, tradeoffs are not quantified numerically (e.g., no '301 reduces service traffic by X%' or 'strong consistency adds ~20ms'). The design does not explicitly acknowledge its own limits or surface a truly non-obvious failure mode like thundering herd on cache miss or write amplification.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

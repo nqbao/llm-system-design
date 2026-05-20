@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-20b/job-scheduler_cold.json",
+  "question_id": "job-scheduler",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-20b",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T07:34:09.414292+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response provides quantified non-functionals (99.9% uptime, ≤200ms submission latency, ≤15s first runnable state) with explicit reasoning for each requirement, and states assumptions (CPU-bound, 5-min avg runtime, no real-time needed) with brief justifications. However, there are no explicit non-goals ('we are NOT building X'), and no prompt ambiguity is surfaced and resolved — the response simply picks 10k jobs/day without noting how the design would change at higher scale.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The response applies Little's Law correctly (0.115 jobs/s × 300s = 34.5 concurrent → 52 with buffer) and propagates that into CPU/RAM/disk totals. Storage estimates for Redis, PostgreSQL, and etcd are numerically derived. However, the network table cites '200 QPS' without deriving it from the stated 0.115 jobs/s baseline — a visible inconsistency. No fragile assumptions are flagged and no sanity check is performed (e.g., 'does 520 GB of worker temp disk make sense for 5-min jobs?'), so the chain stops short of the top tier.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component has a stated responsibility tied to a specific requirement (Redis ZSET for priority ordering, Kafka for durable worker dispatch, etcd for distributed locking and leader election). The end-to-end job flow in Section 10 traces data from submission through persistence, scheduling, execution, and cleanup. The dual-queue design (Redis for scheduling decisions, Kafka for worker dispatch) is justified and not duplicative. No hallucinated or decorative services are present.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The scheduler mechanics section provides a concrete step-by-step mechanism with timing targets, naming the specific etcd lock acquisition to prevent double-assignment and the Redis ZSET score as scheduled_at. The failure modes section discusses Kafka min.insync.replicas and Redis AOF+RDB with S3 backup. However, neither deep-dive surfaces a non-obvious edge case — for example, the clock-skew entry is mentioned but not explored, and the distributed lock section does not address what happens if the lock holder crashes after claiming but before publishing to Kafka (a classic exactly-once gap).",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 7 presents six concrete tradeoff decisions with named alternatives and specific pros/cons (e.g., Redis vs Kafka overhead at small workloads, Docker vs VM isolation for untrusted payloads). Failure modes in Section 6 have specific mitigations (etcd reelection within 1s, Kafka MirrorMaker, worker retry up to 5 attempts). However, no tradeoff is quantified in latency or cost terms, and the design does not explicitly acknowledge its own limits (e.g., it cannot handle real-time sub-second jobs or cross-region active-active without redesign). The lock-holder-crash-before-Kafka-publish gap is a non-obvious failure mode that is not addressed.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response provides quantified non-functionals (99.9% uptime, ≤200ms submission latency, ≤15s first runnable state) with explicit reasoning for each requirement, and states assumptions (CPU-bound, 5-min avg runtime, no real-time needed) with brief justifications. However, there are no explicit non-goals ('we are NOT building X'), and no prompt ambiguity is surfaced and resolved — the response simply picks 10k jobs/day without noting how the design would change at higher scale.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The response applies Little's Law correctly (0.115 jobs/s × 300s = 34.5 concurrent → 52 with buffer) and propagates that into CPU/RAM/disk totals. Storage estimates for Redis, PostgreSQL, and etcd are numerically derived. However, the network table cites '200 QPS' without deriving it from the stated 0.115 jobs/s baseline — a visible inconsistency. No fragile assumptions are flagged and no sanity check is performed (e.g., 'does 520 GB of worker temp disk make sense for 5-min jobs?'), so the chain stops short of the top tier.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component has a stated responsibility tied to a specific requirement (Redis ZSET for priority ordering, Kafka for durable worker dispatch, etcd for distributed locking and leader election). The end-to-end job flow in Section 10 traces data from submission through persistence, scheduling, execution, and cleanup. The dual-queue design (Redis for scheduling decisions, Kafka for worker dispatch) is justified and not duplicative. No hallucinated or decorative services are present.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"The scheduler mechanics section provides a concrete step-by-step mechanism with timing targets, naming the specific etcd lock acquisition to prevent double-assignment and the Redis ZSET score as scheduled_at. The failure modes section discusses Kafka min.insync.replicas and Redis AOF+RDB with S3 backup. However, neither deep-dive surfaces a non-obvious edge case — for example, the clock-skew entry is mentioned but not explored, and the distributed lock section does not address what happens if the lock holder crashes after claiming but before publishing to Kafka (a classic exactly-once gap).\", \"score\": 3}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 7 presents six concrete tradeoff decisions with named alternatives and specific pros/cons (e.g., Redis vs Kafka overhead at small workloads, Docker vs VM isolation for untrusted payloads). Failure modes in Section 6 have specific mitigations (etcd reelection within 1s, Kafka MirrorMaker, worker retry up to 5 attempts). However, no tradeoff is quantified in latency or cost terms, and the design does not explicitly acknowledge its own limits (e.g., it cannot handle real-time sub-second jobs or cross-region active-active without redesign). The lock-holder-crash-before-Kafka-publish gap is a non-obvious failure mode that is not addressed.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

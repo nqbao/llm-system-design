@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemma-4-31b-it/chat-system_cold.json",
+  "question_id": "chat-system",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T05:45:10.654793+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Response states functional requirements (chat, presence, etc.) and mentions non-functional goals (low latency, high availability, eventual consistency) but these are not quantified with specific SLAs. Assumptions are stated (100M DAU, message rate) but not justified, and no non-goals or ambiguity resolution.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "Derives QPS, storage, and presence request rate from assumptions. Numbers are used to justify technology choices (Cassandra for write load, Redis for presence), but they do not explicitly drive component sizing like shard counts or instance numbers. Bandwidth is not computed.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is clearly connected to specific requirements and capacity numbers. The diagram and description provide a traceable data flow end-to-end. Components like Kafka and Redis are justified against requirements; no hallucinations.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response includes at least two deep-dives with concrete mechanisms and named tradeoffs: the consistency trade-off (strong vs eventual, with causal consistency via Snowflake IDs) and the presence trade-off (pull vs push, with hybrid model). The message storage schema is also detailed.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Two tradeoffs are concretely scoped: the consistency trade-off with an acceptable latency of ~500ms, and the presence trade-off with complexity analysis. The failure mode table includes specific mitigations like exponential backoff, write-behind cache, jitter, and ACKs.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"Response states functional requirements (chat, presence, etc.) and mentions non-functional goals (low latency, high availability, eventual consistency) but these are not quantified with specific SLAs. Assumptions are stated (100M DAU, message rate) but not justified, and no non-goals or ambiguity resolution.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"Derives QPS, storage, and presence request rate from assumptions. Numbers are used to justify technology choices (Cassandra for write load, Redis for presence), but they do not explicitly drive component sizing like shard counts or instance numbers. Bandwidth is not computed.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component is clearly connected to specific requirements and capacity numbers. The diagram and description provide a traceable data flow end-to-end. Components like Kafka and Redis are justified against requirements; no hallucinations.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"The response includes at least two deep-dives with concrete mechanisms and named tradeoffs: the consistency trade-off (strong vs eventual, with causal consistency via Snowflake IDs) and the presence trade-off (pull vs push, with hybrid model). The message storage schema is also detailed.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Two tradeoffs are concretely scoped: the consistency trade-off with an acceptable latency of ~500ms, and the presence trade-off with complexity analysis. The failure mode table includes specific mitigations like exponential backoff, write-behind cache, jitter, and ACKs.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/minimax-m2.7/design-twitter_cold.json",
+  "question_id": "design-twitter",
+  "variant": "cold",
+  "model_under_test": "minimax-m2.7",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T06:48:17.758212+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design lists functional requirements but does not explicitly state non-functional requirements (e.g., latency, availability targets). Scale parameters are given but not framed as explicit assumptions with justification. No quantified SLAs or non-goals are provided.",
+        "score": 2
+      },
+      "capacity_estimation": {
+        "reasoning": "The design includes a capacity section that derives storage and cache sizes from daily tweets and user counts, and computes network bandwidth. However, the numbers are not demonstrably propagated into component sizing or sharding decisions, and the derivation is simplistic without a full chain from assumptions to QPS.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "The architecture diagram and component choices align with the stated functional requirements. Each storage choice has a brief rationale in a table. The connections are sensible, and there are no obvious hallucinations. The design is coherent and traceable.",
+        "score": 3
+      },
+      "deep_dive_depth": {
+        "reasoning": "The timeline service deep dive explores push vs. pull models with sequence diagrams, identifies the celebrity user problem, and proposes a hybrid approach with a concrete mechanism (threshold of 10K followers). However, only one deep dive is provided; the rubric requires two or more for a higher score.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design explicitly discusses CAP tradeoffs tied to specific scenarios, quantifies staleness (30s), and lists failure modes with concrete mitigations (Redis failover, fan-out storm, circuit breaker). This meets the level 4 criteria of quantified tradeoffs and specific mitigations.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The design lists functional requirements but does not explicitly state non-functional requirements (e.g., latency, availability targets). Scale parameters are given but not framed as explicit assumptions with justification. No quantified SLAs or non-goals are provided.\",\n    \"score\": 2\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The design includes a capacity section that derives storage and cache sizes from daily tweets and user counts, and computes network bandwidth. However, the numbers are not demonstrably propagated into component sizing or sharding decisions, and the derivation is simplistic without a full chain from assumptions to QPS.\",\n    \"score\": 3\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"The architecture diagram and component choices align with the stated functional requirements. Each storage choice has a brief rationale in a table. The connections are sensible, and there are no obvious hallucinations. The design is coherent and traceable.\",\n    \"score\": 3\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The timeline service deep dive explores push vs. pull models with sequence diagrams, identifies the celebrity user problem, and proposes a hybrid approach with a concrete mechanism (threshold of 10K followers). However, only one deep dive is provided; the rubric requires two or more for a higher score.\",\n    \"score\": 3\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The design explicitly discusses CAP tradeoffs tied to specific scenarios, quantifies staleness (30s), and lists failure modes with concrete mitigations (Redis failover, fan-out storm, circuit breaker). This meets the level 4 criteria of quantified tradeoffs and specific mitigations.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-02/deepseek-v4-pro/design-twitter_cold.json",
+  "question_id": "design-twitter",
+  "variant": "cold",
+  "model_under_test": "deepseek-v4-pro",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-02T23:59:34.358677+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response includes both functional requirements (tweets, follow, timeline, search, notifications) and quantified non-functional requirements (500M users, 100M DAU, p95 latency <200ms, 99.9% availability, explicit consistency model per feature). It states explicit assumptions (5 tweets/DAU, 20% DAU ratio) and justifies them. However, it does not set explicit non-goals ('we are NOT building X') and does not resolve any ambiguity in the prompt by acknowledging the prompt was underspecified and explaining choices made.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The estimation chain is solid: DAU → tweets/day → storage → timeline reads → fanout writes, all derived from stated assumptions. Numbers are presented in a table and are internally consistent. The fanout write throughput (1.16M/s) is derived from the tweet rate and average follower count. However, the numbers don't strongly propagate into specific design decisions (e.g., 'at 1.16M fanout writes/s we need N Kafka partitions or N worker nodes'). There's no sanity-check or flagging of fragile assumptions (e.g., the 200 avg followers assumption is critical and unchallenged).",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against a stated requirement: Kafka for async fanout, Cassandra for high-write tweet storage, Elasticsearch for search, Flink for trending, Redis for caching and social graph. The data flow is traceable end-to-end from write path through fanout to read path. The hybrid celebrity/normal-user fanout model is a non-obvious but correct choice that is explicitly justified. No hallucinated or decorative components are present.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are present: tweet posting (step-by-step with schema), home timeline read path (merge logic, pagination, caching strategy), social graph (Redis sorted sets, sharding for large follower sets), search/trending (Elasticsearch index design, Flink sliding windows). Each includes concrete mechanisms and named tradeoffs. The celebrity fanout threshold (100k followers) and the batch-write strategy for fanout workers show genuine depth. The thundering herd on celebrity tweets is identified as a non-obvious failure mode and addressed with specific mitigations.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design explicitly discusses fanout-on-write vs. fanout-on-read with quantified reasoning, SQL vs. NoSQL with justification per use case, and caching staleness tradeoffs. The failure modes table is comprehensive and specific: thundering herd (non-obvious), fanout worker backlog with mitigation (active-follower-only fanout), Redis node failure with fallback strategy, Kafka data loss with acks=all configuration. The design does not explicitly acknowledge its own limits ('this design cannot handle X'), which would be required for a 5.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response includes both functional requirements (tweets, follow, timeline, search, notifications) and quantified non-functional requirements (500M users, 100M DAU, p95 latency <200ms, 99.9% availability, explicit consistency model per feature). It states explicit assumptions (5 tweets/DAU, 20% DAU ratio) and justifies them. However, it does not set explicit non-goals ('we are NOT building X') and does not resolve any ambiguity in the prompt by acknowledging the prompt was underspecified and explaining choices made.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The estimation chain is solid: DAU → tweets/day → storage → timeline reads → fanout writes, all derived from stated assumptions. Numbers are presented in a table and are internally consistent. The fanout write throughput (1.16M/s) is derived from the tweet rate and average follower count. However, the numbers don't strongly propagate into specific design decisions (e.g., 'at 1.16M fanout writes/s we need N Kafka partitions or N worker nodes'). There's no sanity-check or flagging of fragile assumptions (e.g., the 200 avg followers assumption is critical and unchallenged).\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified against a stated requirement: Kafka for async fanout, Cassandra for high-write tweet storage, Elasticsearch for search, Flink for trending, Redis for caching and social graph. The data flow is traceable end-to-end from write path through fanout to read path. The hybrid celebrity/normal-user fanout model is a non-obvious but correct choice that is explicitly justified. No hallucinated or decorative components are present.\", \"score\": 5}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives are present: tweet posting (step-by-step with schema), home timeline read path (merge logic, pagination, caching strategy), social graph (Redis sorted sets, sharding for large follower sets), search/trending (Elasticsearch index design, Flink sliding windows). Each includes concrete mechanisms and named tradeoffs. The celebrity fanout threshold (100k followers) and the batch-write strategy for fanout workers show genuine depth. The thundering herd on celebrity tweets is identified as a non-obvious failure mode and addressed with specific mitigations.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The design explicitly discusses fanout-on-write vs. fanout-on-read with quantified reasoning, SQL vs. NoSQL with justification per use case, and caching staleness tradeoffs. The failure modes table is comprehensive and specific: thundering herd (non-obvious), fanout worker backlog with mitigation (active-follower-only fanout), Redis node failure with fallback strategy, Kafka data loss with acks=all configuration. The design does not explicitly acknowledge its own limits ('this design cannot handle X'), which would be required for a 5.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

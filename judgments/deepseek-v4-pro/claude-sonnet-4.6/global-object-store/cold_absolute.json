@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/claude-sonnet-4.6/global-object-store_cold.json",
+  "question_id": "global-object-store",
+  "variant": "cold",
+  "model_under_test": "claude-sonnet-4.6",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T08:59:06.915194+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Both functional and non-functional requirements are stated. Non-functionals are quantified with specific targets (latency, durability, availability). Assumptions (object count, size, request rate) are listed in capacity section but not justified or explained why these numbers were chosen, and no non-goals or ambiguity resolution are present.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "A full estimation chain is present: assumptions → QPS → storage → bandwidth, leading to sizing of storage nodes (~30,000 globally) and metadata nodes (~500 per region). These numbers demonstrably drive later design choices (shard counts, node counts). Includes a sanity-check by scaling up to ~1 EB raw data.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (Frontend, Metadata Cluster, Storage Layer, GC, etc.) is connected to a stated requirement. Data flow is traceable via sequence diagrams and architectural description. No hallucinated or buzzword-driven components. The design is highly coherent.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives (Metadata Cluster, Storage Layer, Chunk Placement, GC) include concrete mechanisms: Raft-based sharding, pipeline writes, erasure coding, two-phase GC, and blob packing. Each includes tradeoffs (e.g., erasure coding vs replication) but no surface of a particularly non-obvious edge case or failure mode within a deep-dive.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "A dedicated tradeoffs table lists multiple decisions with alternatives and rationale (strong consistency vs eventual, small object handling, replication, etc.). A failure modes table covers many scenarios with mitigations, including hot keys, GC aggressiveness, and CRR loops. However, no explicit acknowledgment of the design's own limits (non-goals) and the non-obvious failure modes (e.g., thundering herd) are only partially addressed.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"Both functional and non-functional requirements are stated. Non-functionals are quantified with specific targets (latency, durability, availability). Assumptions (object count, size, request rate) are listed in capacity section but not justified or explained why these numbers were chosen, and no non-goals or ambiguity resolution are present.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"A full estimation chain is present: assumptions → QPS → storage → bandwidth, leading to sizing of storage nodes (~30,000 globally) and metadata nodes (~500 per region). These numbers demonstrably drive later design choices (shard counts, node counts). Includes a sanity-check by scaling up to ~1 EB raw data.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component (Frontend, Metadata Cluster, Storage Layer, GC, etc.) is connected to a stated requirement. Data flow is traceable via sequence diagrams and architectural description. No hallucinated or buzzword-driven components. The design is highly coherent.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives (Metadata Cluster, Storage Layer, Chunk Placement, GC) include concrete mechanisms: Raft-based sharding, pipeline writes, erasure coding, two-phase GC, and blob packing. Each includes tradeoffs (e.g., erasure coding vs replication) but no surface of a particularly non-obvious edge case or failure mode within a deep-dive.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"A dedicated tradeoffs table lists multiple decisions with alternatives and rationale (strong consistency vs eventual, small object handling, replication, etc.). A failure modes table covers many scenarios with mitigations, including hot keys, GC aggressiveness, and CRR loops. However, no explicit acknowledgment of the design's own limits (non-goals) and the non-obvious failure modes (e.g., thundering herd) are only partially addressed.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

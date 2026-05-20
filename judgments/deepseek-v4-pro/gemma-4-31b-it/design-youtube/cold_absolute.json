@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemma-4-31b-it/design-youtube_cold.json",
+  "question_id": "design-youtube",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T06:04:40.621972+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Both functional and non-functional requirements are listed, with a quantified availability target (99.99%) but no p99 latency or durability guarantee. Assumptions (DAU, views per user) appear in capacity estimation, not explicitly in the requirements section, and no non-goals or ambiguity resolution are stated.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "Derives QPS/storage/bandwidth from assumptions and identifies that a global CDN is necessary from the peak bandwidth calculation. However, the numbers do not propagate into specific component sizing (e.g., number of shards, cache size), and no fragile assumptions are flagged or sanity-checked.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (API gateway, upload pipeline, CDN, databases) serves a stated requirement, and data flows are traceable end-to-end. The upload and streaming pipelines are coherently described, and some component choices (e.g., Cassandra for view counts) are justified against requirements.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Two deep-dives (upload pipeline and video streaming) provide concrete mechanisms like chunked uploads, parallel transcoding, HLS/DASH, and CDN strategy. However, neither deep-dive explicitly names a tradeoff with reasoning within the same section; the tradeoffs are discussed separately.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design presents four specific tradeoffs (HLS vs progressive download, Cassandra vs Postgres, pull vs push CDN, async transcoding) tied to decisions, and a failure analysis section addresses hotspots, transcoder crashes, S3 outages, and DB write saturation with mitigations. However, tradeoffs are not quantified (e.g., no latency numbers), and non-obvious failure modes like thundering herd are not discussed.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"Both functional and non-functional requirements are listed, with a quantified availability target (99.99%) but no p99 latency or durability guarantee. Assumptions (DAU, views per user) appear in capacity estimation, not explicitly in the requirements section, and no non-goals or ambiguity resolution are stated.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Derives QPS/storage/bandwidth from assumptions and identifies that a global CDN is necessary from the peak bandwidth calculation. However, the numbers do not propagate into specific component sizing (e.g., number of shards, cache size), and no fragile assumptions are flagged or sanity-checked.\",\n    \"score\": 3\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (API gateway, upload pipeline, CDN, databases) serves a stated requirement, and data flows are traceable end-to-end. The upload and streaming pipelines are coherently described, and some component choices (e.g., Cassandra for view counts) are justified against requirements.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Two deep-dives (upload pipeline and video streaming) provide concrete mechanisms like chunked uploads, parallel transcoding, HLS/DASH, and CDN strategy. However, neither deep-dive explicitly names a tradeoff with reasoning within the same section; the tradeoffs are discussed separately.\",\n    \"score\": 3\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The design presents four specific tradeoffs (HLS vs progressive download, Cassandra vs Postgres, pull vs push CDN, async transcoding) tied to decisions, and a failure analysis section addresses hotspots, transcoder crashes, S3 outages, and DB write saturation with mitigations. However, tradeoffs are not quantified (e.g., no latency numbers), and non-obvious failure modes like thundering herd are not discussed.\",\n    \"score\": 3\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

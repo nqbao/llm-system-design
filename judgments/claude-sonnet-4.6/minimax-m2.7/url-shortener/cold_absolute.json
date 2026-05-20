@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-04/minimax-m2.7/url-shortener_cold.json",
+  "question_id": "url-shortener",
+  "variant": "cold",
+  "model_under_test": "minimax-m2.7",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T00:17:42.844737+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response jumps directly into architecture diagrams with no explicit requirements section. There are no stated functional requirements, no non-functional requirements with quantified targets, and no explicit assumptions stated upfront. Scale numbers appear only in the capacity table without justification for why those numbers were chosen. There are no non-goals and no ambiguity resolution.",
+        "score": 2
+      },
+      "capacity_estimation": {
+        "reasoning": "A capacity table exists and derives QPS from stated assumptions (385 redirect/sec, 39 write/sec), storage over 5 years (~120TB), and cache size (~2GB for top 10%). The math is shown and roughly correct. However, the numbers don't strongly propagate into design decisions — 424 total QPS is very modest yet the design calls for 10-100 Redis nodes and 256 DB shards without explanation. Bandwidth estimation is absent and no fragile assumptions are flagged or sanity-checked.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "The architecture is well-described with multiple diagrams covering the main flows. Every major component is connected to a purpose and data flow is traceable end-to-end through the sequence diagrams. However, some components feel over-specified relative to the derived load (256 shards for ~39 write QPS, 10-100 Redis nodes for 2GB of data), and justification for component choices against specific requirements or capacity numbers is weak.",
+        "score": 3
+      },
+      "deep_dive_depth": {
+        "reasoning": "There are multiple deep-dives: the Snowflake-like ID generation algorithm with bit layout, the database schema with sharding strategy, and the caching strategy with key patterns and TTLs. However, a critical error is present in the ID generation section — the bit math is wrong (timestamp_ms=1700000000000 requires ~41 bits, not 18). No non-obvious failure modes such as clock skew causing ID collisions or hot short codes causing cache stampede are surfaced.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "A dedicated tradeoffs table covers six decisions with reasoning for each choice, and failover scenarios are listed. However, tradeoffs are not quantified with latency numbers or concrete scope, and failure modes are shallow with mitigations no deeper than 'promote slave' or 'use replica'. Non-obvious failure modes like thundering herd on cache miss for a viral URL or clock skew in the Snowflake ID generator are not addressed.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response jumps directly into architecture diagrams with no explicit requirements section. There are no stated functional requirements, no non-functional requirements with quantified targets, and no explicit assumptions stated upfront. Scale numbers appear only in the capacity table without justification for why those numbers were chosen. There are no non-goals and no ambiguity resolution.\", \"score\": 2}, \"capacity_estimation\": {\"reasoning\": \"A capacity table exists and derives QPS from stated assumptions (385 redirect/sec, 39 write/sec), storage over 5 years (~120TB), and cache size (~2GB for top 10%). The math is shown and roughly correct. However, the numbers don't strongly propagate into design decisions — 424 total QPS is very modest yet the design calls for 10-100 Redis nodes and 256 DB shards without explanation. Bandwidth estimation is absent and no fragile assumptions are flagged or sanity-checked.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"The architecture is well-described with multiple diagrams covering the main flows. Every major component is connected to a purpose and data flow is traceable end-to-end through the sequence diagrams. However, some components feel over-specified relative to the derived load (256 shards for ~39 write QPS, 10-100 Redis nodes for 2GB of data), and justification for component choices against specific requirements or capacity numbers is weak.\", \"score\": 3}, \"deep_dive_depth\": {\"reasoning\": \"There are multiple deep-dives: the Snowflake-like ID generation algorithm with bit layout, the database schema with sharding strategy, and the caching strategy with key patterns and TTLs. However, a critical error is present in the ID generation section — the bit math is wrong (timestamp_ms=1700000000000 requires ~41 bits, not 18). No non-obvious failure modes such as clock skew causing ID collisions or hot short codes causing cache stampede are surfaced.\", \"score\": 3}, \"tradeoffs_failure_modes\": {\"reasoning\": \"A dedicated tradeoffs table covers six decisions with reasoning for each choice, and failover scenarios are listed. However, tradeoffs are not quantified with latency numbers or concrete scope, and failure modes are shallow with mitigations no deeper than 'promote slave' or 'use replica'. Non-obvious failure modes like thundering herd on cache miss for a viral URL or clock skew in the Snowflake ID generator are not addressed.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

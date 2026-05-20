@@ -1,0 +1,53 @@
+- id: url-shortener
+  tier: easy
+  title: Design a URL Shortener
+  prompt_cold: |
+    Design a URL shortener like bit.ly.
+
+- id: chat-system
+  tier: medium
+  title: Design a Real-time Chat System
+  prompt_cold: |
+    Design a real-time chat system like WhatsApp or Slack.
+
+- id: distributed-rate-limiter
+  tier: hard
+  title: Design a Distributed Rate Limiter
+  prompt_cold: |
+    Design a distributed rate limiter to protect an API gateway.
+
+- id: metrics-aggregation
+  tier: chaos
+  title: Design a Real-time Metrics Aggregation Pipeline
+  prompt_cold: |
+    Design a real-time metrics aggregation pipeline that handles 100 billion events/day.
+
+- id: news-feed
+  tier: medium
+  title: Design a Social Media News Feed
+  prompt_cold: |
+    Design a news feed system like Twitter or Facebook.
+
+- id: global-object-store
+  tier: chaos
+  title: Design a Global Object Storage System
+  prompt_cold: |
+    Design a global object storage system like S3.
+
+- id: job-scheduler
+  tier: hard
+  title: Design a Distributed Job Scheduler
+  prompt_cold: |
+    Design a distributed job scheduler.
+
+- id: design-youtube
+  tier: hard
+  title: Design YouTube
+  prompt_cold: |
+    Design a video sharing platform like YouTube.
+
+- id: design-twitter
+  tier: medium
+  title: Design Twitter
+  prompt_cold: |
+    Design a microblogging platform like Twitter.

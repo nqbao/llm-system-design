@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/claude-sonnet-4.6/news-feed_cold.json",
+  "question_id": "news-feed",
+  "variant": "cold",
+  "model_under_test": "claude-sonnet-4.6",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T08:49:33.780722+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response clearly specifies both functional and non-functional requirements with quantified targets (99.99% availability, p99 <200ms read, <500ms write, eventual consistency ≤5s, 500M MAU scale, zero data loss). Explicit assumptions include daily active users and read/write ratios. Out-of-scope items are listed, resolving scope nicely. No quantified SLAs beyond p99 latencies, and no resolution of ambiguous prompt scales, so not a 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The estimation chain derives QPS (7k writes/s peak, 70k reads/s peak), daily storage (~100GB raw, 3TB media), fanout write volume (460k/s), and bandwidth (700MB/s egress) from DAU and per-user numbers. These flow into component sizing (Redis 640GB, 6 shards; Cassandra 12-node; Kafka 32 partitions). No explicit fragility flag or sanity check of total storage figure, so not a 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every named component (API Gateway, Post Service, Fanout Workers, Kafka, Redis, Cassandra, MySQL) directly supports a stated requirement. Data flows are traceable via sequence diagrams and textual description. No hallucinated services; Elasticsearch appears with a vague 'async index' note but is not central. Architecture description is informative and connects to capacity decisions, but not every component is explicitly justified against a single unique requirement.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple components are deeply explored: Fanout Service with hybrid push/pull strategy, celebrity threshold, worker pseudocode (lpush, ltrim), and Kafka partition keying; Feed Service read path with cache tiering (L1/L2/L3) and cursor pagination; Feed Ranking scoring function. Tradeoffs are explicitly discussed (push vs pull). Not quite a 5 because it doesn't surface a non-obvious edge case like thundering herd or write amplification with a specific resolution beyond the celebrity problem.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Numerous tradeoffs are tied to specific decisions (fanout hybrid strategy, Redis list vs full objects, Cassandra for write throughput vs no joins, Snowflake for time ordering vs clock skew). Failure modes are enumerated with detections and mitigations (Redis fallback to Cassandra, Kafka lag, Cassandra node failure, idempotency). The design acknowledges its ranking limitation and future ML model upgrade. No mention of thundering herd, GC tail latency, or similar non-obvious issue, keeping it from a 5.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response clearly specifies both functional and non-functional requirements with quantified targets (99.99% availability, p99 <200ms read, <500ms write, eventual consistency ≤5s, 500M MAU scale, zero data loss). Explicit assumptions include daily active users and read/write ratios. Out-of-scope items are listed, resolving scope nicely. No quantified SLAs beyond p99 latencies, and no resolution of ambiguous prompt scales, so not a 5.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The estimation chain derives QPS (7k writes/s peak, 70k reads/s peak), daily storage (~100GB raw, 3TB media), fanout write volume (460k/s), and bandwidth (700MB/s egress) from DAU and per-user numbers. These flow into component sizing (Redis 640GB, 6 shards; Cassandra 12-node; Kafka 32 partitions). No explicit fragility flag or sanity check of total storage figure, so not a 5.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every named component (API Gateway, Post Service, Fanout Workers, Kafka, Redis, Cassandra, MySQL) directly supports a stated requirement. Data flows are traceable via sequence diagrams and textual description. No hallucinated services; Elasticsearch appears with a vague 'async index' note but is not central. Architecture description is informative and connects to capacity decisions, but not every component is explicitly justified against a single unique requirement.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple components are deeply explored: Fanout Service with hybrid push/pull strategy, celebrity threshold, worker pseudocode (lpush, ltrim), and Kafka partition keying; Feed Service read path with cache tiering (L1/L2/L3) and cursor pagination; Feed Ranking scoring function. Tradeoffs are explicitly discussed (push vs pull). Not quite a 5 because it doesn't surface a non-obvious edge case like thundering herd or write amplification with a specific resolution beyond the celebrity problem.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Numerous tradeoffs are tied to specific decisions (fanout hybrid strategy, Redis list vs full objects, Cassandra for write throughput vs no joins, Snowflake for time ordering vs clock skew). Failure modes are enumerated with detections and mitigations (Redis fallback to Cassandra, Kafka lag, Cassandra node failure, idempotency). The design acknowledges its ranking limitation and future ML model upgrade. No mention of thundering herd, GC tail latency, or similar non-obvious issue, keeping it from a 5.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

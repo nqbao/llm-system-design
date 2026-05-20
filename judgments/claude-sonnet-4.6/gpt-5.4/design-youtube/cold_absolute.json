@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-02/gpt-5.4/design-youtube_cold.json",
+  "question_id": "design-youtube",
+  "variant": "cold",
+  "model_under_test": "gpt-5.4",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-02T23:24:52.236969+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response includes both functional and non-functional requirements, states explicit assumptions (100M DAU, 5 videos/day, 3 Mbps bitrate, etc.), and separates core from nice-to-have features. Non-functionals are qualitative rather than quantified (e.g., 'global low-latency playback' without a specific p99 target, no explicit availability % like 99.99%). There are no explicit non-goals stated (e.g., 'we are NOT building live streaming in this design'), and no ambiguity resolution from the prompt is called out. The assumptions are stated but not deeply justified (e.g., why 100M DAU vs 1B).",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The estimation chain is thorough: DAU → views/day → QPS → bandwidth → storage, with numbers propagating into design decisions (e.g., '31 Tbps peak absolutely requires a global CDN,' 'uploads must go direct-to-object-storage,' '104k equivalent transcoding workers'). The response also sanity-checks the transcoded storage result ('2.74 EB — this is huge') and notes which assumptions are fragile (not all videos need all renditions, cold content can be archived). The 95%/5% CDN cache hit ratio is used to derive origin bandwidth. This is a strong estimation section that clearly drives architecture choices.",
+        "score": 5
+      },
+      "architecture_coherence": {
+        "reasoning": "Every major component in the architecture diagram is connected to a stated requirement or capacity number. The data flow is traceable end-to-end (upload → object storage → event bus → processing → CDN → client). No hallucinated services are present. The control plane vs. data plane separation is explicitly justified. The response also makes a non-obvious choice: direct-to-object-storage uploads bypassing app servers, justified by bandwidth math. The hybrid fanout strategy for feeds is justified against the celebrity channel problem. Components are not decorative.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are present: upload flow (with sequence diagram, multipart signed URLs, idempotent completion), video processing pipeline (stages, workflow orchestrator, capacity math for transcoding workers), playback architecture (HLS/DASH segmentation, CDN cache hit ratio math), counter design (sharded counters with explicit example: 100k views/sec → 100 shards → 1k writes/sec/shard), and comments partitioning. Each deep-dive includes concrete mechanisms and named tradeoffs. The thundering herd failure mode is addressed in the failure scenarios section with specific mitigations (request coalescing, cache warming, origin shield). The hot partition problem for viral videos is addressed with sub-sharding.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response dedicates a full section (Section 25) to tradeoffs tied to specific decisions, and Section 20 covers 8 distinct failure scenarios with specific mitigations. The hybrid fanout tradeoff is concretely scoped (push for normal creators, pull for celebrity channels). The eventual consistency tradeoff is tied to specific subsystems. The thundering herd is identified and mitigated. However, tradeoffs are not quantified with specific numbers (e.g., 'strong consistency adds ~20ms p99'), and the design does not explicitly acknowledge its own limits ('this design cannot handle X'). The failure modes are broad but not deeply non-obvious — most are standard (CDN outage, DB shard failure). Missing: write amplification, GC tail latency, or TOCTOU-style edge cases.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response includes both functional and non-functional requirements, states explicit assumptions (100M DAU, 5 videos/day, 3 Mbps bitrate, etc.), and separates core from nice-to-have features. Non-functionals are qualitative rather than quantified (e.g., 'global low-latency playback' without a specific p99 target, no explicit availability % like 99.99%). There are no explicit non-goals stated (e.g., 'we are NOT building live streaming in this design'), and no ambiguity resolution from the prompt is called out. The assumptions are stated but not deeply justified (e.g., why 100M DAU vs 1B).\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The estimation chain is thorough: DAU → views/day → QPS → bandwidth → storage, with numbers propagating into design decisions (e.g., '31 Tbps peak absolutely requires a global CDN,' 'uploads must go direct-to-object-storage,' '104k equivalent transcoding workers'). The response also sanity-checks the transcoded storage result ('2.74 EB — this is huge') and notes which assumptions are fragile (not all videos need all renditions, cold content can be archived). The 95%/5% CDN cache hit ratio is used to derive origin bandwidth. This is a strong estimation section that clearly drives architecture choices.\", \"score\": 5}, \"architecture_coherence\": {\"reasoning\": \"Every major component in the architecture diagram is connected to a stated requirement or capacity number. The data flow is traceable end-to-end (upload → object storage → event bus → processing → CDN → client). No hallucinated services are present. The control plane vs. data plane separation is explicitly justified. The response also makes a non-obvious choice: direct-to-object-storage uploads bypassing app servers, justified by bandwidth math. The hybrid fanout strategy for feeds is justified against the celebrity channel problem. Components are not decorative.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives are present: upload flow (with sequence diagram, multipart signed URLs, idempotent completion), video processing pipeline (stages, workflow orchestrator, capacity math for transcoding workers), playback architecture (HLS/DASH segmentation, CDN cache hit ratio math), counter design (sharded counters with explicit example: 100k views/sec → 100 shards → 1k writes/sec/shard), and comments partitioning. Each deep-dive includes concrete mechanisms and named tradeoffs. The thundering herd failure mode is addressed in the failure scenarios section with specific mitigations (request coalescing, cache warming, origin shield). The hot partition problem for viral videos is addressed with sub-sharding.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The response dedicates a full section (Section 25) to tradeoffs tied to specific decisions, and Section 20 covers 8 distinct failure scenarios with specific mitigations. The hybrid fanout tradeoff is concretely scoped (push for normal creators, pull for celebrity channels). The eventual consistency tradeoff is tied to specific subsystems. The thundering herd is identified and mitigated. However, tradeoffs are not quantified with specific numbers (e.g., 'strong consistency adds ~20ms p99'), and the design does not explicitly acknowledge its own limits ('this design cannot handle X'). The failure modes are broad but not deeply non-obvious — most are standard (CDN outage, DB shard failure). Missing: write amplification, GC tail latency, or TOCTOU-style edge cases.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

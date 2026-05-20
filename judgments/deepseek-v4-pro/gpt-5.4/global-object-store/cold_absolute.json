@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-5.4/global-object-store_cold.json",
+  "question_id": "global-object-store",
+  "variant": "cold",
+  "model_under_test": "gpt-5.4",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T08:42:57.040896+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response clearly states functional and non-functional requirements with quantified targets (11 nines durability, 99.99% availability), explicit assumptions about scale and region count, and lists non-goals (no POSIX semantics, no cross-object transactions). It resolves ambiguity by picking specific global scale numbers.",
+        "score": 5
+      },
+      "capacity_estimation": {
+        "reasoning": "Derives QPS, storage, and bandwidth from assumptions (10 EB data, 50 PB/day ingress, 150 PB/day egress, 3x peak). Numbers drive component sizing: journal nodes computed from throughput (72-80 nodes) and capacity nodes from storage (1,500 per region). Includes sanity check when journal throughput dominates capacity. However, does not explicitly flag fragile assumptions or perform a deep sanity check of results.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (control plane, regional cells, metadata, journal, packer, capacity nodes) is justified against specific requirements or capacity numbers. Data flow is traceable end-to-end (write path, read path, LIST). Diagram and textual description are clear. No hallucinations. The choice of range-partitioned metadata over hash sharding is explained.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Provides multiple deep-dives (metadata service, journal design, write path) with concrete mechanisms (range sharding by bucket_id+key, Raft across AZs, MVCC snapshot consistency, journal-first write with backpressure and background packing). Discusses tradeoffs within deep-dives (hash vs range sharding, journal-first vs direct EC). Surfaces non-obvious edge cases like hot prefix risks and metadata shard leader melt.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Four explicit tradeoffs tied to decisions (regional vs global consistency, journal-first vs direct EC, range vs hash sharding, 3x repl vs EC code). Failure modes cover metadata bugs, firmware failures, journal backlog, hot shards, silent corruption, each with specific mitigations. Acknowledges limits: regional buckets unavailable on home region failure unless cross-region replication is added, and design is not fully global-write.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response clearly states functional and non-functional requirements with quantified targets (11 nines durability, 99.99% availability), explicit assumptions about scale and region count, and lists non-goals (no POSIX semantics, no cross-object transactions). It resolves ambiguity by picking specific global scale numbers.\",\n    \"score\": 5\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Derives QPS, storage, and bandwidth from assumptions (10 EB data, 50 PB/day ingress, 150 PB/day egress, 3x peak). Numbers drive component sizing: journal nodes computed from throughput (72-80 nodes) and capacity nodes from storage (1,500 per region). Includes sanity check when journal throughput dominates capacity. However, does not explicitly flag fragile assumptions or perform a deep sanity check of results.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (control plane, regional cells, metadata, journal, packer, capacity nodes) is justified against specific requirements or capacity numbers. Data flow is traceable end-to-end (write path, read path, LIST). Diagram and textual description are clear. No hallucinations. The choice of range-partitioned metadata over hash sharding is explained.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Provides multiple deep-dives (metadata service, journal design, write path) with concrete mechanisms (range sharding by bucket_id+key, Raft across AZs, MVCC snapshot consistency, journal-first write with backpressure and background packing). Discusses tradeoffs within deep-dives (hash vs range sharding, journal-first vs direct EC). Surfaces non-obvious edge cases like hot prefix risks and metadata shard leader melt.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Four explicit tradeoffs tied to decisions (regional vs global consistency, journal-first vs direct EC, range vs hash sharding, 3x repl vs EC code). Failure modes cover metadata bugs, firmware failures, journal backlog, hot shards, silent corruption, each with specific mitigations. Acknowledges limits: regional buckets unavailable on home region failure unless cross-region replication is added, and design is not fully global-write.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

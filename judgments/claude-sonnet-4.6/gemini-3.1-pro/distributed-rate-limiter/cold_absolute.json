@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-03/gemini-3.1-pro/distributed-rate-limiter_cold.json",
+  "question_id": "distributed-rate-limiter",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-03T22:09:09.315174+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response provides both functional requirements (identification, configurability, response headers) and quantified non-functional requirements (< 3ms latency, 100K RPS, 99.99% uptime). However, it does not state explicit non-goals, does not resolve any ambiguity in the prompt, and does not justify why 100K RPS was chosen as the scale target. It meets the bar for a score of 3 but lacks the non-goal statements and ambiguity resolution needed for a 4 or 5.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives storage (~560 MB for 10M users), network bandwidth (10 MB/s), and compute requirements (Redis throughput ceiling), and these numbers directly drive the decision to use a Redis Cluster with 3-5 shards. The chain from assumptions to QPS to storage to bandwidth to component sizing is present. However, the response does not flag which assumptions are fragile or sanity-check results, which would be required for a 5. This is a solid 4.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component - Redis Cluster, API Gateway nodes, Rules Service, PostgreSQL, local in-memory cache - is tied to a specific requirement or capacity number. The data flow is traceable end-to-end from client through load balancer to gateway to Redis, and the control plane is clearly separated from the data plane. The choice of Lua scripts over alternatives is justified against the race condition requirement. This earns a 4.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "There are two substantive deep-dives: the Lua script with concrete token bucket logic, HMGET/HMSET operations, EXPIRE for cleanup, and the clock drift edge case addressed via Redis TIME command; and the Rules Engine with local in-memory caching and pub/sub propagation. The Lua script deep-dive surfaces a non-obvious failure mode (clock drift corrupting refill math) and provides a specific mitigation with a named tradeoff. The hot-key L1 banning cache is also a non-obvious edge case. This meets the bar for a 5.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response covers four distinct failure modes (Redis down, clock drift, network partition, thundering herd on rule updates) with specific mitigations for each. Tradeoffs are concretely scoped: strict vs. relaxed accuracy is tied to the monetization requirement and quantified with 1-3ms latency cost and 10x burst risk for the relaxed mode. The thundering herd on rule updates is a non-obvious failure mode. The design acknowledges its own limit explicitly with the fail-open approach. This meets the criteria for a 5.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response provides both functional requirements (identification, configurability, response headers) and quantified non-functional requirements (< 3ms latency, 100K RPS, 99.99% uptime). However, it does not state explicit non-goals, does not resolve any ambiguity in the prompt, and does not justify why 100K RPS was chosen as the scale target. It meets the bar for a score of 3 but lacks the non-goal statements and ambiguity resolution needed for a 4 or 5.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The response derives storage (~560 MB for 10M users), network bandwidth (10 MB/s), and compute requirements (Redis throughput ceiling), and these numbers directly drive the decision to use a Redis Cluster with 3-5 shards. The chain from assumptions to QPS to storage to bandwidth to component sizing is present. However, the response does not flag which assumptions are fragile or sanity-check results, which would be required for a 5. This is a solid 4.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component - Redis Cluster, API Gateway nodes, Rules Service, PostgreSQL, local in-memory cache - is tied to a specific requirement or capacity number. The data flow is traceable end-to-end from client through load balancer to gateway to Redis, and the control plane is clearly separated from the data plane. The choice of Lua scripts over alternatives is justified against the race condition requirement. This earns a 4.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"There are two substantive deep-dives: the Lua script with concrete token bucket logic, HMGET/HMSET operations, EXPIRE for cleanup, and the clock drift edge case addressed via Redis TIME command; and the Rules Engine with local in-memory caching and pub/sub propagation. The Lua script deep-dive surfaces a non-obvious failure mode (clock drift corrupting refill math) and provides a specific mitigation with a named tradeoff. The hot-key L1 banning cache is also a non-obvious edge case. This meets the bar for a 5.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The response covers four distinct failure modes (Redis down, clock drift, network partition, thundering herd on rule updates) with specific mitigations for each. Tradeoffs are concretely scoped: strict vs. relaxed accuracy is tied to the monetization requirement and quantified with 1-3ms latency cost and 10x burst risk for the relaxed mode. The thundering herd on rule updates is a non-obvious failure mode. The design acknowledges its own limit explicitly with the fail-open approach. This meets the criteria for a 5.\", \"score\": 5}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

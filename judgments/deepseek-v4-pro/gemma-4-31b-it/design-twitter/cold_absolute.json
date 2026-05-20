@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemma-4-31b-it/design-twitter_cold.json",
+  "question_id": "design-twitter",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T06:11:20.094549+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists both functional and non-functional requirements, includes explicit scale assumptions (300M MAU, read-write ratio 100:1), but lacks quantified SLAs like availability percentage (only '24/7') and does not state non-goals or resolve prompt ambiguities. This meets level 3 criteria.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives QPS, storage, and bandwidth from stated assumptions, and numbers are roughly correct. However, these numbers do not demonstrably propagate into component sizing decisions (e.g., no shard count or node estimation based on QPS). This matches level 3.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "The architecture diagram clearly maps components to requirements: Cassandra for tweet writes, Redis for fast feed reads, Kafka for async processing, hybrid push/pull for celebrity handling. Every component has a stated justification and the data flow is traceable end-to-end. This meets level 4 criteria.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response includes a detailed deep-dive on the feed problem (push vs pull hybrid) with mechanisms and a clear tradeoff (complexity vs performance). Other deep-dives (Cassandra schema, Redis sorted set) provide concrete mechanisms but lack named tradeoff reasoning within those sections. This meets level 3 requirements for one deep-dive with concrete mechanism.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response presents multiple concretely scoped tradeoff decisions (e.g., eventual consistency vs availability, hybrid fan-out balancing) with justifications, and discusses specific failure modes (thundering herd, Redis exhaustion, Kafka lag, hotspot) with concrete mitigations. This meets level 4 criteria.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response lists both functional and non-functional requirements, includes explicit scale assumptions (300M MAU, read-write ratio 100:1), but lacks quantified SLAs like availability percentage (only '24/7') and does not state non-goals or resolve prompt ambiguities. This meets level 3 criteria.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The response derives QPS, storage, and bandwidth from stated assumptions, and numbers are roughly correct. However, these numbers do not demonstrably propagate into component sizing decisions (e.g., no shard count or node estimation based on QPS). This matches level 3.\",\n    \"score\": 3\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"The architecture diagram clearly maps components to requirements: Cassandra for tweet writes, Redis for fast feed reads, Kafka for async processing, hybrid push/pull for celebrity handling. Every component has a stated justification and the data flow is traceable end-to-end. This meets level 4 criteria.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response includes a detailed deep-dive on the feed problem (push vs pull hybrid) with mechanisms and a clear tradeoff (complexity vs performance). Other deep-dives (Cassandra schema, Redis sorted set) provide concrete mechanisms but lack named tradeoff reasoning within those sections. This meets level 3 requirements for one deep-dive with concrete mechanism.\",\n    \"score\": 3\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The response presents multiple concretely scoped tradeoff decisions (e.g., eventual consistency vs availability, hybrid fan-out balancing) with justifications, and discusses specific failure modes (thundering herd, Redis exhaustion, Kafka lag, hotspot) with concrete mitigations. This meets level 4 criteria.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

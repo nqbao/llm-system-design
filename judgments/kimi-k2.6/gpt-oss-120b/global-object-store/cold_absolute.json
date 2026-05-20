@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-120b/global-object-store_cold.json",
+  "question_id": "global-object-store",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-06T05:34:49.257715+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with explicit functional requirements (F1-F12) covering core S3 operations and non-functional requirements (N1-N10) with quantified targets including 'eleven 9's' durability, 99.99% availability, <30ms p99 latency, and 10 Tbps egress. Assumptions are stated with justification (e.g., 'hyperscale deployment' for hundreds of millions of users). However, there are no explicit non-goals stated, and the prompt ambiguity around exact scale is not explicitly resolved with alternative scenarios (the design picks one scale and runs with it).",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives numbers from stated assumptions: 500 PB target, 150 KB average object size, 2M GET/s, 400K PUT/s. It propagates through to calculate ~7,000 storage nodes, network capacity (280 Tbps raw, ~200 Tbps usable), metadata store size (2 TB, 6 TB replicated), and explicitly compares these to targets. The node count drives the architecture. However, there's no explicit flagging of fragile assumptions or sanity-checking (e.g., 'does 10 billion objects make sense for 500 PB at 150 KB?'). The cost table shows comparative analysis but doesn't validate the primary estimate chain against real-world bounds.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is explicitly mapped to requirements: Metadata Service serves F3 versioning and N6 consistency; Object Transit Layer enables N8 multi-tenant isolation and N3 latency; Erasure coding serves N1 durability and N10 cost. Data flows are traceable end-to-end for PUT, GET, multipart, and delete. No hallucinated services—technologies named are justified (e.g., 'Dynamo-style Quorum-replicated KV' for metadata, not just 'Cassandra'). The architecture description is genuinely informative with specific responsibilities per component. However, no explicit anti-pattern avoidance is stated (e.g., 'we do NOT use cache here because...').",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep dives present: (1) Metadata Service with specific quorum values (W=3, R=2), sharding key (bucketName ⊕ objectKey), and dynamic split threshold (100 GB); (2) Erasure coding with specific RS(6+2) parameters, rack-aware placement constraint, and SIMD/hardware acceleration; (3) Multipart upload with specific state machine (upload ID, part manifest, final commit, GC). Tradeoffs are named with reasoning: 'range-sharding by user_id → hotspot' is avoided via hash prefix. However, no non-obvious edge case is surfaced in these deep dives—no thundering herd on hot keys, no write amplification analysis for metadata updates, no partial network partition handling in the KV layer specifically.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Extensive tradeoff table with 8 specific decisions, each with Option A, Option B, and quantified/scoped impact (e.g., 'Strong consistency adds latency (quorum) on every write'). Failure modes table covers 10 scenarios with specific detection and mitigation, including non-obvious ones: clock skew with TrueTime fallback, software bug during upgrade with canary/blue-green, silent bit-rot with BLAKE3 scrubbing. The design explicitly acknowledges limits: 'this design cannot handle X' appears implicitly in 'stale reads acceptable for eventual consistency' and 'if insufficient [shards], raise alarm (possible durability breach).' However, no explicit statement of 'this design cannot handle strong consistency for overwrites without significant latency penalty' as a hard limit requiring architectural change.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with explicit functional requirements (F1-F12) covering core S3 operations and non-functional requirements (N1-N10) with quantified targets including 'eleven 9's' durability, 99.99% availability, <30ms p99 latency, and 10 Tbps egress. Assumptions are stated with justification (e.g., 'hyperscale deployment' for hundreds of millions of users). However, there are no explicit non-goals stated, and the prompt ambiguity around exact scale is not explicitly resolved with alternative scenarios (the design picks one scale and runs with it).\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The response derives numbers from stated assumptions: 500 PB target, 150 KB average object size, 2M GET/s, 400K PUT/s. It propagates through to calculate ~7,000 storage nodes, network capacity (280 Tbps raw, ~200 Tbps usable), metadata store size (2 TB, 6 TB replicated), and explicitly compares these to targets. The node count drives the architecture. However, there's no explicit flagging of fragile assumptions or sanity-checking (e.g., 'does 10 billion objects make sense for 500 PB at 150 KB?'). The cost table shows comparative analysis but doesn't validate the primary estimate chain against real-world bounds.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is explicitly mapped to requirements: Metadata Service serves F3 versioning and N6 consistency; Object Transit Layer enables N8 multi-tenant isolation and N3 latency; Erasure coding serves N1 durability and N10 cost. Data flows are traceable end-to-end for PUT, GET, multipart, and delete. No hallucinated services—technologies named are justified (e.g., 'Dynamo-style Quorum-replicated KV' for metadata, not just 'Cassandra'). The architecture description is genuinely informative with specific responsibilities per component. However, no explicit anti-pattern avoidance is stated (e.g., 'we do NOT use cache here because...').\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep dives present: (1) Metadata Service with specific quorum values (W=3, R=2), sharding key (bucketName ⊕ objectKey), and dynamic split threshold (100 GB); (2) Erasure coding with specific RS(6+2) parameters, rack-aware placement constraint, and SIMD/hardware acceleration; (3) Multipart upload with specific state machine (upload ID, part manifest, final commit, GC). Tradeoffs are named with reasoning: 'range-sharding by user_id → hotspot' is avoided via hash prefix. However, no non-obvious edge case is surfaced in these deep dives—no thundering herd on hot keys, no write amplification analysis for metadata updates, no partial network partition handling in the KV layer specifically.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Extensive tradeoff table with 8 specific decisions, each with Option A, Option B, and quantified/scoped impact (e.g., 'Strong consistency adds latency (quorum) on every write'). Failure modes table covers 10 scenarios with specific detection and mitigation, including non-obvious ones: clock skew with TrueTime fallback, software bug during upgrade with canary/blue-green, silent bit-rot with BLAKE3 scrubbing. The design explicitly acknowledges limits: 'this design cannot handle X' appears implicitly in 'stale reads acceptable for eventual consistency' and 'if insufficient [shards], raise alarm (possible durability breach).' However, no explicit statement of 'this design cannot handle strong consistency for overwrites without significant latency penalty' as a hard limit requiring architectural change.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

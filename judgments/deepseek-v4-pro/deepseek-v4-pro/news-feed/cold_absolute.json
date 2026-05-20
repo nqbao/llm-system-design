@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/deepseek-v4-pro/news-feed_cold.json",
+  "question_id": "news-feed",
+  "variant": "cold",
+  "model_under_test": "deepseek-v4-pro",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T07:19:50.290321+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Both functional and non-functional requirements are listed, with specific quantified targets (99.99% uptime, <200ms p95). Assumptions like power‑law follow distribution and 10 refreshes/DAU are stated but not justified, and no explicit non‑goals are defined.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "Derives QPS and storage from assumptions, including write QPS, peak read QPS, and storage per year. However, bandwidth is not estimated, and the numbers do not explicitly drive component sizing (e.g., shard counts) beyond informing the hybrid fanout choice.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (Post Service, Fanout Worker, Timeline Cache, etc.) is connected to a specific requirement. Justifications like Cassandra for high writes and Redis sorted sets for timelines are provided. The data flow is clear and no hallucinations are present.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The fanout strategy deep‑dive includes concrete mechanisms (celebrity threshold, push to active followers, Redis sorted sets with cap) and tradeoffs (table comparing push/pull/hybrid). However, other areas like ranking and read aggregation remain shallow, resulting in essentially one in‑depth component exploration.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "A dedicated tradeoff table compares push, pull, and hybrid, explicitly linking choices to architecture. A failure mode table lists several scenarios with specific mitigations (e.g., Redis failover, fallback to PostDB). Tradeoffs are not quantified (e.g., latency numbers), which keeps the score at 3.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"Both functional and non-functional requirements are listed, with specific quantified targets (99.99% uptime, <200ms p95). Assumptions like power‑law follow distribution and 10 refreshes/DAU are stated but not justified, and no explicit non‑goals are defined.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Derives QPS and storage from assumptions, including write QPS, peak read QPS, and storage per year. However, bandwidth is not estimated, and the numbers do not explicitly drive component sizing (e.g., shard counts) beyond informing the hybrid fanout choice.\",\n    \"score\": 3\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (Post Service, Fanout Worker, Timeline Cache, etc.) is connected to a specific requirement. Justifications like Cassandra for high writes and Redis sorted sets for timelines are provided. The data flow is clear and no hallucinations are present.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The fanout strategy deep‑dive includes concrete mechanisms (celebrity threshold, push to active followers, Redis sorted sets with cap) and tradeoffs (table comparing push/pull/hybrid). However, other areas like ranking and read aggregation remain shallow, resulting in essentially one in‑depth component exploration.\",\n    \"score\": 3\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"A dedicated tradeoff table compares push, pull, and hybrid, explicitly linking choices to architecture. A failure mode table lists several scenarios with specific mitigations (e.g., Redis failover, fallback to PostDB). Tradeoffs are not quantified (e.g., latency numbers), which keeps the score at 3.\",\n    \"score\": 3\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

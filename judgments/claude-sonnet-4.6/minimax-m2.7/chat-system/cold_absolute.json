@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-04/minimax-m2.7/chat-system_cold.json",
+  "question_id": "chat-system",
+  "variant": "cold",
+  "model_under_test": "minimax-m2.7",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T00:18:02.822676+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists functional requirements (DM, group channels, presence, history, push notifications) but provides no non-functional requirements with quantified targets — no latency SLAs, no availability percentages, no durability guarantees, no scale assumptions (number of users, messages/day). There are no explicit assumptions stated (e.g., read/write ratio, expected concurrent connections), no non-goals, and no ambiguity resolution. It jumps straight into architecture after a brief bullet list.",
+        "score": 2
+      },
+      "capacity_estimation": {
+        "reasoning": "There is zero capacity estimation in this response. No user counts, no QPS derivations, no storage calculations, no bandwidth estimates, no component sizing. The design choices (Kafka, Redis pub/sub, sharding) are made without any numerical justification. This is a complete absence of the estimation chain.",
+        "score": 1
+      },
+      "architecture_coherence": {
+        "reasoning": "The architecture diagram is present and components are generally sensible — WebSocket gateway for real-time, Kafka for durable message queuing, Redis for pub/sub and presence, PostgreSQL for persistence, S3 for media. Each component serves a plausible purpose and there are no hallucinated services. The data flow is traceable through the sequence diagram. However, components are not justified against specific requirements or capacity numbers, and there's a minor issue: the diagram shows S4 (Notification Service) both publishing to M1 and consuming from M1, which is slightly circular without explanation.",
+        "score": 3
+      },
+      "deep_dive_depth": {
+        "reasoning": "There are multiple deep-dives: presence service (Redis TTL/heartbeat mechanism), message delivery (save→Kafka→WebSocket/push flow), typing indicators (Redis pub/sub with TTL), push notifications (APNS/FCM routing). The presence TTL mechanism is concrete. However, tradeoffs within these deep-dives are largely absent — e.g., the sharding strategy mentions 'shard by channel_id' but doesn't discuss hotspot risk for popular channels, the Kafka partitioning uses hash_channel without discussing partition count or rebalancing. No non-obvious failure modes are surfaced (e.g., what happens when a WebSocket server crashes mid-delivery, or thundering herd on popular channel reconnects).",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response mentions retry logic with backoff and a dead-letter queue, which is a concrete failure mitigation. Rate limiting is addressed. However, there are no explicit tradeoffs framed as 'we chose X over Y because Z' — for example, why Kafka over a simpler queue, why PostgreSQL over Cassandra for messages (a common and important choice in chat systems), or why Redis pub/sub for presence vs. a dedicated service. The 'Performance Optimizations' section lists techniques without explaining the tradeoffs. No non-obvious failure modes are discussed (e.g., WebSocket server affinity problem when scaling horizontally, message ordering guarantees across partitions, presence state inconsistency during network partition).",
+        "score": 2
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response lists functional requirements (DM, group channels, presence, history, push notifications) but provides no non-functional requirements with quantified targets — no latency SLAs, no availability percentages, no durability guarantees, no scale assumptions (number of users, messages/day). There are no explicit assumptions stated (e.g., read/write ratio, expected concurrent connections), no non-goals, and no ambiguity resolution. It jumps straight into architecture after a brief bullet list.\", \"score\": 2}, \"capacity_estimation\": {\"reasoning\": \"There is zero capacity estimation in this response. No user counts, no QPS derivations, no storage calculations, no bandwidth estimates, no component sizing. The design choices (Kafka, Redis pub/sub, sharding) are made without any numerical justification. This is a complete absence of the estimation chain.\", \"score\": 1}, \"architecture_coherence\": {\"reasoning\": \"The architecture diagram is present and components are generally sensible — WebSocket gateway for real-time, Kafka for durable message queuing, Redis for pub/sub and presence, PostgreSQL for persistence, S3 for media. Each component serves a plausible purpose and there are no hallucinated services. The data flow is traceable through the sequence diagram. However, components are not justified against specific requirements or capacity numbers, and there's a minor issue: the diagram shows S4 (Notification Service) both publishing to M1 and consuming from M1, which is slightly circular without explanation.\", \"score\": 3}, \"deep_dive_depth\": {\"reasoning\": \"There are multiple deep-dives: presence service (Redis TTL/heartbeat mechanism), message delivery (save→Kafka→WebSocket/push flow), typing indicators (Redis pub/sub with TTL), push notifications (APNS/FCM routing). The presence TTL mechanism is concrete. However, tradeoffs within these deep-dives are largely absent — e.g., the sharding strategy mentions 'shard by channel_id' but doesn't discuss hotspot risk for popular channels, the Kafka partitioning uses hash_channel without discussing partition count or rebalancing. No non-obvious failure modes are surfaced (e.g., what happens when a WebSocket server crashes mid-delivery, or thundering herd on popular channel reconnects).\", \"score\": 3}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The response mentions retry logic with backoff and a dead-letter queue, which is a concrete failure mitigation. Rate limiting is addressed. However, there are no explicit tradeoffs framed as 'we chose X over Y because Z' — for example, why Kafka over a simpler queue, why PostgreSQL over Cassandra for messages (a common and important choice in chat systems), or why Redis pub/sub for presence vs. a dedicated service. The 'Performance Optimizations' section lists techniques without explaining the tradeoffs. No non-obvious failure modes are discussed (e.g., WebSocket server affinity problem when scaling horizontally, message ordering guarantees across partitions, presence state inconsistency during network partition).\", \"score\": 2}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

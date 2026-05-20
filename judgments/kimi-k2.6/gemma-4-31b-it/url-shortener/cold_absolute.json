@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemma-4-31b-it/url-shortener_cold.json",
+  "question_id": "url-shortener",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T05:42:06.299860+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response starts with clear functional requirements (shortening, redirection, custom aliases, expiration) and non-functional requirements (99.99% availability, millisecond latency, read-heavy scalability, unpredictability). However, there are no explicit assumptions stated about scale (the numbers appear in capacity planning without justification), no quantified SLAs beyond the 99.99% availability, and no explicit non-goals or ambiguity resolution from the prompt. The non-functional 'Low Latency' is unquantified ('milliseconds' is vague).",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The math is present and derived: 500M URLs/month → 193 write QPS → 19,300 read QPS via 100:1 ratio. Storage is calculated for 10 years (60B records × 123 bytes = 7.38 TB). Bandwidth follows from these numbers. However, the numbers don't demonstrably drive design choices—there's no explicit 'because X QPS, we need Y shards' linkage. The 500M/month assumption is stated without justification or fragility analysis. No sanity check on the 7.38 TB figure (is that reasonable? too small? not questioned).",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Components connect to requirements: Redis for read-heavy latency, NoSQL for horizontal scaling, Zookeeper for unique ID generation, multi-layer cache for hot keys. No hallucinated services. The architecture description is clear with a Mermaid diagram. However, some justifications are thin—why DynamoDB OR Cassandra specifically? The 'Consistent Hashing' mention in failure analysis appears disconnected from the earlier simple hash-based partition key design. The range handler buffer mechanism is a good concrete detail.",
+        "score": 3
+      },
+      "deep_dive_depth": {
+        "reasoning": "Two deep-dives with concrete mechanisms: (1) distributed counter with range handler (Base62 encoding, Zookeeper/etcd range assignment, local incrementing) with tradeoff against hashing; (2) 301 vs 302 redirect with specific business logic reasoning. The hot key/thundering herd solution adds LRU local cache as second layer. However, the NoSQL data model is superficial—no discussion of secondary indexes (user_id queries?), replication strategy, or actual sharding key distribution. The consistent hashing mention is abrupt and unexplained. No non-obvious edge cases surfaced.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Two specific tradeoffs tied to decisions: hash vs counter (with latency/collision reasoning), 301 vs 302 (analytics vs performance). Failure modes table covers Redis crash, Zookeeper down, DB partition overload, database growth—each with specific mitigations. However, tradeoffs are not quantified (no 'adds ~20ms' style). The design doesn't explicitly acknowledge its own limits. The 'DB Partition Overload' failure mode is somewhat generic; the consistent hashing solution contradicts the earlier simple partition key design without reconciliation. No non-obvious failure modes like time-of-check-to-time-of-use or partial partitions.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response starts with clear functional requirements (shortening, redirection, custom aliases, expiration) and non-functional requirements (99.99% availability, millisecond latency, read-heavy scalability, unpredictability). However, there are no explicit assumptions stated about scale (the numbers appear in capacity planning without justification), no quantified SLAs beyond the 99.99% availability, and no explicit non-goals or ambiguity resolution from the prompt. The non-functional 'Low Latency' is unquantified ('milliseconds' is vague).\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The math is present and derived: 500M URLs/month → 193 write QPS → 19,300 read QPS via 100:1 ratio. Storage is calculated for 10 years (60B records × 123 bytes = 7.38 TB). Bandwidth follows from these numbers. However, the numbers don't demonstrably drive design choices—there's no explicit 'because X QPS, we need Y shards' linkage. The 500M/month assumption is stated without justification or fragility analysis. No sanity check on the 7.38 TB figure (is that reasonable? too small? not questioned).\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Components connect to requirements: Redis for read-heavy latency, NoSQL for horizontal scaling, Zookeeper for unique ID generation, multi-layer cache for hot keys. No hallucinated services. The architecture description is clear with a Mermaid diagram. However, some justifications are thin—why DynamoDB OR Cassandra specifically? The 'Consistent Hashing' mention in failure analysis appears disconnected from the earlier simple hash-based partition key design. The range handler buffer mechanism is a good concrete detail.\", \"score\": 3}, \"deep_dive_depth\": {\"reasoning\": \"Two deep-dives with concrete mechanisms: (1) distributed counter with range handler (Base62 encoding, Zookeeper/etcd range assignment, local incrementing) with tradeoff against hashing; (2) 301 vs 302 redirect with specific business logic reasoning. The hot key/thundering herd solution adds LRU local cache as second layer. However, the NoSQL data model is superficial—no discussion of secondary indexes (user_id queries?), replication strategy, or actual sharding key distribution. The consistent hashing mention is abrupt and unexplained. No non-obvious edge cases surfaced.\", \"score\": 3}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Two specific tradeoffs tied to decisions: hash vs counter (with latency/collision reasoning), 301 vs 302 (analytics vs performance). Failure modes table covers Redis crash, Zookeeper down, DB partition overload, database growth—each with specific mitigations. However, tradeoffs are not quantified (no 'adds ~20ms' style). The design doesn't explicitly acknowledge its own limits. The 'DB Partition Overload' failure mode is somewhat generic; the consistent hashing solution contradicts the earlier simple partition key design without reconciliation. No non-obvious failure modes like time-of-check-to-time-of-use or partial partitions.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

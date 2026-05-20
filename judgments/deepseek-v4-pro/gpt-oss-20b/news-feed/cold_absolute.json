@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-20b/news-feed_cold.json",
+  "question_id": "news-feed",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-20b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T07:33:23.636199+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response states functional goal (real-time news feed), scale (1B MAU, 1B tweets/day), quantified latency and uptime targets (p99 ≤80ms read, ≤300ms create, ≥99.99% uptime), and consistency requirements. It includes explicit assumptions about scale but does not justify them, set non-goals, or address prompt ambiguities, so it falls short of a 4.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The derivation of write throughput (11.5k avg, 1M peak) is present, and storage for posts is calculated correctly (1TB/day, 3.65PB/10yr). However, the follower set calculation contains a critical error (10k follows × 5B = 5GB per user is incorrect; correct is ~50KB), and bandwidth estimation is missing. The numbers are not reliably derived, so the math does not drive design decisions.",
+        "score": 2
+      },
+      "architecture_coherence": {
+        "reasoning": "A clear diagram and table of components are provided, with data flow from ingestion (API→Kafka→Cassandra) to feed delivery (caches→Feed API). Each component (Kafka for durable ingestion, Redis for follower sets, Cassandra for posts, ranking engine) addresses a stated requirement. Components are connected sensibly, and there are no obvious hallucinations, but justifications against specific capacity numbers are not explicit for all parts.",
+        "score": 3
+      },
+      "deep_dive_depth": {
+        "reasoning": "The timeline generation section provides a concrete deep-dive with a hybrid push/pull mechanism, Kafka Streams aggregation, and sorted-set ranking. It includes pseudo-code for ranking and explains sharding by user_id. However, only one deep-dive (timeline) is present; the caching tier and storage details remain shallow, lacking a second in-depth treatment with tradeoff reasoning.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "A dedicated tradeoffs table ties five decisions to concrete alternatives with reasoning. The failure modes section lists multiple scenarios with specific mitigations (e.g., Kafka failover, retry+dudupe, CDN fallback). However, tradeoffs are described qualitatively without latency or cost quantification (e.g., no 'strong consistency adds ~20ms'), and the design does not explicitly state its own limits or surface non-obvious failure modes like thundering herds.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response states functional goal (real-time news feed), scale (1B MAU, 1B tweets/day), quantified latency and uptime targets (p99 ≤80ms read, ≤300ms create, ≥99.99% uptime), and consistency requirements. It includes explicit assumptions about scale but does not justify them, set non-goals, or address prompt ambiguities, so it falls short of a 4.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The derivation of write throughput (11.5k avg, 1M peak) is present, and storage for posts is calculated correctly (1TB/day, 3.65PB/10yr). However, the follower set calculation contains a critical error (10k follows × 5B = 5GB per user is incorrect; correct is ~50KB), and bandwidth estimation is missing. The numbers are not reliably derived, so the math does not drive design decisions.\",\n    \"score\": 2\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"A clear diagram and table of components are provided, with data flow from ingestion (API→Kafka→Cassandra) to feed delivery (caches→Feed API). Each component (Kafka for durable ingestion, Redis for follower sets, Cassandra for posts, ranking engine) addresses a stated requirement. Components are connected sensibly, and there are no obvious hallucinations, but justifications against specific capacity numbers are not explicit for all parts.\",\n    \"score\": 3\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The timeline generation section provides a concrete deep-dive with a hybrid push/pull mechanism, Kafka Streams aggregation, and sorted-set ranking. It includes pseudo-code for ranking and explains sharding by user_id. However, only one deep-dive (timeline) is present; the caching tier and storage details remain shallow, lacking a second in-depth treatment with tradeoff reasoning.\",\n    \"score\": 3\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"A dedicated tradeoffs table ties five decisions to concrete alternatives with reasoning. The failure modes section lists multiple scenarios with specific mitigations (e.g., Kafka failover, retry+dudupe, CDN fallback). However, tradeoffs are described qualitatively without latency or cost quantification (e.g., no 'strong consistency adds ~20ms'), and the design does not explicitly state its own limits or surface non-obvious failure modes like thundering herds.\",\n    \"score\": 3\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

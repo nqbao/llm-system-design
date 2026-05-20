@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-03/gemini-3.1-pro/chat-system_cold.json",
+  "question_id": "chat-system",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-03T22:07:02.727612+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists both functional and non-functional requirements with quantified targets (99.99% uptime, 500M DAU, <200ms latency, zero message loss). It explicitly states out-of-scope items (E2E encryption, voice/video, media storage). However, it does not resolve ambiguities in the prompt or justify why 500M DAU was chosen over alternatives, and there are no explicit read/write ratio assumptions stated upfront. This is a strong 4 — quantified NFRs and explicit non-goals are present, but no prompt ambiguity resolution or justification of scale choices.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The estimation chain is solid: DAU → concurrent connections → messages/day → QPS (average and peak) → storage per message → daily/yearly storage → WebSocket server count. Numbers are derived and the server count calculation directly drives the architecture. The 3.65 PB/year figure is noted without a sanity check, and the read QPS estimate (2.5M/s) is loosely justified rather than rigorously derived. No fragile assumptions are flagged. Strong 4 but falls short of 5 due to missing sanity checks and fragile-assumption flagging.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified: Kafka for durable ingestion, Redis Pub/Sub for transient server routing, Cassandra for write-heavy message storage, PostgreSQL for relational metadata, Push Notification Service for offline users. The data flow is traceable end-to-end for both 1-on-1 and group messages. The design explicitly avoids an anti-pattern ('creating a Kafka topic per user/server is an anti-pattern') and explains why Redis Pub/Sub is used instead. No hallucinated services detected.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are present: Cassandra schema with specific partition key, clustering key with Snowflake IDs, and exact query pattern; the two-layer messaging pipeline with explicit reasoning; group fan-out mechanics. Each deep-dive includes a named tradeoff with reasoning. Non-obvious failure modes are surfaced: Thundering Herd on reconnect with jitter mitigation, GC pause on Cassandra causing Kafka backlog, out-of-order messages from clock skew. This meets the 5-level criteria.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Four explicit tradeoffs are tied to specific decisions with concrete reasoning. Failure modes section covers four distinct scenarios with specific mitigations: Thundering Herd on reconnect, Cassandra GC pause with Kafka buffer and checkmark UX, multi-device race conditions via read_receipts Kafka topic, and out-of-order messages via Snowflake IDs. The design does not explicitly acknowledge its own limits ('this design cannot handle X; if that becomes a requirement we would need Y'), which is the key criterion separating 4 from 5.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response lists both functional and non-functional requirements with quantified targets (99.99% uptime, 500M DAU, <200ms latency, zero message loss). It explicitly states out-of-scope items (E2E encryption, voice/video, media storage). However, it does not resolve ambiguities in the prompt or justify why 500M DAU was chosen over alternatives, and there are no explicit read/write ratio assumptions stated upfront. This is a strong 4 — quantified NFRs and explicit non-goals are present, but no prompt ambiguity resolution or justification of scale choices.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The estimation chain is solid: DAU → concurrent connections → messages/day → QPS (average and peak) → storage per message → daily/yearly storage → WebSocket server count. Numbers are derived and the server count calculation directly drives the architecture. The 3.65 PB/year figure is noted without a sanity check, and the read QPS estimate (2.5M/s) is loosely justified rather than rigorously derived. No fragile assumptions are flagged. Strong 4 but falls short of 5 due to missing sanity checks and fragile-assumption flagging.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified: Kafka for durable ingestion, Redis Pub/Sub for transient server routing, Cassandra for write-heavy message storage, PostgreSQL for relational metadata, Push Notification Service for offline users. The data flow is traceable end-to-end for both 1-on-1 and group messages. The design explicitly avoids an anti-pattern ('creating a Kafka topic per user/server is an anti-pattern') and explains why Redis Pub/Sub is used instead. No hallucinated services detected.\", \"score\": 5}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives are present: Cassandra schema with specific partition key, clustering key with Snowflake IDs, and exact query pattern; the two-layer messaging pipeline with explicit reasoning; group fan-out mechanics. Each deep-dive includes a named tradeoff with reasoning. Non-obvious failure modes are surfaced: Thundering Herd on reconnect with jitter mitigation, GC pause on Cassandra causing Kafka backlog, out-of-order messages from clock skew. This meets the 5-level criteria.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Four explicit tradeoffs are tied to specific decisions with concrete reasoning. Failure modes section covers four distinct scenarios with specific mitigations: Thundering Herd on reconnect, Cassandra GC pause with Kafka buffer and checkmark UX, multi-device race conditions via read_receipts Kafka topic, and out-of-order messages via Snowflake IDs. The design does not explicitly acknowledge its own limits ('this design cannot handle X; if that becomes a requirement we would need Y'), which is the key criterion separating 4 from 5.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

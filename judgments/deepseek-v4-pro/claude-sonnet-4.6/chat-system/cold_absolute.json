@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/claude-sonnet-4.6/chat-system_cold.json",
+  "question_id": "chat-system",
+  "variant": "cold",
+  "model_under_test": "claude-sonnet-4.6",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T08:45:32.335725+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response clearly lists both functional and non-functional requirements with quantified SLAs (p99 <500ms, 99.99% availability, 5-year durability). It explicitly states non-goals (voice/video calls, payments, bots) and resolves ambiguity by choosing specific scale (2B users, 500M DAU).",
+        "score": 5
+      },
+      "capacity_estimation": {
+        "reasoning": "The response provides a detailed estimation table with derivations from assumptions (DAU, messages/user, message size) to QPS (1.16M msg/s), storage per day, and active connections. These numbers directly inform component choices like Cassandra for write throughput and chat server count, but no explicit sanity-check or flagging of fragile assumptions is present.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component in the architecture diagram serves a stated requirement (Kafka for message bus, Cassandra for durable storage, Redis for session/presence). The data flow is traceable end-to-end, and justifications like Kafka vs direct server push are explained. No hallucinations; the architecture is coherent and justified.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives (message flow, Cassandra schema, group fan-out, presence) include concrete mechanisms (Snowflake ID, sharding key with hash bucket for hot partitions, heartbeat with TTL, subscription model for presence). For Cassandra, the hot partition mitigation with modulo bucket is a non-obvious edge case addressed, demonstrating deep mechanism knowledge. Tradeoffs are named (e.g., push vs pull for group chat).",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "A dedicated tradeoffs summary table lists choices and tradeoffs (e.g., Cassandra for write-optimized vs. no strong consistency, E2EE privacy vs. server-side search impossibility). Failure modes are covered in a fault tolerance table with specific mitigations (replication, failover, idempotent dedup). The design explicitly acknowledges its limits (E2EE prevents server-side search) and surfaces edge cases like message duplication. However, no deeply non-obvious failure mode like thundering herd or GC tail latency is highlighted in the tradeoff discussion.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response clearly lists both functional and non-functional requirements with quantified SLAs (p99 <500ms, 99.99% availability, 5-year durability). It explicitly states non-goals (voice/video calls, payments, bots) and resolves ambiguity by choosing specific scale (2B users, 500M DAU).\",\n    \"score\": 5\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The response provides a detailed estimation table with derivations from assumptions (DAU, messages/user, message size) to QPS (1.16M msg/s), storage per day, and active connections. These numbers directly inform component choices like Cassandra for write throughput and chat server count, but no explicit sanity-check or flagging of fragile assumptions is present.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component in the architecture diagram serves a stated requirement (Kafka for message bus, Cassandra for durable storage, Redis for session/presence). The data flow is traceable end-to-end, and justifications like Kafka vs direct server push are explained. No hallucinations; the architecture is coherent and justified.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives (message flow, Cassandra schema, group fan-out, presence) include concrete mechanisms (Snowflake ID, sharding key with hash bucket for hot partitions, heartbeat with TTL, subscription model for presence). For Cassandra, the hot partition mitigation with modulo bucket is a non-obvious edge case addressed, demonstrating deep mechanism knowledge. Tradeoffs are named (e.g., push vs pull for group chat).\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"A dedicated tradeoffs summary table lists choices and tradeoffs (e.g., Cassandra for write-optimized vs. no strong consistency, E2EE privacy vs. server-side search impossibility). Failure modes are covered in a fault tolerance table with specific mitigations (replication, failover, idempotent dedup). The design explicitly acknowledges its limits (E2EE prevents server-side search) and surfaces edge cases like message duplication. However, no deeply non-obvious failure mode like thundering herd or GC tail latency is highlighted in the tradeoff discussion.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

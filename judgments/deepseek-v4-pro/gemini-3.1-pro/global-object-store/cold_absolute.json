@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemini-3.1-pro/global-object-store_cold.json",
+  "question_id": "global-object-store",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T09:19:59.247809+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design states functional requirements (CRUD operations on buckets/objects) and non-functional requirements (99.99% availability, 11 9s durability, strong consistency). Explicit assumptions are given (100K RPS, 80/20 read/write ratio, 1MB average object size) and used in capacity estimation, but no non-goals or resolution of prompt ambiguities are present, slightly below the exceptional 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The design derives QPS, storage ingress/egress, annual data volume (630 PB), physical storage after erasure coding (880 PB), and metadata growth (630 TB/year) from the stated assumptions. However, the numbers are only loosely coupled to component sizing (e.g., no explicit shard count or node count derived from the QPS), keeping it at the adequate level.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (API Gateway, Metadata KV store, placement manager, storage nodes, GC) is justified against specific requirements like consistency, durability, or cost. The data flow is end-to-end traceable with clear separation of control and data planes, and the architecture description is genuinely informative, though it does not explicitly call out an anti-pattern avoidance statement.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Two deep dives (data storage with append-only logs and erasure coding, metadata with schema design and hot-key mitigation) provide concrete mechanisms and tradeoffs with reasoning. The hot partition salting for high-throughput buckets addresses a non-obvious edge case, and the erasure coding vs. replication tradeoff is quantified in cost savings, pushing this to exceptional depth.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Explicit tradeoffs are tied to specific decisions (EC vs. replication, control/data separation, append-only vs. in-place, partition strategy), with some quantification (1.6x cost savings). Failure modes like orphaned data, network partition, and thundering herd are identified with concrete mitigations, and the design acknowledges its own limit in a partition (sacrificing availability for consistency), satisfying the criteria for a top score.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The design states functional requirements (CRUD operations on buckets/objects) and non-functional requirements (99.99% availability, 11 9s durability, strong consistency). Explicit assumptions are given (100K RPS, 80/20 read/write ratio, 1MB average object size) and used in capacity estimation, but no non-goals or resolution of prompt ambiguities are present, slightly below the exceptional 5.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The design derives QPS, storage ingress/egress, annual data volume (630 PB), physical storage after erasure coding (880 PB), and metadata growth (630 TB/year) from the stated assumptions. However, the numbers are only loosely coupled to component sizing (e.g., no explicit shard count or node count derived from the QPS), keeping it at the adequate level.\",\n    \"score\": 3\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (API Gateway, Metadata KV store, placement manager, storage nodes, GC) is justified against specific requirements like consistency, durability, or cost. The data flow is end-to-end traceable with clear separation of control and data planes, and the architecture description is genuinely informative, though it does not explicitly call out an anti-pattern avoidance statement.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Two deep dives (data storage with append-only logs and erasure coding, metadata with schema design and hot-key mitigation) provide concrete mechanisms and tradeoffs with reasoning. The hot partition salting for high-throughput buckets addresses a non-obvious edge case, and the erasure coding vs. replication tradeoff is quantified in cost savings, pushing this to exceptional depth.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Explicit tradeoffs are tied to specific decisions (EC vs. replication, control/data separation, append-only vs. in-place, partition strategy), with some quantification (1.6x cost savings). Failure modes like orphaned data, network partition, and thundering herd are identified with concrete mitigations, and the design acknowledges its own limit in a partition (sacrificing availability for consistency), satisfying the criteria for a top score.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

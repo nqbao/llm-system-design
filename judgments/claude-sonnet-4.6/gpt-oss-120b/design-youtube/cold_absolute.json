@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-120b/design-youtube_cold.json",
+  "question_id": "design-youtube",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-06T05:36:19.122140+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response provides 11 functional requirements and a full non-functional table with quantified targets (99.99% API availability, <200ms latency, 2M RPS, 10 Tbps outbound). Assumptions are embedded in the capacity section (200M MAU, 70M DAU, 12 min avg. session). However, there is no explicit non-goals section and no resolution of a prompt ambiguity. This is a strong 4 but misses both signals required for 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "A full derivation chain is present: DAU x sessions x watch-time -> total watch-hours -> per-hour data -> daily egress (27.7 PB) -> peak concurrent streams (75.6M) -> bandwidth (23.6 Tbps), driving the CDN sizing decision explicitly. Upload ingress (2.2 Tbps) and 1-year object-store footprint (~10 EB) are also derived. Database node counts trace back to QPS. One sanity check appears ('Real-world YouTube stores >1 EB'). However, fragile assumptions are never explicitly flagged — the 5% simultaneous-peak assumption is a critical lever that drives the entire CDN number but is stated without acknowledgment of its sensitivity.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component maps to a stated requirement and no component is decorative. The Mermaid diagram makes data flow traceable end-to-end. Justifications are concrete and tied to specific requirements or capacity numbers (CockroachDB for ACID on ownership, Cassandra for write-spike tolerance on comments, Redis sharded counters to avoid a metadata DB hotspot). The explicit 'video playback never goes through the API' call-out identifies and avoids a common anti-pattern.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives include: Cassandra comments schema with explicit PRIMARY KEY and CLUSTERING ORDER BY with justification; Recommendation service using FAISS nearest-neighbor on video embeddings plus batch collaborative filtering with a named tradeoff; view-count sharded counters with batch-flush rationale. The failure-modes section surfaces the thundering herd with the non-obvious mitigation of probabilistic early expiration. Falls just short of 5 because some deep-dives remain descriptive without exposing additional edge cases like hot-segment hotspotting on popular videos or write amplification in erasure coding.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 9 provides a dedicated tradeoffs table with specific option-A vs. option-B comparisons tied to design decisions. Section 10 covers nine failure scenarios with concrete mitigations, including non-obvious ones: split-brain via CRDT counters, thundering herd via probabilistic early expiration, and partial Kafka partition via idempotent events. Graceful degradation fallbacks are specific. However, tradeoffs are not quantified with latency numbers, and the design never explicitly acknowledges its own hard limits, which is the key differentiator for a 5.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response provides 11 functional requirements and a full non-functional table with quantified targets (99.99% API availability, <200ms latency, 2M RPS, 10 Tbps outbound). Assumptions are embedded in the capacity section (200M MAU, 70M DAU, 12 min avg. session). However, there is no explicit non-goals section and no resolution of a prompt ambiguity. This is a strong 4 but misses both signals required for 5.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"A full derivation chain is present: DAU x sessions x watch-time -> total watch-hours -> per-hour data -> daily egress (27.7 PB) -> peak concurrent streams (75.6M) -> bandwidth (23.6 Tbps), driving the CDN sizing decision explicitly. Upload ingress (2.2 Tbps) and 1-year object-store footprint (~10 EB) are also derived. Database node counts trace back to QPS. One sanity check appears ('Real-world YouTube stores >1 EB'). However, fragile assumptions are never explicitly flagged — the 5% simultaneous-peak assumption is a critical lever that drives the entire CDN number but is stated without acknowledgment of its sensitivity.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component maps to a stated requirement and no component is decorative. The Mermaid diagram makes data flow traceable end-to-end. Justifications are concrete and tied to specific requirements or capacity numbers (CockroachDB for ACID on ownership, Cassandra for write-spike tolerance on comments, Redis sharded counters to avoid a metadata DB hotspot). The explicit 'video playback never goes through the API' call-out identifies and avoids a common anti-pattern.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives include: Cassandra comments schema with explicit PRIMARY KEY and CLUSTERING ORDER BY with justification; Recommendation service using FAISS nearest-neighbor on video embeddings plus batch collaborative filtering with a named tradeoff; view-count sharded counters with batch-flush rationale. The failure-modes section surfaces the thundering herd with the non-obvious mitigation of probabilistic early expiration. Falls just short of 5 because some deep-dives remain descriptive without exposing additional edge cases like hot-segment hotspotting on popular videos or write amplification in erasure coding.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 9 provides a dedicated tradeoffs table with specific option-A vs. option-B comparisons tied to design decisions. Section 10 covers nine failure scenarios with concrete mitigations, including non-obvious ones: split-brain via CRDT counters, thundering herd via probabilistic early expiration, and partial Kafka partition via idempotent events. Graceful degradation fallbacks are specific. However, tradeoffs are not quantified with latency numbers, and the design never explicitly acknowledges its own hard limits, which is the key differentiator for a 5.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/minimax-m2.7/job-scheduler_cold.json",
+  "question_id": "job-scheduler",
+  "variant": "cold",
+  "model_under_test": "minimax-m2.7",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T06:49:31.969531+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response does not include a dedicated requirements section with functional or non-functional requirements, assumptions, or quantified SLAs. It jumps directly into architecture and data models without scoping the problem.",
+        "score": 1
+      },
+      "capacity_estimation": {
+        "reasoning": "Section 6 lists scaling thresholds and a target architecture for 10,000 jobs/second, but no estimation chain is shown (no derivation of QPS from assumptions, no storage/bandwidth calculations). Numbers are present but not derived or directly connected to design decisions.",
+        "score": 2
+      },
+      "architecture_coherence": {
+        "reasoning": "The architecture diagram is clear and all components (API, queue, scheduler, workers, store, monitoring) serve obvious purposes in a job scheduler. Data flow is traceable, no hallucinated services, and connections are sensible. However, no explicit justification ties each component to a stated requirement (since none were stated).",
+        "score": 3
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives: Job Queue with Redis schema and push/pull tradeoff, Scheduler with worker selection algorithm and jitter to prevent thundering herd, Worker with atomic job claiming and exponential backoff, Worker Registry with heartbeat failure detection, Leader Election. Each includes concrete mechanisms and at least one named tradeoff (e.g., push vs pull, at-least-once vs exactly-once). The thundering herd mitigation is a non-obvious edge case addressed specifically.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The Key Trade-offs Summary table lists multiple decisions with options and recommendations (queue backend, scheduling model, job uniqueness, etc.), each with reasoning. The Failure Handling Matrix covers worker crash, scheduler crash, Redis/node failures, and network partitions with detection, response, and recovery actions. Tradeoffs are concretely scoped (e.g., Redis for <10K jobs/s). The design acknowledges limits implicitly (e.g., exactly-once vs at-least-once with idempotency). It surfaces specific mitigations for several failure modes.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response does not include a dedicated requirements section with functional or non-functional requirements, assumptions, or quantified SLAs. It jumps directly into architecture and data models without scoping the problem.\",\n    \"score\": 1\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Section 6 lists scaling thresholds and a target architecture for 10,000 jobs/second, but no estimation chain is shown (no derivation of QPS from assumptions, no storage/bandwidth calculations). Numbers are present but not derived or directly connected to design decisions.\",\n    \"score\": 2\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"The architecture diagram is clear and all components (API, queue, scheduler, workers, store, monitoring) serve obvious purposes in a job scheduler. Data flow is traceable, no hallucinated services, and connections are sensible. However, no explicit justification ties each component to a stated requirement (since none were stated).\",\n    \"score\": 3\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives: Job Queue with Redis schema and push/pull tradeoff, Scheduler with worker selection algorithm and jitter to prevent thundering herd, Worker with atomic job claiming and exponential backoff, Worker Registry with heartbeat failure detection, Leader Election. Each includes concrete mechanisms and at least one named tradeoff (e.g., push vs pull, at-least-once vs exactly-once). The thundering herd mitigation is a non-obvious edge case addressed specifically.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The Key Trade-offs Summary table lists multiple decisions with options and recommendations (queue backend, scheduling model, job uniqueness, etc.), each with reasoning. The Failure Handling Matrix covers worker crash, scheduler crash, Redis/node failures, and network partitions with detection, response, and recovery actions. Tradeoffs are concretely scoped (e.g., Redis for <10K jobs/s). The design acknowledges limits implicitly (e.g., exactly-once vs at-least-once with idempotency). It surfaces specific mitigations for several failure modes.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

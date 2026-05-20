@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/kimi-k2.6/job-scheduler_cold.json",
+  "question_id": "job-scheduler",
+  "variant": "cold",
+  "model_under_test": "kimi-k2.6",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T09:09:40.439716+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design starts with a Requirements & Scale Targets table that includes quantified non-functional requirements (P99 latency <2s for batch, <100ms for critical, 99.99% availability, hard multi-tenancy isolation) and explicit scale assumptions (100k nodes, 1M tasks/min, 500k concurrent). Although not labeled as 'assumptions,' the targets are clear and form the basis of the architecture. No explicit non-goals are stated, but the quantified SLAs and stated paradigm (cell-based) justify the approach. This meets the criteria for level 4.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The Capacity Engineering section derives QPS (16,667/sec global → 1,667/sec per cell) from the throughput target, then propagates into storage (Raft log 1 MB/s, Job Catalog 350 GB/month), memory (cell master hot state ~100 MB), and component sizing (scheduling decision <1µs). Numbers directly inform feasibility checks and drive design decisions like in-memory data structures. However, no fragile assumptions are flagged or cross-checked beyond basic feasibility statements, so it does not reach level 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "The architecture clearly partitions responsibilities across global control plane, cell schedulers, and worker agents. Every component in the component design tables is justified against a requirement (e.g., rate limiter for per-tenant QPS, cell allocator for capacity-based routing). The system diagram shows data flow end-to-end. The design makes non-obvious but well-justified choices like cell-based sharding, embedded Raft log, and poll-based dispatch, explaining why these choices are made (fault isolation, elimination of network RTT, simplicity of failover). This matches the 'less obvious but more correct choice' criterion for level 5.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response provides multiple deep-dives: the scheduling algorithm with specific data structures (min-heap, inverted node index, lease table), the placement logic (best-fit with fallback to worst-fit), and the preemption mechanism with grace periods and backoff. The failure handling section dives into scenarios like leader crash, network partition, and thundering herd, each with concrete detection and mitigation. It surfaces a non-obvious edge case (cascading preemption) and addresses it with preemption backoff and cooling period, satisfying the level 5 requirement.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "An explicit Tradeoffs table compares five key decisions with alternatives and reasons (cell-based sharding vs global scheduler, embedded Raft vs external DB, poll vs push, best-fit vs spread, preemption vs none). The Failure Modes & Reliability section covers specific failure scenarios with mitigation and recovery times, including non-obvious ones like split-brain scheduler, metastable overload, and cascading preemption. The design explicitly acknowledges limits: 'jobs cannot trivially span cells; multi-cell DAGs need a global coordinator proxy.' This meets all criteria for level 5.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The design starts with a Requirements & Scale Targets table that includes quantified non-functional requirements (P99 latency <2s for batch, <100ms for critical, 99.99% availability, hard multi-tenancy isolation) and explicit scale assumptions (100k nodes, 1M tasks/min, 500k concurrent). Although not labeled as 'assumptions,' the targets are clear and form the basis of the architecture. No explicit non-goals are stated, but the quantified SLAs and stated paradigm (cell-based) justify the approach. This meets the criteria for level 4.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The Capacity Engineering section derives QPS (16,667/sec global → 1,667/sec per cell) from the throughput target, then propagates into storage (Raft log 1 MB/s, Job Catalog 350 GB/month), memory (cell master hot state ~100 MB), and component sizing (scheduling decision <1µs). Numbers directly inform feasibility checks and drive design decisions like in-memory data structures. However, no fragile assumptions are flagged or cross-checked beyond basic feasibility statements, so it does not reach level 5.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"The architecture clearly partitions responsibilities across global control plane, cell schedulers, and worker agents. Every component in the component design tables is justified against a requirement (e.g., rate limiter for per-tenant QPS, cell allocator for capacity-based routing). The system diagram shows data flow end-to-end. The design makes non-obvious but well-justified choices like cell-based sharding, embedded Raft log, and poll-based dispatch, explaining why these choices are made (fault isolation, elimination of network RTT, simplicity of failover). This matches the 'less obvious but more correct choice' criterion for level 5.\",\n    \"score\": 5\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response provides multiple deep-dives: the scheduling algorithm with specific data structures (min-heap, inverted node index, lease table), the placement logic (best-fit with fallback to worst-fit), and the preemption mechanism with grace periods and backoff. The failure handling section dives into scenarios like leader crash, network partition, and thundering herd, each with concrete detection and mitigation. It surfaces a non-obvious edge case (cascading preemption) and addresses it with preemption backoff and cooling period, satisfying the level 5 requirement.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"An explicit Tradeoffs table compares five key decisions with alternatives and reasons (cell-based sharding vs global scheduler, embedded Raft vs external DB, poll vs push, best-fit vs spread, preemption vs none). The Failure Modes & Reliability section covers specific failure scenarios with mitigation and recovery times, including non-obvious ones like split-brain scheduler, metastable overload, and cascading preemption. The design explicitly acknowledges limits: 'jobs cannot trivially span cells; multi-cell DAGs need a global coordinator proxy.' This meets all criteria for level 5.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

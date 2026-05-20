@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemma-4-31b-it/design-youtube_cold.json",
+  "question_id": "design-youtube",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T06:04:40.621972+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Both functional and non-functional requirements are stated. One NFR is concretely quantified (99.99% availability), but 'low latency' has no p99 target, and 'millions of concurrent viewers' is vague rather than a specific number. Scale assumptions (1B DAU) are stated but not justified. No explicit non-goals are declared (e.g., 'we are NOT building monetization or live streaming'), and no ambiguity in the prompt is surfaced or resolved.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "A clear estimation chain flows from assumptions (1B DAU, 5 views/day) through storage (5 PB/day raw → 15–25 PB/day with transcoding multiplier) to bandwidth (375 PB/day egress → 5.2 TB/s peak), and at least one design decision is explicitly driven by that number ('A global CDN is non-negotiable'). However, no QPS is derived for the API or metadata service, no component sizing follows (e.g., number of shards, transcoding workers), and fragile assumptions (500 MB average video, 1% upload rate) are not flagged or sanity-checked.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component in the diagram serves a stated requirement: Kafka enables async transcoding, Cassandra handles high-write view counts, ElasticSearch supports full-text search, Redis accelerates hot metadata reads. A Mermaid diagram is provided, data flow is traceable end-to-end through upload → transcode → CDN delivery, and there are no apparent hallucinations. Each component is individually justified rather than decorative.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple concrete deep dives are present: the upload pipeline details GOP-level parallelization and manifest file creation (.m3u8/.mpd); the streaming section explains client-side ABR adaptation mechanics; the data modeling section justifies Cassandra via LSM-tree write optimization with named tradeoffs. The transcoder crash failure mode (DLQ + visibility timeout) surfaces a real operational edge case. Minor shortcoming: no discussion of hot-key problems in Cassandra for a single viral video's counter shard.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Four concrete tradeoffs are tied to specific decisions (ABR vs progressive download, Cassandra vs Postgres for views, pull-through vs push CDN, async vs synchronous transcoding) with clear reasoning for each. Four failure modes are addressed with specific mitigations including DLQ plus visibility timeout and write-back caching with a concrete 10-second flush interval. However, no tradeoff is quantified numerically, and the design does not explicitly acknowledge its own limits such as inability to handle live streaming or breakdown points at higher scale.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"Both functional and non-functional requirements are stated. One NFR is concretely quantified (99.99% availability), but 'low latency' has no p99 target, and 'millions of concurrent viewers' is vague rather than a specific number. Scale assumptions (1B DAU) are stated but not justified. No explicit non-goals are declared (e.g., 'we are NOT building monetization or live streaming'), and no ambiguity in the prompt is surfaced or resolved.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"A clear estimation chain flows from assumptions (1B DAU, 5 views/day) through storage (5 PB/day raw → 15–25 PB/day with transcoding multiplier) to bandwidth (375 PB/day egress → 5.2 TB/s peak), and at least one design decision is explicitly driven by that number ('A global CDN is non-negotiable'). However, no QPS is derived for the API or metadata service, no component sizing follows (e.g., number of shards, transcoding workers), and fragile assumptions (500 MB average video, 1% upload rate) are not flagged or sanity-checked.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component in the diagram serves a stated requirement: Kafka enables async transcoding, Cassandra handles high-write view counts, ElasticSearch supports full-text search, Redis accelerates hot metadata reads. A Mermaid diagram is provided, data flow is traceable end-to-end through upload → transcode → CDN delivery, and there are no apparent hallucinations. Each component is individually justified rather than decorative.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple concrete deep dives are present: the upload pipeline details GOP-level parallelization and manifest file creation (.m3u8/.mpd); the streaming section explains client-side ABR adaptation mechanics; the data modeling section justifies Cassandra via LSM-tree write optimization with named tradeoffs. The transcoder crash failure mode (DLQ + visibility timeout) surfaces a real operational edge case. Minor shortcoming: no discussion of hot-key problems in Cassandra for a single viral video's counter shard.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Four concrete tradeoffs are tied to specific decisions (ABR vs progressive download, Cassandra vs Postgres for views, pull-through vs push CDN, async vs synchronous transcoding) with clear reasoning for each. Four failure modes are addressed with specific mitigations including DLQ plus visibility timeout and write-back caching with a concrete 10-second flush interval. However, no tradeoff is quantified numerically, and the design does not explicitly acknowledge its own limits such as inability to handle live streaming or breakdown points at higher scale.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

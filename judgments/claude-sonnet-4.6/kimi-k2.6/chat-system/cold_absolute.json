@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-02/kimi-k2.6/chat-system_cold.json",
+  "question_id": "chat-system",
+  "variant": "cold",
+  "model_under_test": "kimi-k2.6",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-02T23:33:01.161603+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response provides both functional requirements (1:1 chat, group chat, read receipts, presence, multi-device sync, media, search, push notifications) and quantified non-functional requirements (<200ms p99 delivery latency, 99.999% availability, at-least-once delivery). Scale targets are explicitly stated (2B MAU, 1.2B DAU, 100B messages/day, 400M concurrent devices). However, there are no explicit non-goals stated and no prompt ambiguity is surfaced and resolved. The scaling-down section exists but is not framed as resolving a prompt ambiguity.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The estimation chain is thorough: assumptions to message rate (100B/86400s = 1.16M/s) to peak factor to text/media ingress to concurrent connections to gateway fleet size (400M/100K = 4,000 nodes) to message service nodes (2.9M/5K = ~600). Storage is derived for Cassandra (28TB/day x 90 x 3 = 7.6PB), media (2PB/day x 30 = 60PB), and search (~10PB). Numbers demonstrably drive design decisions. However, the response does not flag which assumptions are fragile and does not sanity-check any result.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against a specific requirement or capacity number. Data flow is traceable end-to-end from client send through gateway to Kafka to Message Service to Cassandra to Delivery Router to client. The Mermaid diagram reinforces the textual description. No hallucinated services are present. The response also identifies and avoids a specific anti-pattern: fan-out on write is explicitly rejected with quantified reasoning (300B-500B writes vs. 100B messages).",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are present with concrete mechanisms: (1) Sequence Generator with Redis INCR, batch allocation of 100 sequence numbers, and Cassandra LWT fallback with named tradeoff of why Snowflake alone is insufficient. (2) Cassandra schema with explicit partition key design and day-bucketing rationale. (3) Delivery model distinguishing small vs. large groups with tickle-and-fetch pattern. (4) Presence TTL model with explicit failure mode. Non-obvious edge cases are surfaced: Cassandra hot partition for 1M-member groups with sub-hour bucketing mitigation, and UUID-as-PRIMARY-KEY making reinserts idempotent.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Tradeoffs are concrete and quantified: Protobuf vs. JSON saves ~60% payload translating to ~1 Gbps bandwidth savings; fan-out on read vs. write justified with 300B-500B write amplification number; presence Redis TTL with explicit acceptance of 60s staleness over consensus adding 100ms+ latency. Failure modes are specific with mitigations including circuit-breaking typing indicators under Kafka lag. The response acknowledges split-brain in Redis Cluster as a non-obvious failure mode and scopes Redis to ephemeral state only. The design does not explicitly state its own limits, which would be needed for a 5.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response provides both functional requirements (1:1 chat, group chat, read receipts, presence, multi-device sync, media, search, push notifications) and quantified non-functional requirements (<200ms p99 delivery latency, 99.999% availability, at-least-once delivery). Scale targets are explicitly stated (2B MAU, 1.2B DAU, 100B messages/day, 400M concurrent devices). However, there are no explicit non-goals stated and no prompt ambiguity is surfaced and resolved. The scaling-down section exists but is not framed as resolving a prompt ambiguity.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The estimation chain is thorough: assumptions to message rate (100B/86400s = 1.16M/s) to peak factor to text/media ingress to concurrent connections to gateway fleet size (400M/100K = 4,000 nodes) to message service nodes (2.9M/5K = ~600). Storage is derived for Cassandra (28TB/day x 90 x 3 = 7.6PB), media (2PB/day x 30 = 60PB), and search (~10PB). Numbers demonstrably drive design decisions. However, the response does not flag which assumptions are fragile and does not sanity-check any result.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified against a specific requirement or capacity number. Data flow is traceable end-to-end from client send through gateway to Kafka to Message Service to Cassandra to Delivery Router to client. The Mermaid diagram reinforces the textual description. No hallucinated services are present. The response also identifies and avoids a specific anti-pattern: fan-out on write is explicitly rejected with quantified reasoning (300B-500B writes vs. 100B messages).\", \"score\": 5}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives are present with concrete mechanisms: (1) Sequence Generator with Redis INCR, batch allocation of 100 sequence numbers, and Cassandra LWT fallback with named tradeoff of why Snowflake alone is insufficient. (2) Cassandra schema with explicit partition key design and day-bucketing rationale. (3) Delivery model distinguishing small vs. large groups with tickle-and-fetch pattern. (4) Presence TTL model with explicit failure mode. Non-obvious edge cases are surfaced: Cassandra hot partition for 1M-member groups with sub-hour bucketing mitigation, and UUID-as-PRIMARY-KEY making reinserts idempotent.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Tradeoffs are concrete and quantified: Protobuf vs. JSON saves ~60% payload translating to ~1 Gbps bandwidth savings; fan-out on read vs. write justified with 300B-500B write amplification number; presence Redis TTL with explicit acceptance of 60s staleness over consensus adding 100ms+ latency. Failure modes are specific with mitigations including circuit-breaking typing indicators under Kafka lag. The response acknowledges split-brain in Redis Cluster as a non-obvious failure mode and scopes Redis to ephemeral state only. The design does not explicitly state its own limits, which would be needed for a 5.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

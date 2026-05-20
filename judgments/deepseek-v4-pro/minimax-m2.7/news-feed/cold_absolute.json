@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/minimax-m2.7/news-feed_cold.json",
+  "question_id": "news-feed",
+  "variant": "cold",
+  "model_under_test": "minimax-m2.7",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T06:48:36.037031+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response states functional and non-functional requirements, with some quantified targets (p99 latency <200ms, 99.9% availability). It states explicit scale assumptions (200M DAU, 2 posts/day/user) but does not justify them, and throughput is vague. No non-goals are set. This meets level 3 but not 4.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives QPS (4.6K writes/sec, 23K reads/sec) and storage (200 GB/day) from stated assumptions. However, these numbers are not used to justify component sizing or sharding choices (e.g., no explicit 'at 23K reads/sec we need X cache shards'). This meets level 3 but not 4.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "The architecture includes clear diagrams and data flow descriptions (pull, push, hybrid). Each component (e.g., FanoutService, FeedCache) is tied to functional requirements (real-time updates, feed retrieval) and tradeoffs (hybrid model to handle celebrities). The data flow is end-to-end and traceable. No hallucinations. This is well above average, meeting level 4.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response provides deep-dives on fanout service (with LPUSH/LTRIM mechanics) and feed cache structure (with ZSET operations), but there is an inconsistency: the fanout uses a list while the feed cache later uses a sorted set, contradicting each other. This prevents a score of 4; the deep-dives have concrete mechanism but are not entirely coherent. Level 3: one deep-dive with concrete mechanism, mostly correct.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design discusses at least two tradeoffs tied to specific decisions (e.g., eventual consistency for feed, hybrid push/pull for celebrities). Failure modes (Redis down, queue backup) have specific mitigations (fallback to pull, priority queue). Tradeoffs are not extensively quantified but are concrete. No explicit acknowledgement of design limits or non-obvious failure modes, so level 4.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response states functional and non-functional requirements, with some quantified targets (p99 latency <200ms, 99.9% availability). It states explicit scale assumptions (200M DAU, 2 posts/day/user) but does not justify them, and throughput is vague. No non-goals are set. This meets level 3 but not 4.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The response derives QPS (4.6K writes/sec, 23K reads/sec) and storage (200 GB/day) from stated assumptions. However, these numbers are not used to justify component sizing or sharding choices (e.g., no explicit 'at 23K reads/sec we need X cache shards'). This meets level 3 but not 4.\",\n    \"score\": 3\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"The architecture includes clear diagrams and data flow descriptions (pull, push, hybrid). Each component (e.g., FanoutService, FeedCache) is tied to functional requirements (real-time updates, feed retrieval) and tradeoffs (hybrid model to handle celebrities). The data flow is end-to-end and traceable. No hallucinations. This is well above average, meeting level 4.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response provides deep-dives on fanout service (with LPUSH/LTRIM mechanics) and feed cache structure (with ZSET operations), but there is an inconsistency: the fanout uses a list while the feed cache later uses a sorted set, contradicting each other. This prevents a score of 4; the deep-dives have concrete mechanism but are not entirely coherent. Level 3: one deep-dive with concrete mechanism, mostly correct.\",\n    \"score\": 3\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The design discusses at least two tradeoffs tied to specific decisions (e.g., eventual consistency for feed, hybrid push/pull for celebrities). Failure modes (Redis down, queue backup) have specific mitigations (fallback to pull, priority queue). Tradeoffs are not extensively quantified but are concrete. No explicit acknowledgement of design limits or non-obvious failure modes, so level 4.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

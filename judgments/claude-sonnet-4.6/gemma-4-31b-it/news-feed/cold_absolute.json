@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemma-4-31b-it/news-feed_cold.json",
+  "question_id": "news-feed",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T05:48:40.012969+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Both functional and non-functional requirements are stated, including a quantified DAU (500M), a read/write ratio (100:1), and a latency target (<200ms). However, the latency figure is not tied to a percentile (e.g., p99), availability is stated qualitatively rather than as a percentage, and there are no explicit non-goals (e.g., 'we are NOT building DMs or notifications') and no ambiguity in the prompt is explicitly surfaced or resolved. A solid 3 that does not reach 4.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "A proper derivation chain is present: assumptions -> QPS (~580 writes/sec, ~58K reads/sec) -> storage (metadata 10GB/day, media 5TB/day, graph 1.6TB) -> Redis cluster sizing (~4TB raw, ~8-10TB with overhead and replication). The Redis math in Section 6 directly drives the cluster-size decision, which is the main propagation into a design choice. However, the 58K read QPS does not explicitly drive Feed Service instance counts or sharding depth, and no assumption is flagged as fragile, nor is any result sanity-checked against an external reference. Meets the 3 bar clearly but falls short of 4.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (API Gateway, Post Service, Cassandra, S3, Kafka, Fan-out Worker, Graph Service, Redis, Feed Service) is visually mapped and narratively explained. The Mermaid diagram makes write and read paths traceable end-to-end. The choice of Kafka is tied to async fan-out decoupling, Cassandra to write throughput, and Redis ZSET to fast pre-computed feed lookups. No decorative or hallucinated components are present. The hybrid fan-out is the architectural core and all components connect back to it. This is a genuinely informative architecture description, meriting a 4.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Three sub-components receive concrete treatment: (1) Fan-out strategy with push/pull/hybrid and the 10k-follower celebrity threshold as a named tradeoff; (2) Redis ZSET chosen over a plain list with score=timestamp and a capacity cap of 500-1000 IDs justified by memory; (3) Cassandra with partition key = user_id and clustering key = post_id for time-ordered scans. However, the Cassandra deep-dive does not surface the obvious non-obvious issue of a prolific user's partition becoming a write hotspot, and tradeoffs within the deeper dives lean toward pros/cons lists rather than specific mechanistic reasoning. The fan-out and Redis sections do demonstrate WHY, placing this at a 3.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Three tradeoffs are explicitly named and tied to decisions (eventual consistency -> latency goal; RAM cost -> latency criticality; Cassandra -> write availability over ACID). Three failure modes have concrete mitigations: Redis miss -> fallback to pull model; Kafka backlog -> priority queue plus drop 30-day inactive users; hot key -> LRU cache in FeedService. The inactive-user pruning is a usefully practical detail. However, no tradeoff is quantified (e.g., 'strong consistency adds ~X ms'), no design limit is explicitly acknowledged, and no genuinely non-obvious failure mode such as thundering herd on cache cold-start is surfaced and addressed. Solid 3.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"Both functional and non-functional requirements are stated, including a quantified DAU (500M), a read/write ratio (100:1), and a latency target (<200ms). However, the latency figure is not tied to a percentile (e.g., p99), availability is stated qualitatively rather than as a percentage, and there are no explicit non-goals (e.g., 'we are NOT building DMs or notifications') and no ambiguity in the prompt is explicitly surfaced or resolved. A solid 3 that does not reach 4.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"A proper derivation chain is present: assumptions -> QPS (~580 writes/sec, ~58K reads/sec) -> storage (metadata 10GB/day, media 5TB/day, graph 1.6TB) -> Redis cluster sizing (~4TB raw, ~8-10TB with overhead and replication). The Redis math in Section 6 directly drives the cluster-size decision, which is the main propagation into a design choice. However, the 58K read QPS does not explicitly drive Feed Service instance counts or sharding depth, and no assumption is flagged as fragile, nor is any result sanity-checked against an external reference. Meets the 3 bar clearly but falls short of 4.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component (API Gateway, Post Service, Cassandra, S3, Kafka, Fan-out Worker, Graph Service, Redis, Feed Service) is visually mapped and narratively explained. The Mermaid diagram makes write and read paths traceable end-to-end. The choice of Kafka is tied to async fan-out decoupling, Cassandra to write throughput, and Redis ZSET to fast pre-computed feed lookups. No decorative or hallucinated components are present. The hybrid fan-out is the architectural core and all components connect back to it. This is a genuinely informative architecture description, meriting a 4.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Three sub-components receive concrete treatment: (1) Fan-out strategy with push/pull/hybrid and the 10k-follower celebrity threshold as a named tradeoff; (2) Redis ZSET chosen over a plain list with score=timestamp and a capacity cap of 500-1000 IDs justified by memory; (3) Cassandra with partition key = user_id and clustering key = post_id for time-ordered scans. However, the Cassandra deep-dive does not surface the obvious non-obvious issue of a prolific user's partition becoming a write hotspot, and tradeoffs within the deeper dives lean toward pros/cons lists rather than specific mechanistic reasoning. The fan-out and Redis sections do demonstrate WHY, placing this at a 3.\", \"score\": 3}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Three tradeoffs are explicitly named and tied to decisions (eventual consistency -> latency goal; RAM cost -> latency criticality; Cassandra -> write availability over ACID). Three failure modes have concrete mitigations: Redis miss -> fallback to pull model; Kafka backlog -> priority queue plus drop 30-day inactive users; hot key -> LRU cache in FeedService. The inactive-user pruning is a usefully practical detail. However, no tradeoff is quantified (e.g., 'strong consistency adds ~X ms'), no design limit is explicitly acknowledged, and no genuinely non-obvious failure mode such as thundering herd on cache cold-start is surfaced and addressed. Solid 3.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

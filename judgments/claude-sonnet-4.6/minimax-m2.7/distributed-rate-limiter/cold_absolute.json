@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-04/minimax-m2.7/distributed-rate-limiter_cold.json",
+  "question_id": "distributed-rate-limiter",
+  "variant": "cold",
+  "model_under_test": "minimax-m2.7",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T00:19:37.058980+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response provides both functional requirements (multi-tenant, per-API-key/IP/endpoint, burst handling) and non-functional requirements with quantified targets (200k RPS, <5ms P99 latency, 99.99% availability). It states explicit consistency semantics ('never under-count'). However, it does not set explicit non-goals, does not resolve any ambiguity in the prompt, and does not justify why 200k RPS was chosen as the scale target. It's solidly quantified but lacks the non-goals and ambiguity-resolution that would push it to a 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives a full estimation chain: 200k RPS → Redis ops/s → node throughput (80k ops/s measured on specific hardware) → shard count (3 primaries × 80k = 240k > 200k). Memory is estimated per key (~80 bytes) and extrapolated to total (10M keys → <800MB). A latency budget is broken down step by step summing to 3.6ms vs 5ms target. The 80% cache-hit assumption is stated but not derived or justified with evidence. The response doesn't flag which assumptions are fragile or sanity-check results against real-world benchmarks, which would be needed for a 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified: Redis Cluster for atomic Lua and low latency, local LRU cache to reduce Redis load by 80%, etcd for watch semantics and config propagation, sidecar for isolation. Data flow is traceable end-to-end via both the flowchart and sequence diagram. The choice of Redis over Cassandra/Dynamo is explicitly justified. No hallucinated services are present. The response also identifies a less obvious but correct choice (sliding-window counter over token bucket) and explains why. This is a well-coherent architecture.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The Lua script deep-dive is concrete and shows the actual mechanism (weighted previous window count, atomic INCR, PEXPIRE). The local LRU cache deep-dive explains cache-hit vs cache-miss paths with specific TTL (1s) and size (100k entries). The key schema is concrete with real examples. However, the Lua script has a subtle bug (prev_ts is computed as now-window but then used to compute prev_frac as (window-(now-prev_ts))/window which simplifies to 1.0 always, not the intended sliding fraction), which suggests the deep-dive is not fully verified. The response does not surface non-obvious edge cases like hot-key contention on a single Redis shard or thundering herd on cache expiry.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response covers multiple concrete tradeoffs tied to specific decisions (sliding-window vs token bucket, Redis vs Cassandra, local cache TTL vs consistency). Failure modes are enumerated with specific mitigations (replica promotion <1s, circuit breaker at >10ms latency, fallback to local bucket at 10% of limit). The 'never under-count' consistency guarantee is explicitly stated and its implications during partition are acknowledged (temporary over-allow ≤5s). However, tradeoffs are not quantified with latency numbers (e.g., 'strong consistency adds Xms'), and non-obvious failure modes like thundering herd on cache expiry or hot-key skew across shards are not addressed. The design does not acknowledge its own limits explicitly.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response provides both functional requirements (multi-tenant, per-API-key/IP/endpoint, burst handling) and non-functional requirements with quantified targets (200k RPS, <5ms P99 latency, 99.99% availability). It states explicit consistency semantics ('never under-count'). However, it does not set explicit non-goals, does not resolve any ambiguity in the prompt, and does not justify why 200k RPS was chosen as the scale target. It's solidly quantified but lacks the non-goals and ambiguity-resolution that would push it to a 5.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The response derives a full estimation chain: 200k RPS → Redis ops/s → node throughput (80k ops/s measured on specific hardware) → shard count (3 primaries × 80k = 240k > 200k). Memory is estimated per key (~80 bytes) and extrapolated to total (10M keys → <800MB). A latency budget is broken down step by step summing to 3.6ms vs 5ms target. The 80% cache-hit assumption is stated but not derived or justified with evidence. The response doesn't flag which assumptions are fragile or sanity-check results against real-world benchmarks, which would be needed for a 5.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified: Redis Cluster for atomic Lua and low latency, local LRU cache to reduce Redis load by 80%, etcd for watch semantics and config propagation, sidecar for isolation. Data flow is traceable end-to-end via both the flowchart and sequence diagram. The choice of Redis over Cassandra/Dynamo is explicitly justified. No hallucinated services are present. The response also identifies a less obvious but correct choice (sliding-window counter over token bucket) and explains why. This is a well-coherent architecture.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"The Lua script deep-dive is concrete and shows the actual mechanism (weighted previous window count, atomic INCR, PEXPIRE). The local LRU cache deep-dive explains cache-hit vs cache-miss paths with specific TTL (1s) and size (100k entries). The key schema is concrete with real examples. However, the Lua script has a subtle bug (prev_ts is computed as now-window but then used to compute prev_frac as (window-(now-prev_ts))/window which simplifies to 1.0 always, not the intended sliding fraction), which suggests the deep-dive is not fully verified. The response does not surface non-obvious edge cases like hot-key contention on a single Redis shard or thundering herd on cache expiry.\", \"score\": 3}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The response covers multiple concrete tradeoffs tied to specific decisions (sliding-window vs token bucket, Redis vs Cassandra, local cache TTL vs consistency). Failure modes are enumerated with specific mitigations (replica promotion <1s, circuit breaker at >10ms latency, fallback to local bucket at 10% of limit). The 'never under-count' consistency guarantee is explicitly stated and its implications during partition are acknowledged (temporary over-allow ≤5s). However, tradeoffs are not quantified with latency numbers (e.g., 'strong consistency adds Xms'), and non-obvious failure modes like thundering herd on cache expiry or hot-key skew across shards are not addressed. The design does not acknowledge its own limits explicitly.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

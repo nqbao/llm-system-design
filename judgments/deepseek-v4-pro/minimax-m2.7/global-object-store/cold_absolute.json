@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/minimax-m2.7/global-object-store_cold.json",
+  "question_id": "global-object-store",
+  "variant": "cold",
+  "model_under_test": "minimax-m2.7",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T06:50:05.448523+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists high-level priorities (durability, availability, scalability, low latency, consistency) but does not formally separate functional and non-functional requirements. It does not state explicit assumptions (scale, read/write ratio) or quantified SLAs. No non-goals are stated.",
+        "score": 2
+      },
+      "capacity_estimation": {
+        "reasoning": "Capacity math appears only in a brief storage-cost comparison (10 PB example, erasure coding overhead). There is no derivation of QPS, bandwidth, or request rates from assumptions, and the numbers do not drive design choices (e.g., node count, shard count).",
+        "score": 2
+      },
+      "architecture_coherence": {
+        "reasoning": "The architecture diagram and component descriptions connect all parts to stated requirements. Every component serves a purpose, there are no hallucinations, and data flow examples trace end-to-end. However, component choices are not specifically justified against capacity numbers.",
+        "score": 3
+      },
+      "deep_dive_depth": {
+        "reasoning": "The metadata and storage components receive detailed treatment: specific sharding key (bucket/key prefix), consistent hashing ring, erasure coding parameters (10+6), quorum replication. These are concrete mechanisms, but the deep-dives do not explicitly name tradeoffs within the same section (tradeoffs are discussed separately).",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "A trade-offs section lists three decisions (consistency, replication, erasure coding) with associated pros/cons. Failure handling covers common scenarios (node, datacenter, split-brain) with mitigations like re-replication and quorum. Tradeoffs are qualitative, not quantified, and no non-obvious failure modes are surfaced.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response lists high-level priorities (durability, availability, scalability, low latency, consistency) but does not formally separate functional and non-functional requirements. It does not state explicit assumptions (scale, read/write ratio) or quantified SLAs. No non-goals are stated.\",\n    \"score\": 2\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Capacity math appears only in a brief storage-cost comparison (10 PB example, erasure coding overhead). There is no derivation of QPS, bandwidth, or request rates from assumptions, and the numbers do not drive design choices (e.g., node count, shard count).\",\n    \"score\": 2\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"The architecture diagram and component descriptions connect all parts to stated requirements. Every component serves a purpose, there are no hallucinations, and data flow examples trace end-to-end. However, component choices are not specifically justified against capacity numbers.\",\n    \"score\": 3\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The metadata and storage components receive detailed treatment: specific sharding key (bucket/key prefix), consistent hashing ring, erasure coding parameters (10+6), quorum replication. These are concrete mechanisms, but the deep-dives do not explicitly name tradeoffs within the same section (tradeoffs are discussed separately).\",\n    \"score\": 3\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"A trade-offs section lists three decisions (consistency, replication, erasure coding) with associated pros/cons. Failure handling covers common scenarios (node, datacenter, split-brain) with mitigations like re-replication and quorum. Tradeoffs are qualitative, not quantified, and no non-obvious failure modes are surfaced.\",\n    \"score\": 3\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

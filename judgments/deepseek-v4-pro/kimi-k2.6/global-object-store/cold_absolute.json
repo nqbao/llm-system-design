@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/kimi-k2.6/global-object-store_cold.json",
+  "question_id": "global-object-store",
+  "variant": "cold",
+  "model_under_test": "kimi-k2.6",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T09:12:37.301836+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response presents a clear scoped problem statement with quantitative non-functional targets (p99 latency, availability %, durability 11 nines, scale targets) and assumptions (1 trillion objects, 32 EB). However, it does not explicitly list functional requirements (such as PUT, GET, DELETE, LIST, multipart upload), instead relying on architectural context. This is a gap versus the rubric's expectation that both functional and non-functional requirements be stated.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The capacity math section derives storage and metadata tier sizing from object count and size distribution, linking assumptions to nodes, QPS, and network. It includes a sanity-check on network throughput (noting it's an upper bound and realistic provisioning). Numbers directly drive design decisions like chunk size and node count. This meets the criteria for a full estimation chain with sanity-check.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "The architecture is split into four clear layers with every component justified against requirements or capacity numbers. The data flow is traceable end-to-end (client → edge → metadata/data routers → storage nodes), and the description is informative. There is a diagram, and no hallucinations or dead weight. This meets the 'every component justified' bar.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives: metadata subsystem (consistent hashing into 50k partitions, Raft consensus, LSM tree, secondary index for LIST, record layout) and data plane tiering (EC 8+4 with 64MB chunks, write/read paths). Both provide concrete mechanisms and named tradeoffs (hash vs range sharding, EC vs replication for small objects). The gateway hot metadata cache deep-dive specifically addresses thundering herd with a 5-second TTL, a non-obvious edge case.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response has dedicated sections for tradeoffs (table with five explicit tradeoffs, each with decision and rationale) and failure modes (table with eight failures and mitigations). Tradeoffs are tied to specific decisions (consistency model, sharding strategy, metadata storage medium). The design acknowledges its own limits (regional bucket scoping avoids global consensus; if global namespace required, it would be a different design) and surfaces non-obvious failures like thundering herd, orphaned multipart uploads, and bitrot. This meets the criteria for level 5.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response presents a clear scoped problem statement with quantitative non-functional targets (p99 latency, availability %, durability 11 nines, scale targets) and assumptions (1 trillion objects, 32 EB). However, it does not explicitly list functional requirements (such as PUT, GET, DELETE, LIST, multipart upload), instead relying on architectural context. This is a gap versus the rubric's expectation that both functional and non-functional requirements be stated.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The capacity math section derives storage and metadata tier sizing from object count and size distribution, linking assumptions to nodes, QPS, and network. It includes a sanity-check on network throughput (noting it's an upper bound and realistic provisioning). Numbers directly drive design decisions like chunk size and node count. This meets the criteria for a full estimation chain with sanity-check.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"The architecture is split into four clear layers with every component justified against requirements or capacity numbers. The data flow is traceable end-to-end (client → edge → metadata/data routers → storage nodes), and the description is informative. There is a diagram, and no hallucinations or dead weight. This meets the 'every component justified' bar.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives: metadata subsystem (consistent hashing into 50k partitions, Raft consensus, LSM tree, secondary index for LIST, record layout) and data plane tiering (EC 8+4 with 64MB chunks, write/read paths). Both provide concrete mechanisms and named tradeoffs (hash vs range sharding, EC vs replication for small objects). The gateway hot metadata cache deep-dive specifically addresses thundering herd with a 5-second TTL, a non-obvious edge case.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The response has dedicated sections for tradeoffs (table with five explicit tradeoffs, each with decision and rationale) and failure modes (table with eight failures and mitigations). Tradeoffs are tied to specific decisions (consistency model, sharding strategy, metadata storage medium). The design acknowledges its own limits (regional bucket scoping avoids global consensus; if global namespace required, it would be a different design) and surfaces non-obvious failures like thundering herd, orphaned multipart uploads, and bitrot. This meets the criteria for level 5.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

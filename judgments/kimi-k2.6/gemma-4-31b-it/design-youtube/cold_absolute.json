@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemma-4-31b-it/design-youtube_cold.json",
+  "question_id": "design-youtube",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T06:04:40.621972+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response starts with clear functional and non-functional requirements, including quantified targets (99.99% availability). It states explicit assumptions (1B DAU, 5 views/user, 1% upload rate). However, it lacks explicit non-goals and does not resolve ambiguities in the prompt (e.g., 'what if we needed live streaming?'). The eventual consistency callout for view counts is good, but the requirements section is solid without being exceptional.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The math chain is complete: DAU → views/day → uploads/day → raw storage → transcoding multiplier → total storage → bandwidth per view → total egress → peak bandwidth. The numbers demonstrably drive design decisions ('A global CDN is non-negotiable'). However, there's no sanity check on the results (5-9 EB/year is enormous but unexamined), no flagging of fragile assumptions (is 500MB average raw size reasonable? Is 2 Mbps average bitrate right for 4K content?), and the 20% peak traffic assumption is stated without justification.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is connected to specific requirements: Kafka for async transcoding, CDN for streaming latency, Cassandra for high-write view counts, PostgreSQL for relational metadata. The data flow is traceable end-to-end (upload → raw S3 → Kafka → workers → processed S3 → CDN → user). No hallucinated services. However, the diagram shows 'StreamSvc' pulling from 'ProcessedStore' which seems odd (CDN should serve directly), and there's no explicit justification for why Redis is needed alongside PostgreSQL read replicas.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Three solid deep-dives: (1) Upload pipeline with chunked uploads, GOP-based parallel transcoding, and manifest generation; (2) ABR streaming with client-side bandwidth adaptation; (3) Data modeling with specific technology choices and reasons (Cassandra's LSM-tree for writes). However, the sharding discussion is shallow ('Shard by UserID or VideoID' without explaining the tradeoff), and there's no specific sharding key mechanism discussed. The parallel transcoding by GOP segments is the strongest mechanism. Missing: specific index design, no discussion of hot-key problems in the sharding choice.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Four specific tradeoffs in a table format, each tied to concrete decisions with justifications. Failure modes include viral video hotspots, transcoder crashes, S3 regional outage, and DB write saturation—each with specific mitigations (DLQ, multi-region replication, write-back caching). However, the tradeoffs are not quantified (no '20ms p99' style numbers). The write-back caching for likes is a good non-obvious pattern. Missing: explicit acknowledgment of design limits ('this cannot handle X'), no discussion of partial network partitions, no time-of-check-to-time-of-use or thundering herd analysis.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response starts with clear functional and non-functional requirements, including quantified targets (99.99% availability). It states explicit assumptions (1B DAU, 5 views/user, 1% upload rate). However, it lacks explicit non-goals and does not resolve ambiguities in the prompt (e.g., 'what if we needed live streaming?'). The eventual consistency callout for view counts is good, but the requirements section is solid without being exceptional.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The math chain is complete: DAU → views/day → uploads/day → raw storage → transcoding multiplier → total storage → bandwidth per view → total egress → peak bandwidth. The numbers demonstrably drive design decisions ('A global CDN is non-negotiable'). However, there's no sanity check on the results (5-9 EB/year is enormous but unexamined), no flagging of fragile assumptions (is 500MB average raw size reasonable? Is 2 Mbps average bitrate right for 4K content?), and the 20% peak traffic assumption is stated without justification.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is connected to specific requirements: Kafka for async transcoding, CDN for streaming latency, Cassandra for high-write view counts, PostgreSQL for relational metadata. The data flow is traceable end-to-end (upload → raw S3 → Kafka → workers → processed S3 → CDN → user). No hallucinated services. However, the diagram shows 'StreamSvc' pulling from 'ProcessedStore' which seems odd (CDN should serve directly), and there's no explicit justification for why Redis is needed alongside PostgreSQL read replicas.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Three solid deep-dives: (1) Upload pipeline with chunked uploads, GOP-based parallel transcoding, and manifest generation; (2) ABR streaming with client-side bandwidth adaptation; (3) Data modeling with specific technology choices and reasons (Cassandra's LSM-tree for writes). However, the sharding discussion is shallow ('Shard by UserID or VideoID' without explaining the tradeoff), and there's no specific sharding key mechanism discussed. The parallel transcoding by GOP segments is the strongest mechanism. Missing: specific index design, no discussion of hot-key problems in the sharding choice.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Four specific tradeoffs in a table format, each tied to concrete decisions with justifications. Failure modes include viral video hotspots, transcoder crashes, S3 regional outage, and DB write saturation—each with specific mitigations (DLQ, multi-region replication, write-back caching). However, the tradeoffs are not quantified (no '20ms p99' style numbers). The write-back caching for likes is a good non-obvious pattern. Missing: explicit acknowledgment of design limits ('this cannot handle X'), no discussion of partial network partitions, no time-of-check-to-time-of-use or thundering herd analysis.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

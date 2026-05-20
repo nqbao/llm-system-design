@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-120b/chat-system_cold.json",
+  "question_id": "chat-system",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-06T05:31:47.018420+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design states both functional and non-functional requirements, with quantified SLAs (latency <200ms p95, 99.9% availability, throughput ≥10k msgs/s). It explicitly picks a scale (10M DAU) as an assumption and notes where the design changes at different scales, but does not list explicit non-goals, so it falls short of a 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The design provides a full estimation chain from DAU to QPS (29k msgs/s), storage (2.1 TB/month), and component sizing (75 WebSocket nodes, 3-node Kafka). Numbers demonstrably drive later decisions. However, it does not explicitly flag fragile assumptions or sanity-check a result with a question like 'does that make sense?', so it does not reach a 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (WebSocket Router, Cassandra, Redis, Kafka) is justified against a specific requirement (low-latency delivery, write-heavy message store, fast presence lookups, decoupling). The Mermaid diagram and component table show a traceable data flow with no hallucinations. No anti-pattern is explicitly called out, but the design is coherent and informative, fitting a 4.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Two concrete deep-dives are provided: the Cassandra message store (with CQL schema, partition key, clustering order, and write-heavy rationale) and the Redis presence mapping (with hash/set structures, TTL, heartbeats). The Cassandra deep-dive mentions a tradeoff (limited strong consistency, no secondary indexes). However, no non-obvious edge case (e.g., hot keys, thundering herd) is surfaced, so it does not reach a 5.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design includes an extensive trade-off table with specific decisions (Cassandra vs. CockroachDB, WebSocket vs. long-polling, E2EE vs. SSE) and a 'When to Re-evaluate' column that acknowledges limits. The failure mode section identifies non-obvious issues such as clock skew affecting timeuuid ordering and message duplication via idempotent writes, with mitigations. This reaches the 5 threshold by explicitly acknowledging design limits and surfacing a non-obvious failure mode.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The design states both functional and non-functional requirements, with quantified SLAs (latency <200ms p95, 99.9% availability, throughput ≥10k msgs/s). It explicitly picks a scale (10M DAU) as an assumption and notes where the design changes at different scales, but does not list explicit non-goals, so it falls short of a 5.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The design provides a full estimation chain from DAU to QPS (29k msgs/s), storage (2.1 TB/month), and component sizing (75 WebSocket nodes, 3-node Kafka). Numbers demonstrably drive later decisions. However, it does not explicitly flag fragile assumptions or sanity-check a result with a question like 'does that make sense?', so it does not reach a 5.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (WebSocket Router, Cassandra, Redis, Kafka) is justified against a specific requirement (low-latency delivery, write-heavy message store, fast presence lookups, decoupling). The Mermaid diagram and component table show a traceable data flow with no hallucinations. No anti-pattern is explicitly called out, but the design is coherent and informative, fitting a 4.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Two concrete deep-dives are provided: the Cassandra message store (with CQL schema, partition key, clustering order, and write-heavy rationale) and the Redis presence mapping (with hash/set structures, TTL, heartbeats). The Cassandra deep-dive mentions a tradeoff (limited strong consistency, no secondary indexes). However, no non-obvious edge case (e.g., hot keys, thundering herd) is surfaced, so it does not reach a 5.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The design includes an extensive trade-off table with specific decisions (Cassandra vs. CockroachDB, WebSocket vs. long-polling, E2EE vs. SSE) and a 'When to Re-evaluate' column that acknowledges limits. The failure mode section identifies non-obvious issues such as clock skew affecting timeuuid ordering and message duplication via idempotent writes, with mitigations. This reaches the 5 threshold by explicitly acknowledging design limits and surfacing a non-obvious failure mode.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

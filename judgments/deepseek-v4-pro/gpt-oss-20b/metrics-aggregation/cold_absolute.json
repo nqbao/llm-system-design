@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-20b/metrics-aggregation_cold.json",
+  "question_id": "metrics-aggregation",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-20b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T07:32:39.803950+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response includes both functional and non-functional requirements (throughput, latency, availability, security). It states explicit assumptions (100B events/day, 200B event size, 7-day retention). However, non-functionals are not all quantified with p99 or explicit durability guarantees, and there are no non-goals or ambiguity resolution.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "Full estimation chain is present: throughput → QPS (1.16M/s) → byte rate (232MB/s) → storage (20TB raw, 420TB over 7 days) → component sizing (Kafka partitions, brokers, Flink cores). Numbers directly drive design choices (e.g., partitions × 2MB/s = 800MB/s vs 232MB/s). No fragility flags or sanity-checks are included, but the chain is complete and correct.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (Kafka, Flink, Druid, S3, etc.) is justified against a specific requirement or capacity number. The data flow is traceable end-to-end from ingestion to dashboards. The design is coherent with no hallucinations, and the textual architecture description is clear. It falls short of level 5 because it does not explicitly avoid an anti-pattern or pick a less obvious choice with explanation.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are present (Flink with RocksDB state, checkpointing, exactly-once; Kafka with partition count, replication; Druid ingestion). However, the deep-dives lack embedded tradeoff reasoning (e.g., why RocksDB over alternatives, sharding key rationale) within the same component description. The tradeoffs are discussed separately, so the deep-dives do not explicitly meet the 'concrete mechanism AND a named tradeoff with reasoning' requirement for level 4.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response includes a dedicated tradeoffs table with multiple decisions (Kafka vs Pulsar, Flink vs Spark, etc.) tied to specific choices. A failure modes section lists common failures with mitigations. However, tradeoffs are qualitative, not quantified, and failure modes are shallow (no non-obvious edge cases like thundering herd, GC pauses, or partial partitions). The design does not explicitly acknowledge its own limits or when it would break.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response includes both functional and non-functional requirements (throughput, latency, availability, security). It states explicit assumptions (100B events/day, 200B event size, 7-day retention). However, non-functionals are not all quantified with p99 or explicit durability guarantees, and there are no non-goals or ambiguity resolution.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Full estimation chain is present: throughput → QPS (1.16M/s) → byte rate (232MB/s) → storage (20TB raw, 420TB over 7 days) → component sizing (Kafka partitions, brokers, Flink cores). Numbers directly drive design choices (e.g., partitions × 2MB/s = 800MB/s vs 232MB/s). No fragility flags or sanity-checks are included, but the chain is complete and correct.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (Kafka, Flink, Druid, S3, etc.) is justified against a specific requirement or capacity number. The data flow is traceable end-to-end from ingestion to dashboards. The design is coherent with no hallucinations, and the textual architecture description is clear. It falls short of level 5 because it does not explicitly avoid an anti-pattern or pick a less obvious choice with explanation.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives are present (Flink with RocksDB state, checkpointing, exactly-once; Kafka with partition count, replication; Druid ingestion). However, the deep-dives lack embedded tradeoff reasoning (e.g., why RocksDB over alternatives, sharding key rationale) within the same component description. The tradeoffs are discussed separately, so the deep-dives do not explicitly meet the 'concrete mechanism AND a named tradeoff with reasoning' requirement for level 4.\",\n    \"score\": 3\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The response includes a dedicated tradeoffs table with multiple decisions (Kafka vs Pulsar, Flink vs Spark, etc.) tied to specific choices. A failure modes section lists common failures with mitigations. However, tradeoffs are qualitative, not quantified, and failure modes are shallow (no non-obvious edge cases like thundering herd, GC pauses, or partial partitions). The design does not explicitly acknowledge its own limits or when it would break.\",\n    \"score\": 3\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

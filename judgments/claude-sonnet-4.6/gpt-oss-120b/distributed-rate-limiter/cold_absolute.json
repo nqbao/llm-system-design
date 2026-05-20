@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-120b/distributed-rate-limiter_cold.json",
+  "question_id": "distributed-rate-limiter",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-06T05:32:23.399341+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response provides both clearly enumerated functional requirements (FR-1 through FR-7) and non-functional requirements (NFR-1 through NFR-6), with several concrete targets: ≤2 ms added latency (FR-5), ≥99.99% uptime (NFR-2), ≤100 GB RAM (NFR-4). Scale assumptions are explicit (1M RPS global, specific per-key burst/steady values). However, the response never sets explicit non-goals ('we are NOT building X') and does not surface any ambiguity in the prompt and resolve it explicitly. This keeps it at a 4 rather than 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Section 7 delivers a full estimation chain: 1M RPS → 4 shards at 250K RPS each → bandwidth at 20 MB/s per shard → memory at ~520 MB for 10M keys → CPU at ~0.25 cores per shard → latency budget broken into sub-components totaling 0.6 ms. Numbers propagate into design decisions (4-shard cluster, 2 vCPU per shard, 8 GB total RAM). The response stops short of flagging which assumptions are fragile or sanity-checking a result against a real-world reference, so it does not reach a 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is tied to a stated requirement: Redis Cluster provides strong consistency (NFR-3), Etcd enables dynamic policy changes (FR-4), Envoy RLS integration handles sub-millisecond latency (FR-5), and Redis replication addresses HA (NFR-2). The data flow is traceable end-to-end via the Mermaid diagram and the per-request flow description in Section 10.1. The choice of Envoy external RLS over Kong/NGINX is explicitly justified ('language-agnostic, decouples scaling, easier to instrument'). No hallucinated services are present.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep dives are present with concrete mechanisms: the Lua script shows the exact token-bucket atomicity mechanism with actual code; the Redis Cluster section specifies hash_tag usage, AOF fsync policy, maxmemory-policy, and ACL configuration; the RLS section specifies the concurrency model, connection pool approach, and hot-reload mechanism. Named tradeoffs with reasoning appear (e.g., Redis Cluster cross-slot scripting restriction, hash_tag forcing keys to same shard). The response also surfaces a non-obvious edge case: clock skew between gateway and Redis, mitigated by using Redis TIME command inside the Lua script, and the hot-key failure mode with a local LRU cache mitigation.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 9 presents a structured tradeoff table covering centralized vs. local buckets, fixed-window vs. sliding-window, fail-closed vs. fail-open, with pros/cons and guidance on when to pick each. Section 8 enumerates eight distinct failure modes with specific mitigations. The fail-closed vs. fail-open tradeoff is concretely scoped to downstream capacity constraints. Non-obvious failure modes are addressed: clock skew (mitigated via Redis TIME), Redis persistence lag causing over-issuance on restart, and connection pool exhaustion. The design does not explicitly acknowledge its own limits ('this design cannot handle X'), which prevents a score of 5.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response provides both clearly enumerated functional requirements (FR-1 through FR-7) and non-functional requirements (NFR-1 through NFR-6), with several concrete targets: ≤2 ms added latency (FR-5), ≥99.99% uptime (NFR-2), ≤100 GB RAM (NFR-4). Scale assumptions are explicit (1M RPS global, specific per-key burst/steady values). However, the response never sets explicit non-goals ('we are NOT building X') and does not surface any ambiguity in the prompt and resolve it explicitly. This keeps it at a 4 rather than 5.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"Section 7 delivers a full estimation chain: 1M RPS → 4 shards at 250K RPS each → bandwidth at 20 MB/s per shard → memory at ~520 MB for 10M keys → CPU at ~0.25 cores per shard → latency budget broken into sub-components totaling 0.6 ms. Numbers propagate into design decisions (4-shard cluster, 2 vCPU per shard, 8 GB total RAM). The response stops short of flagging which assumptions are fragile or sanity-checking a result against a real-world reference, so it does not reach a 5.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is tied to a stated requirement: Redis Cluster provides strong consistency (NFR-3), Etcd enables dynamic policy changes (FR-4), Envoy RLS integration handles sub-millisecond latency (FR-5), and Redis replication addresses HA (NFR-2). The data flow is traceable end-to-end via the Mermaid diagram and the per-request flow description in Section 10.1. The choice of Envoy external RLS over Kong/NGINX is explicitly justified ('language-agnostic, decouples scaling, easier to instrument'). No hallucinated services are present.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep dives are present with concrete mechanisms: the Lua script shows the exact token-bucket atomicity mechanism with actual code; the Redis Cluster section specifies hash_tag usage, AOF fsync policy, maxmemory-policy, and ACL configuration; the RLS section specifies the concurrency model, connection pool approach, and hot-reload mechanism. Named tradeoffs with reasoning appear (e.g., Redis Cluster cross-slot scripting restriction, hash_tag forcing keys to same shard). The response also surfaces a non-obvious edge case: clock skew between gateway and Redis, mitigated by using Redis TIME command inside the Lua script, and the hot-key failure mode with a local LRU cache mitigation.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 9 presents a structured tradeoff table covering centralized vs. local buckets, fixed-window vs. sliding-window, fail-closed vs. fail-open, with pros/cons and guidance on when to pick each. Section 8 enumerates eight distinct failure modes with specific mitigations. The fail-closed vs. fail-open tradeoff is concretely scoped to downstream capacity constraints. Non-obvious failure modes are addressed: clock skew (mitigated via Redis TIME), Redis persistence lag causing over-issuance on restart, and connection pool exhaustion. The design does not explicitly acknowledge its own limits ('this design cannot handle X'), which prevents a score of 5.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

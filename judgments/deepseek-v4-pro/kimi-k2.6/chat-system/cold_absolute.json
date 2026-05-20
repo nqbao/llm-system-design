@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/kimi-k2.6/chat-system_cold.json",
+  "question_id": "chat-system",
+  "variant": "cold",
+  "model_under_test": "kimi-k2.6",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T09:03:55.662227+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design lists functional and non-functional requirements explicitly. Non-functional requirements are quantified (p99 latency <300ms, 99.99% availability, 5x traffic spikes). Explicit assumptions are stated (100M DAU, media in object storage) and justified. No explicit non-goals are set, but it does resolve ambiguity by choosing a scale and defaulting to server-side search with E2E gates.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The estimation chain is derived from assumptions (100M DAU, 40 msg/user/day) and propagates to QPS, storage, bandwidth, and fleet size. Numbers directly drive design choices (e.g., gateway fleet sizing to 100 nodes). A sanity check on Cassandra partition size is included, but assumptions are not explicitly flagged as fragile.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against specific requirements or capacity numbers. The data flow is traceable end-to-end, and the hybrid fan-out strategy is a less obvious but correct choice explained in detail. The architecture diagram is coherent, and there are no hallucinations or decorative components.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives (Gateway, Messaging Core, Fan-out, Presence) provide concrete mechanisms: schema design with partition key justification, specific protocols, and tradeoffs. Non-obvious edge cases are surfaced and addressed: presence thundering herd, Cassandra hot partition, idempotency TTL, and clock skew.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Tradeoffs are explicitly discussed in a dedicated section and tied to specific decisions (hybrid fan-out, database choices, ordering ID). Some are quantified indirectly (O(1) reads vs write amplification). The design acknowledges its limits (server-side search vs E2E) and covers failure modes extensively with mitigations, including non-obvious ones (thundering herd, hot partition, idempotency window, clock skew).",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The design lists functional and non-functional requirements explicitly. Non-functional requirements are quantified (p99 latency <300ms, 99.99% availability, 5x traffic spikes). Explicit assumptions are stated (100M DAU, media in object storage) and justified. No explicit non-goals are set, but it does resolve ambiguity by choosing a scale and defaulting to server-side search with E2E gates.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The estimation chain is derived from assumptions (100M DAU, 40 msg/user/day) and propagates to QPS, storage, bandwidth, and fleet size. Numbers directly drive design choices (e.g., gateway fleet sizing to 100 nodes). A sanity check on Cassandra partition size is included, but assumptions are not explicitly flagged as fragile.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component is justified against specific requirements or capacity numbers. The data flow is traceable end-to-end, and the hybrid fan-out strategy is a less obvious but correct choice explained in detail. The architecture diagram is coherent, and there are no hallucinations or decorative components.\",\n    \"score\": 5\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives (Gateway, Messaging Core, Fan-out, Presence) provide concrete mechanisms: schema design with partition key justification, specific protocols, and tradeoffs. Non-obvious edge cases are surfaced and addressed: presence thundering herd, Cassandra hot partition, idempotency TTL, and clock skew.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Tradeoffs are explicitly discussed in a dedicated section and tied to specific decisions (hybrid fan-out, database choices, ordering ID). Some are quantified indirectly (O(1) reads vs write amplification). The design acknowledges its limits (server-side search vs E2E) and covers failure modes extensively with mitigations, including non-obvious ones (thundering herd, hot partition, idempotency window, clock skew).\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/minimax-m2.7/design-youtube_cold.json",
+  "question_id": "design-youtube",
+  "variant": "cold",
+  "model_under_test": "minimax-m2.7",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T06:49:53.339280+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with explicit functional requirements (User Management, Video Upload/Processing, Streaming, Discovery) and states a scale assumption (100M active users, 100M uploaded videos). However, no non-functional requirements are quantified with specific targets (no p99 latency, availability %, or durability guarantees). No explicit non-goals are stated, and no ambiguities in the prompt are resolved. The assumptions are stated but not justified (why 100M users? why not 1B?).",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives storage calculations from assumptions (5 min video, 5 Mbps, 300MB per video → 30 PB final, 60 PB raw). It also mentions QPS implicitly through read/write ratio discussion. However, the numbers contain errors: 5 Mbps at 5 minutes = 187.5 MB, not 300MB; the 'uncompressed approx, compressed 720p ~2-3 Mbps' is confused (1080p compressed is ~3-5 Mbps, not 300MB). More critically, the numbers don't demonstrably drive component sizing decisions—no 'we need N shards because each handles X QPS' linkage. No fragile assumptions are flagged, and no sanity check is performed (30 PB isn't questioned).",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component serves a stated requirement with sensible connections: CDN for streaming latency, Kafka for async processing, separate SQL/NoSQL for different access patterns. The data flow is traceable end-to-end through sequence diagrams. However, some components appear decorative without deep justification—Elasticsearch is named but not deeply justified over alternatives, and 'Tensorflow Serving or a custom C++ service' is vague. The Recommendation Service in the architecture diagram has no actual implementation detail (Strategy 1 is trivial, Strategy 2 is hand-waved). No anti-patterns are explicitly identified and avoided.",
+        "score": 3
+      },
+      "deep_dive_depth": {
+        "reasoning": "One genuine deep-dive exists: the Video Upload & Processing Pipeline with concrete mechanism (presigned URL → S3 → Kafka → transcoding workers → multi-format/codec ABR → sprite sheet → DB update). The database schema has some specifics (partition key for VideoStats, composite keys). However, most components lack mechanism-level detail: no specific sharding strategy for SQL DB, no replication strategy detailed, no queue semantics (Kafka partitions? consumer groups?), no CDN cache invalidation strategy. The streaming section restates HLS/DASH basics without non-obvious edge cases. The recommendation engine is notably shallow—'Spark' and 'Tensorflow Serving' are named without explaining HOW they integrate.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Two concrete tradeoffs are tied to specific decisions: SQL vs NoSQL hybrid (with reasoning about relational integrity vs write throughput) and Database LIKE vs Elasticsearch (with event-driven sync mechanism). Two failure modes are identified with specific mitigations: transcoding worker bottleneck (auto-scaling, priority queues) and CDN origin overload (Origin Shield, scaled origin). However, tradeoffs are not quantified ('strong consistency adds ~20ms p99'). The design does not explicitly acknowledge its own limits ('this design cannot handle X'). No non-obvious failure modes are surfaced—thundering herd on cache expiration, hot key problems in NoSQL counters, write amplification from async view counts, or partial network partitions are absent.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with explicit functional requirements (User Management, Video Upload/Processing, Streaming, Discovery) and states a scale assumption (100M active users, 100M uploaded videos). However, no non-functional requirements are quantified with specific targets (no p99 latency, availability %, or durability guarantees). No explicit non-goals are stated, and no ambiguities in the prompt are resolved. The assumptions are stated but not justified (why 100M users? why not 1B?).\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The response derives storage calculations from assumptions (5 min video, 5 Mbps, 300MB per video → 30 PB final, 60 PB raw). It also mentions QPS implicitly through read/write ratio discussion. However, the numbers contain errors: 5 Mbps at 5 minutes = 187.5 MB, not 300MB; the 'uncompressed approx, compressed 720p ~2-3 Mbps' is confused (1080p compressed is ~3-5 Mbps, not 300MB). More critically, the numbers don't demonstrably drive component sizing decisions—no 'we need N shards because each handles X QPS' linkage. No fragile assumptions are flagged, and no sanity check is performed (30 PB isn't questioned).\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component serves a stated requirement with sensible connections: CDN for streaming latency, Kafka for async processing, separate SQL/NoSQL for different access patterns. The data flow is traceable end-to-end through sequence diagrams. However, some components appear decorative without deep justification—Elasticsearch is named but not deeply justified over alternatives, and 'Tensorflow Serving or a custom C++ service' is vague. The Recommendation Service in the architecture diagram has no actual implementation detail (Strategy 1 is trivial, Strategy 2 is hand-waved). No anti-patterns are explicitly identified and avoided.\", \"score\": 3}, \"deep_dive_depth\": {\"reasoning\": \"One genuine deep-dive exists: the Video Upload & Processing Pipeline with concrete mechanism (presigned URL → S3 → Kafka → transcoding workers → multi-format/codec ABR → sprite sheet → DB update). The database schema has some specifics (partition key for VideoStats, composite keys). However, most components lack mechanism-level detail: no specific sharding strategy for SQL DB, no replication strategy detailed, no queue semantics (Kafka partitions? consumer groups?), no CDN cache invalidation strategy. The streaming section restates HLS/DASH basics without non-obvious edge cases. The recommendation engine is notably shallow—'Spark' and 'Tensorflow Serving' are named without explaining HOW they integrate.\", \"score\": 3}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Two concrete tradeoffs are tied to specific decisions: SQL vs NoSQL hybrid (with reasoning about relational integrity vs write throughput) and Database LIKE vs Elasticsearch (with event-driven sync mechanism). Two failure modes are identified with specific mitigations: transcoding worker bottleneck (auto-scaling, priority queues) and CDN origin overload (Origin Shield, scaled origin). However, tradeoffs are not quantified ('strong consistency adds ~20ms p99'). The design does not explicitly acknowledge its own limits ('this design cannot handle X'). No non-obvious failure modes are surfaced—thundering herd on cache expiration, hot key problems in NoSQL counters, write amplification from async view counts, or partial network partitions are absent.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

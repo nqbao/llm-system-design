@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemini-3.1-pro/url-shortener_cold.json",
+  "question_id": "url-shortener",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T06:40:13.890924+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response states both functional (shorten, redirect, custom URLs, analytics, expiration) and non-functional (high availability, low latency, scalability, read-heavy) requirements. It also provides explicit assumptions (100M URLs/month, 100:1 read/write, 10-year lifespan), but does not quantify non-functional SLAs (e.g., p99 latency, availability %). No non-goals or ambiguity resolution are given.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives QPS (40 writes, 4000 reads average; 200 writes, 20k reads peak) and storage (6 TB over 10 years) from assumptions. It also estimates cache size (34 GB). However, it does not estimate bandwidth, and the chain is incomplete for a full 4. Numbers like 20k peak read RPS are used to justify NoSQL and Redis sizing, but no bandwidth component appears.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (Load Balancer, Shortener, Redirect, KGS, NoSQL, Redis, Kafka, ClickHouse) is justified against a specific requirement or capacity number. The architecture description is genuinely informative with a clear diagram. The choice of a Key Generation Service instead of the more obvious URL hashing is a less common but correct decision, and the rationale (zero collisions, O(1) writes, decoupled scaling) is explained, satisfying criterion 5a.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response includes a deep-dive into the Key Generation Service algorithm (pre-generation, states, in-memory chunking, instant provides) with a named tradeoff (KGS vs hashing). The cache stampede mitigation (local cache + mutex) is a second deep-dive with concrete mechanism, but it lacks an explicit tradeoff discussion. Thus only one deep-dive fully meets the tradeoff requirement, corresponding to level 3.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "At least two tradeoffs are tied to specific decisions (HTTP 301 vs 302 for analytics, hashing vs KGS for write latency, RDBMS vs NoSQL for scaling). Failure modes (viral link cache stampede, KGS outage, malicious URLs, Kafka outage) are identified with mitigations. However, tradeoffs are not quantified (e.g., no concrete latency or cost numbers), which keeps the score at 3 despite a non-obvious failure mode (hot key thundering herd).",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response states both functional (shorten, redirect, custom URLs, analytics, expiration) and non-functional (high availability, low latency, scalability, read-heavy) requirements. It also provides explicit assumptions (100M URLs/month, 100:1 read/write, 10-year lifespan), but does not quantify non-functional SLAs (e.g., p99 latency, availability %). No non-goals or ambiguity resolution are given.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The response derives QPS (40 writes, 4000 reads average; 200 writes, 20k reads peak) and storage (6 TB over 10 years) from assumptions. It also estimates cache size (34 GB). However, it does not estimate bandwidth, and the chain is incomplete for a full 4. Numbers like 20k peak read RPS are used to justify NoSQL and Redis sizing, but no bandwidth component appears.\",\n    \"score\": 3\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (Load Balancer, Shortener, Redirect, KGS, NoSQL, Redis, Kafka, ClickHouse) is justified against a specific requirement or capacity number. The architecture description is genuinely informative with a clear diagram. The choice of a Key Generation Service instead of the more obvious URL hashing is a less common but correct decision, and the rationale (zero collisions, O(1) writes, decoupled scaling) is explained, satisfying criterion 5a.\",\n    \"score\": 5\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response includes a deep-dive into the Key Generation Service algorithm (pre-generation, states, in-memory chunking, instant provides) with a named tradeoff (KGS vs hashing). The cache stampede mitigation (local cache + mutex) is a second deep-dive with concrete mechanism, but it lacks an explicit tradeoff discussion. Thus only one deep-dive fully meets the tradeoff requirement, corresponding to level 3.\",\n    \"score\": 3\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"At least two tradeoffs are tied to specific decisions (HTTP 301 vs 302 for analytics, hashing vs KGS for write latency, RDBMS vs NoSQL for scaling). Failure modes (viral link cache stampede, KGS outage, malicious URLs, Kafka outage) are identified with mitigations. However, tradeoffs are not quantified (e.g., no concrete latency or cost numbers), which keeps the score at 3 despite a non-obvious failure mode (hot key thundering herd).\",\n    \"score\": 3\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

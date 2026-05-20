@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-20b/distributed-rate-limiter_cold.json",
+  "question_id": "distributed-rate-limiter",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-20b",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T07:30:24.982271+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design quantifies non-functional requirements explicitly: <40ms p95 latency, >99.999% accuracy vs. single-threaded baseline, +30% throughput per added node. Assumptions are stated and mostly justified (1M users, 10k active at any time, 1% active fraction). The document marks one item explicitly out of scope. However, there is no formal non-goals section, no resolution of ambiguities in the original prompt, and the scale-up analysis at 100k QPS is mentioned but not treated as an explicit scoping decision.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "A partial estimation chain is present: 10k QPS -> 30k Redis ops/s (3 ops per script) -> 10k ops/s per node -> 3-node sizing. Memory is estimated at 64B/key x 1M keys ~10 MiB. The Redis node sizing decision is explicitly tied to the computed 10k ops/s figure. However, bandwidth/network throughput estimation is entirely absent, the 100k QPS scaling is asserted rather than derived, and no assumptions are flagged as fragile nor are any results sanity-checked against real-world benchmarks.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component has a stated reason: RL nodes are stateless for horizontal scale; consistent hashing on api_key eliminates cross-node races on the same bucket; Redis Lua provides race-free atomic updates. Data flow is described in 7 concrete steps and reinforced by both an ASCII diagram and a Mermaid diagram. No hallucinated services are present. The choice of consistent hashing at the LB layer rather than round-robin is a non-obvious but correct architectural decision explicitly justified against the race-condition requirement.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Two substantive deep dives: the Lua token-bucket script includes the actual mechanism including reading Redis TIME to avoid clock skew, HMGET/HMSET for atomic field access, and floating-point token refill with explanation of why each step is needed; Redis Cluster covers slot count, node sizing derived from capacity math, AOF+RDB persistence, and LRU eviction policy for key-churn OOM prevention. Named tradeoffs include token-bucket vs. sliding window log and Lua vs. INCRBYFLOAT with specific reasoning. Falls short of a 5 because the deep-dive does not surface the replication-lag window during failover where a replica may serve stale token counts, or the hot-key problem for the global bucket in Redis Cluster.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 9 provides a structured alternatives table covering five design axes with cost/latency/consistency columns and concrete reasoning per row. Section 7 lists eight failure modes with specific mitigations including circuit breaker triggered at 10ms RTT, LRU eviction with a named eviction policy, and pub/sub cache invalidation for config drift. The design does not explicitly state what it cannot handle, nor does it surface truly non-obvious failure modes like thundering herd on a Redis primary restart or write amplification from AOF fsync under bursty traffic.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The design quantifies non-functional requirements explicitly: <40ms p95 latency, >99.999% accuracy vs. single-threaded baseline, +30% throughput per added node. Assumptions are stated and mostly justified (1M users, 10k active at any time, 1% active fraction). The document marks one item explicitly out of scope. However, there is no formal non-goals section, no resolution of ambiguities in the original prompt, and the scale-up analysis at 100k QPS is mentioned but not treated as an explicit scoping decision.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"A partial estimation chain is present: 10k QPS -> 30k Redis ops/s (3 ops per script) -> 10k ops/s per node -> 3-node sizing. Memory is estimated at 64B/key x 1M keys ~10 MiB. The Redis node sizing decision is explicitly tied to the computed 10k ops/s figure. However, bandwidth/network throughput estimation is entirely absent, the 100k QPS scaling is asserted rather than derived, and no assumptions are flagged as fragile nor are any results sanity-checked against real-world benchmarks.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component has a stated reason: RL nodes are stateless for horizontal scale; consistent hashing on api_key eliminates cross-node races on the same bucket; Redis Lua provides race-free atomic updates. Data flow is described in 7 concrete steps and reinforced by both an ASCII diagram and a Mermaid diagram. No hallucinated services are present. The choice of consistent hashing at the LB layer rather than round-robin is a non-obvious but correct architectural decision explicitly justified against the race-condition requirement.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Two substantive deep dives: the Lua token-bucket script includes the actual mechanism including reading Redis TIME to avoid clock skew, HMGET/HMSET for atomic field access, and floating-point token refill with explanation of why each step is needed; Redis Cluster covers slot count, node sizing derived from capacity math, AOF+RDB persistence, and LRU eviction policy for key-churn OOM prevention. Named tradeoffs include token-bucket vs. sliding window log and Lua vs. INCRBYFLOAT with specific reasoning. Falls short of a 5 because the deep-dive does not surface the replication-lag window during failover where a replica may serve stale token counts, or the hot-key problem for the global bucket in Redis Cluster.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 9 provides a structured alternatives table covering five design axes with cost/latency/consistency columns and concrete reasoning per row. Section 7 lists eight failure modes with specific mitigations including circuit breaker triggered at 10ms RTT, LRU eviction with a named eviction policy, and pub/sub cache invalidation for config drift. The design does not explicitly state what it cannot handle, nor does it surface truly non-obvious failure modes like thundering herd on a Redis primary restart or write amplification from AOF fsync under bursty traffic.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

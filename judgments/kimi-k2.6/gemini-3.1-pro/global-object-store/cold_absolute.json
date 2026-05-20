@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemini-3.1-pro/global-object-store_cold.json",
+  "question_id": "global-object-store",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T06:46:02.769601+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with a clear problem statement (global object storage like S3) and immediately quantifies non-functional requirements: 11 9s durability, strong read-after-write consistency, high availability, and 'infinite capacity' illusion. It provides explicit assumptions including total objects (1 trillion), average object size (1 MB), read/write ratio (10:1), and peak QPS. However, it lacks explicit non-goals ('we are NOT building X') and does not resolve ambiguities in the prompt by exploring alternative scales or noting where design changes at different scales. The requirements are quantified but not with specific latency targets (p99) or availability percentages.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives QPS, storage, and bandwidth from stated assumptions: 20K write QPS → 20 GB/s, 200K read QPS → 200 GB/s. Metadata storage is calculated (1 PB). These numbers drive concrete design decisions: metadata requires distributed DB, EC chosen over replication due to 1.5x vs 3x overhead. However, the estimation chain lacks component sizing (how many storage nodes? how many metadata shards?), and there is no sanity-checking or fragility analysis of assumptions. The bandwidth numbers are treated as given without questioning if 1.6 Tbps read is realistic or how it would be provisioned.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against requirements: API Gateway (SSL/auth), Storage Proxy (EC coordination), Metadata DB (strong consistency for 1 PB), Placement Service (topology-aware distribution), Storage Nodes (dumb JBOD). The data flow is traceable end-to-end for both read and write paths. No hallucinated services. The architecture diagram uses Mermaid syntax correctly. The separation of control/metadata/data planes is explicitly justified. However, the 'IAM / Auth Service' is somewhat lightly justified, and the diagram shows 'Route 53 / DNS' as a service in the client group which is slightly odd categorization.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Two strong deep-dives: (1) Erasure Coding with specific 8+4 scheme, mathematical justification (12/8=1.5x overhead), and concrete distribution across failure domains. (2) Log-Structured Storage (Haystack/Needle) with specific mechanism: 64 GB Extents, in-memory index mapping ChunkID→(ExtentID, Offset, Size), sealed extents, soft deletes with GC. Tradeoffs are named: inline vs offline EC with reasoning. However, no non-obvious edge case is surfaced in these deep-dives—no discussion of reconstruction cost during degraded reads, no analysis of extent compaction impact on I/O, no mention of memory pressure from the in-memory index at scale.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Three explicit tradeoffs in table format, each with decision and justification tied to specific requirements (EC vs replication for cost, inline vs offline EC for durability guarantee, strong vs eventual consistency for UX). Four specific failure modes with concrete mitigations: disk failure with scrubber/repair, proxy failure with orphan chunk GC, hot partitions with hash-based sharding and automatic split, AZ failure with 4-4-4 distribution. The hot partition mitigation is particularly good—surfaces sequential prefix problem. However, no quantified tradeoff (e.g., 'strong consistency adds ~20ms p99'), and no explicit acknowledgment of design limits ('this design cannot handle X'). The orphan chunk recovery uses 24-hour threshold without justification.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with a clear problem statement (global object storage like S3) and immediately quantifies non-functional requirements: 11 9s durability, strong read-after-write consistency, high availability, and 'infinite capacity' illusion. It provides explicit assumptions including total objects (1 trillion), average object size (1 MB), read/write ratio (10:1), and peak QPS. However, it lacks explicit non-goals ('we are NOT building X') and does not resolve ambiguities in the prompt by exploring alternative scales or noting where design changes at different scales. The requirements are quantified but not with specific latency targets (p99) or availability percentages.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The response derives QPS, storage, and bandwidth from stated assumptions: 20K write QPS → 20 GB/s, 200K read QPS → 200 GB/s. Metadata storage is calculated (1 PB). These numbers drive concrete design decisions: metadata requires distributed DB, EC chosen over replication due to 1.5x vs 3x overhead. However, the estimation chain lacks component sizing (how many storage nodes? how many metadata shards?), and there is no sanity-checking or fragility analysis of assumptions. The bandwidth numbers are treated as given without questioning if 1.6 Tbps read is realistic or how it would be provisioned.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified against requirements: API Gateway (SSL/auth), Storage Proxy (EC coordination), Metadata DB (strong consistency for 1 PB), Placement Service (topology-aware distribution), Storage Nodes (dumb JBOD). The data flow is traceable end-to-end for both read and write paths. No hallucinated services. The architecture diagram uses Mermaid syntax correctly. The separation of control/metadata/data planes is explicitly justified. However, the 'IAM / Auth Service' is somewhat lightly justified, and the diagram shows 'Route 53 / DNS' as a service in the client group which is slightly odd categorization.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Two strong deep-dives: (1) Erasure Coding with specific 8+4 scheme, mathematical justification (12/8=1.5x overhead), and concrete distribution across failure domains. (2) Log-Structured Storage (Haystack/Needle) with specific mechanism: 64 GB Extents, in-memory index mapping ChunkID→(ExtentID, Offset, Size), sealed extents, soft deletes with GC. Tradeoffs are named: inline vs offline EC with reasoning. However, no non-obvious edge case is surfaced in these deep-dives—no discussion of reconstruction cost during degraded reads, no analysis of extent compaction impact on I/O, no mention of memory pressure from the in-memory index at scale.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Three explicit tradeoffs in table format, each with decision and justification tied to specific requirements (EC vs replication for cost, inline vs offline EC for durability guarantee, strong vs eventual consistency for UX). Four specific failure modes with concrete mitigations: disk failure with scrubber/repair, proxy failure with orphan chunk GC, hot partitions with hash-based sharding and automatic split, AZ failure with 4-4-4 distribution. The hot partition mitigation is particularly good—surfaces sequential prefix problem. However, no quantified tradeoff (e.g., 'strong consistency adds ~20ms p99'), and no explicit acknowledgment of design limits ('this design cannot handle X'). The orphan chunk recovery uses 24-hour threshold without justification.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

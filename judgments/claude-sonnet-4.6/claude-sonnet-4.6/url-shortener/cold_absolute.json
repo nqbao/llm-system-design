@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/claude-sonnet-4.6/url-shortener_cold.json",
+  "question_id": "url-shortener",
+  "variant": "cold",
+  "model_under_test": "claude-sonnet-4.6",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T15:01:24.482833+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response has both functional and non-functional requirements with specific quantified targets (p99 < 20ms, 99.99% uptime, 10B clicks/month, 100:1 read/write ratio) and an explicit 'Out of Scope' section listing non-goals. However, it does not explicitly resolve ambiguities from the prompt — e.g., it never says 'the prompt says bit.ly scale but doesn't specify writes/day; I'll assume 10M and note where the design changes at 100M.' The non-goals are present but not framed as prompt-ambiguity resolutions, which is the distinguishing criterion for a 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The estimation chain is thorough: monthly traffic to avg/peak RPS, writes/day to WPS, per-record field-level byte breakdown to 5-year storage, Zipf distribution to cache sizing. Numbers propagate into design decisions (24 GB fits in a Redis cluster, 2.4 TB fits on a few sharded nodes). Section 12 provides an explicit back-of-envelope validation showing CDN absorption, Redis hit rate, MySQL RPS, Kafka throughput, and storage write rate. The response falls short of a 5 because it never flags which assumptions are fragile and does not explicitly sanity-check an intermediate result against real-world intuition in the 'does this make sense?' form.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against a specific requirement or capacity finding: CDN and L1/L2/L3 cache hierarchy address the p99 < 20ms target; Kafka decouples analytics from the critical path; MySQL is chosen over Cassandra with an explicit rationale. Data flow is traceable end-to-end via both the Mermaid diagram and the step-by-step redirect path in Section 5.1. The response picks counter-based code generation over hashing and explains why each alternative fails, and it avoids the Cassandra over-engineering anti-pattern explicitly.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Six distinct deep-dives are present with concrete mechanisms: the three-level cache hierarchy with specific latencies, the counter SQL with exact UPDATE/SELECT semantics plus a Redis INCRBY alternative and durability tradeoff, the full MySQL schema with index choices and rationale, Bloom filter sizing with numbers, Redis Cluster topology, and ClickHouse with a concrete example query. Non-obvious failure modes are addressed including thundering herd with a cache-aside mutex pattern, SSRF with a named RFC-1918 blocklist, and DB index thrashing from random UUID keys.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The failure modes table covers ten distinct failure scenarios with specific mitigations and concrete metrics (RTO < 30s, RPO approximately 0, replication lag 50-150ms). Non-obvious failure modes include thundering herd with mutex mitigation, SSRF with specific private IP range blocklist, and counter service failure with pre-allocated pool fallback. The response falls short of a 5 because it never explicitly acknowledges its own design limits in the 'this design cannot handle X; if that requirement emerges we would need Y' form.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response has both functional and non-functional requirements with specific quantified targets (p99 < 20ms, 99.99% uptime, 10B clicks/month, 100:1 read/write ratio) and an explicit 'Out of Scope' section listing non-goals. However, it does not explicitly resolve ambiguities from the prompt — e.g., it never says 'the prompt says bit.ly scale but doesn't specify writes/day; I'll assume 10M and note where the design changes at 100M.' The non-goals are present but not framed as prompt-ambiguity resolutions, which is the distinguishing criterion for a 5.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The estimation chain is thorough: monthly traffic to avg/peak RPS, writes/day to WPS, per-record field-level byte breakdown to 5-year storage, Zipf distribution to cache sizing. Numbers propagate into design decisions (24 GB fits in a Redis cluster, 2.4 TB fits on a few sharded nodes). Section 12 provides an explicit back-of-envelope validation showing CDN absorption, Redis hit rate, MySQL RPS, Kafka throughput, and storage write rate. The response falls short of a 5 because it never flags which assumptions are fragile and does not explicitly sanity-check an intermediate result against real-world intuition in the 'does this make sense?' form.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified against a specific requirement or capacity finding: CDN and L1/L2/L3 cache hierarchy address the p99 < 20ms target; Kafka decouples analytics from the critical path; MySQL is chosen over Cassandra with an explicit rationale. Data flow is traceable end-to-end via both the Mermaid diagram and the step-by-step redirect path in Section 5.1. The response picks counter-based code generation over hashing and explains why each alternative fails, and it avoids the Cassandra over-engineering anti-pattern explicitly.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Six distinct deep-dives are present with concrete mechanisms: the three-level cache hierarchy with specific latencies, the counter SQL with exact UPDATE/SELECT semantics plus a Redis INCRBY alternative and durability tradeoff, the full MySQL schema with index choices and rationale, Bloom filter sizing with numbers, Redis Cluster topology, and ClickHouse with a concrete example query. Non-obvious failure modes are addressed including thundering herd with a cache-aside mutex pattern, SSRF with a named RFC-1918 blocklist, and DB index thrashing from random UUID keys.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The failure modes table covers ten distinct failure scenarios with specific mitigations and concrete metrics (RTO < 30s, RPO approximately 0, replication lag 50-150ms). Non-obvious failure modes include thundering herd with mutex mitigation, SSRF with specific private IP range blocklist, and counter service failure with pre-allocated pool fallback. The response falls short of a 5 because it never explicitly acknowledges its own design limits in the 'this design cannot handle X; if that requirement emerges we would need Y' form.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

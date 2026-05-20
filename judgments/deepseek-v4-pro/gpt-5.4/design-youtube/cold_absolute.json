@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-5.4/design-youtube_cold.json",
+  "question_id": "design-youtube",
+  "variant": "cold",
+  "model_under_test": "gpt-5.4",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T08:20:51.601258+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response states explicit non-goals (live streaming, ads, monetization are extensions) and resolves ambiguity by choosing 200M DAU as scale. It includes both functional and non-functional requirements, quantifies SLOs with specific targets (99.99% availability, p95 latencies, durability 11 nines), and justifies assumptions with the chosen scale.",
+        "score": 5
+      },
+      "capacity_estimation": {
+        "reasoning": "Full estimation chain from assumptions (DAU, views/day, bitrate) to QPS, egress, storage, and component sizing (transcode workers). Numbers drive CDN-first architecture and storage cost controls. However, assumptions are not explicitly flagged as fragile, and no explicit sanity-check question is posed (e.g., 'does 180 PB/day make sense?'). Thus, 4.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against requirements and capacity numbers. The diagram and textual description trace data flow end-to-end. The response explicitly identifies and avoids anti-patterns: not routing uploads through app servers, not updating canonical DB for every view, and using immutable versioned URLs to prevent cache issues. Thus, it meets level 5.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response provides multiple deep-dives with concrete mechanisms (counter sharding to avoid hotspots, segment size tradeoff for ABR, partitioning by video_id with secondary indexes). Each includes named tradeoffs and reasoning (e.g., eager vs lazy transcoding). It addresses a non-obvious edge case: viral video cache-miss storm with origin shield and request coalescing, a specific thundering herd mitigation. Thus, level 5.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response includes a tradeoffs table with specific decisions, and a detailed failure modes section with mitigations. It explicitly treats live streaming, ads, and monetization as out of scope, thereby acknowledging a limitation. It also surfaces a non-obvious failure mode: viral video cache-miss storm (thundering herd) with specific mitigations like origin shield and request coalescing. Thus, it meets level 5.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response states explicit non-goals (live streaming, ads, monetization are extensions) and resolves ambiguity by choosing 200M DAU as scale. It includes both functional and non-functional requirements, quantifies SLOs with specific targets (99.99% availability, p95 latencies, durability 11 nines), and justifies assumptions with the chosen scale.\",\n    \"score\": 5\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Full estimation chain from assumptions (DAU, views/day, bitrate) to QPS, egress, storage, and component sizing (transcode workers). Numbers drive CDN-first architecture and storage cost controls. However, assumptions are not explicitly flagged as fragile, and no explicit sanity-check question is posed (e.g., 'does 180 PB/day make sense?'). Thus, 4.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component is justified against requirements and capacity numbers. The diagram and textual description trace data flow end-to-end. The response explicitly identifies and avoids anti-patterns: not routing uploads through app servers, not updating canonical DB for every view, and using immutable versioned URLs to prevent cache issues. Thus, it meets level 5.\",\n    \"score\": 5\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response provides multiple deep-dives with concrete mechanisms (counter sharding to avoid hotspots, segment size tradeoff for ABR, partitioning by video_id with secondary indexes). Each includes named tradeoffs and reasoning (e.g., eager vs lazy transcoding). It addresses a non-obvious edge case: viral video cache-miss storm with origin shield and request coalescing, a specific thundering herd mitigation. Thus, level 5.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The response includes a tradeoffs table with specific decisions, and a detailed failure modes section with mitigations. It explicitly treats live streaming, ads, and monetization as out of scope, thereby acknowledging a limitation. It also surfaces a non-obvious failure mode: viral video cache-miss storm (thundering herd) with specific mitigations like origin shield and request coalescing. Thus, it meets level 5.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

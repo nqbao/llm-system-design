@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/claude-sonnet-4.6/design-youtube_cold.json",
+  "question_id": "design-youtube",
+  "variant": "cold",
+  "model_under_test": "claude-sonnet-4.6",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T08:56:45.338329+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response states both functional (upload, transcode, stream, search, etc.) and non-functional requirements (availability, latency, durability, consistency), and quantifies non-functionals with specific targets like 99.99% availability and P95/P99 latencies. It sets explicit scale assumptions (2B users, 500M DAU, etc.) but does not justify why those numbers were chosen, nor does it set explicit non-goals or resolve an ambiguity from the prompt (e.g., 'the prompt doesn't specify scale; I'll pick 100M users...'). Thus, while non-functionals are quantified, assumptions are not justified.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response provides a full estimation chain: user scale → upload rate → raw storage → transcoding output → streaming bandwidth → database sizes. Numbers drive later design choices (e.g., 175 transcoding workers, 16 Postgres shards, CDN cache hit ratios, origin egress). A sanity check is performed against real-world YouTube costs. However, the response does not explicitly flag which assumptions are most fragile or how the design would change if assumptions shift, so it falls just short of a 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component in the architecture serves a stated requirement (upload, transcoding, CDN, search, recommendations, comments, etc.) and is justified by capacity or functionality. Data flow is traceable end-to-end from upload through processing to CDN delivery, with no hallucinated services. The descriptions are genuinely informative, and the architecture choices (e.g., Kafka for async processing, Cassandra for comments, sharded PostgreSQL for metadata) are well motivated. While some choices are fairly standard, they are correctly tied to requirements, making this a strong 4.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response includes multiple deep-dives (upload pipeline, transcoding, CDN, metadata DB, search, recommendations, comments, notifications, live streaming) with concrete mechanisms: presigned multipart uploads, 8‑rendition ladder, HLS segment format, Cassandra schema for comments, two‑tower neural net with FAISS, hybrid push/pull for notifications, etc. At least one deep‑dive surfaces a non‑obvious edge case—the thundering herd problem for mega‑creator notifications is explicitly addressed via a pull model. Tradeoffs with reasoning are present throughout (e.g., view count aggregation to avoid direct Postgres writes, cursor‑based pagination). This reaches the 5‑level bar.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response dedicates a section to tradeoffs, linking decisions to concrete alternatives and reasoning (e.g., Cassandra over PostgreSQL for comments, pull model for mega‑creator notifications). Failure modes are listed with specific mitigations (circuit breakers, autoscaling, fallbacks), and cascading failure prevention is discussed. However, the design does not explicitly state a clear 'this design cannot handle X; if that becomes a requirement we'd need Y' limitation—the conclusion mentions CDN cost and operational complexity but not a specific capability gap. While non‑obvious failure modes (thundering herd, viral video spike) are addressed, the lack of an explicit self‑limitation keeps it at a 4.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response states both functional (upload, transcode, stream, search, etc.) and non-functional requirements (availability, latency, durability, consistency), and quantifies non-functionals with specific targets like 99.99% availability and P95/P99 latencies. It sets explicit scale assumptions (2B users, 500M DAU, etc.) but does not justify why those numbers were chosen, nor does it set explicit non-goals or resolve an ambiguity from the prompt (e.g., 'the prompt doesn't specify scale; I'll pick 100M users...'). Thus, while non-functionals are quantified, assumptions are not justified.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The response provides a full estimation chain: user scale → upload rate → raw storage → transcoding output → streaming bandwidth → database sizes. Numbers drive later design choices (e.g., 175 transcoding workers, 16 Postgres shards, CDN cache hit ratios, origin egress). A sanity check is performed against real-world YouTube costs. However, the response does not explicitly flag which assumptions are most fragile or how the design would change if assumptions shift, so it falls just short of a 5.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component in the architecture serves a stated requirement (upload, transcoding, CDN, search, recommendations, comments, etc.) and is justified by capacity or functionality. Data flow is traceable end-to-end from upload through processing to CDN delivery, with no hallucinated services. The descriptions are genuinely informative, and the architecture choices (e.g., Kafka for async processing, Cassandra for comments, sharded PostgreSQL for metadata) are well motivated. While some choices are fairly standard, they are correctly tied to requirements, making this a strong 4.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response includes multiple deep-dives (upload pipeline, transcoding, CDN, metadata DB, search, recommendations, comments, notifications, live streaming) with concrete mechanisms: presigned multipart uploads, 8‑rendition ladder, HLS segment format, Cassandra schema for comments, two‑tower neural net with FAISS, hybrid push/pull for notifications, etc. At least one deep‑dive surfaces a non‑obvious edge case—the thundering herd problem for mega‑creator notifications is explicitly addressed via a pull model. Tradeoffs with reasoning are present throughout (e.g., view count aggregation to avoid direct Postgres writes, cursor‑based pagination). This reaches the 5‑level bar.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The response dedicates a section to tradeoffs, linking decisions to concrete alternatives and reasoning (e.g., Cassandra over PostgreSQL for comments, pull model for mega‑creator notifications). Failure modes are listed with specific mitigations (circuit breakers, autoscaling, fallbacks), and cascading failure prevention is discussed. However, the design does not explicitly state a clear 'this design cannot handle X; if that becomes a requirement we'd need Y' limitation—the conclusion mentions CDN cost and operational complexity but not a specific capability gap. While non‑obvious failure modes (thundering herd, viral video spike) are addressed, the lack of an explicit self‑limitation keeps it at a 4.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

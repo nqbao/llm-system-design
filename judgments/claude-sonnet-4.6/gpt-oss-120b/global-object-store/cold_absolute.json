@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-120b/global-object-store_cold.json",
+  "question_id": "global-object-store",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-06T05:34:49.257715+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response provides 12 functional requirements with specific API examples and 10 non-functional requirements with quantified targets: 11-nines durability, 99.99% availability, <30ms p99 GET latency, 10 Tbps egress, 5 Tbps ingress. The consistency model is explicitly specified (read-after-write for new objects, eventual for overwrites). However, there is no explicit non-goals section and the response doesn't resolve any stated ambiguity in the prompt — it simply picks a scale without acknowledging the choice or noting where the design would change at higher/lower scales.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "A full estimation chain is present: 500 PB target → 75 TB usable/node → 7,000 nodes; 7,000 × 40 Gbps → 280 Tbps aggregate → 200 Tbps usable, verified against the 10 Tbps target. 400k PUT/s × 150 KB = 60 GB/s provides a sanity check against aggregate capacity. 10B objects × 200 bytes = 2 TB metadata drives the metadata cluster sizing. Numbers demonstrably propagate into design choices. The response is missing flagging of fragile assumptions (e.g., 150 KB average object size is not justified) and lacks a explicit high-level sanity check on total stored data growth rate.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against a specific requirement: EC storage nodes against N1 durability, replication engine against F6 CRR, lifecycle service against F5, scrubbing against N1, GSLB against N2/N3. Data flow is traceable end-to-end across all four operations with both ASCII and Mermaid diagrams. A specific non-obvious design choice is called out: object data never touches the API server memory, streamed directly to storage nodes for linear scalability. No hallucinated or decorative components are present.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are present with concrete mechanisms: EC with RS(6+2), any 6 of 8 for reconstruction, rack-aware placement, Intel ISA-L SIMD, 75% efficiency, tradeoff vs triple-replication quantified; metadata service with quorum W=3/R=2, hash(bucket XOR key) sharding, auto-split at 100 GB, in-memory for sub-ms lookup; delete path with tombstone-based async GC with explicit rationale. Non-obvious failure modes addressed include clock skew affecting version ordering with TrueTime/Lamport fallback and orphaned shards from network partition with TTL GC.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 6 provides eight explicitly named tradeoffs tied to specific decisions with reasoning such as EC halving storage cost with slight CPU increase and blue-green offering zero-downtime at double hardware cost. Section 7 covers nine failure modes with detection mechanisms and specific mitigations. Non-obvious failures include silent bit-rot with BLAKE3 scrubbing, clock skew causing version ordering errors, and orphan shards from partial network partitions. However the response never explicitly states this design cannot handle X and tradeoffs are rarely quantified with specific latency or cost numbers.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response provides 12 functional requirements with specific API examples and 10 non-functional requirements with quantified targets: 11-nines durability, 99.99% availability, <30ms p99 GET latency, 10 Tbps egress, 5 Tbps ingress. The consistency model is explicitly specified (read-after-write for new objects, eventual for overwrites). However, there is no explicit non-goals section and the response doesn't resolve any stated ambiguity in the prompt — it simply picks a scale without acknowledging the choice or noting where the design would change at higher/lower scales.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"A full estimation chain is present: 500 PB target → 75 TB usable/node → 7,000 nodes; 7,000 × 40 Gbps → 280 Tbps aggregate → 200 Tbps usable, verified against the 10 Tbps target. 400k PUT/s × 150 KB = 60 GB/s provides a sanity check against aggregate capacity. 10B objects × 200 bytes = 2 TB metadata drives the metadata cluster sizing. Numbers demonstrably propagate into design choices. The response is missing flagging of fragile assumptions (e.g., 150 KB average object size is not justified) and lacks a explicit high-level sanity check on total stored data growth rate.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified against a specific requirement: EC storage nodes against N1 durability, replication engine against F6 CRR, lifecycle service against F5, scrubbing against N1, GSLB against N2/N3. Data flow is traceable end-to-end across all four operations with both ASCII and Mermaid diagrams. A specific non-obvious design choice is called out: object data never touches the API server memory, streamed directly to storage nodes for linear scalability. No hallucinated or decorative components are present.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives are present with concrete mechanisms: EC with RS(6+2), any 6 of 8 for reconstruction, rack-aware placement, Intel ISA-L SIMD, 75% efficiency, tradeoff vs triple-replication quantified; metadata service with quorum W=3/R=2, hash(bucket XOR key) sharding, auto-split at 100 GB, in-memory for sub-ms lookup; delete path with tombstone-based async GC with explicit rationale. Non-obvious failure modes addressed include clock skew affecting version ordering with TrueTime/Lamport fallback and orphaned shards from network partition with TTL GC.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 6 provides eight explicitly named tradeoffs tied to specific decisions with reasoning such as EC halving storage cost with slight CPU increase and blue-green offering zero-downtime at double hardware cost. Section 7 covers nine failure modes with detection mechanisms and specific mitigations. Non-obvious failures include silent bit-rot with BLAKE3 scrubbing, clock skew causing version ordering errors, and orphan shards from partial network partitions. However the response never explicitly states this design cannot handle X and tradeoffs are rarely quantified with specific latency or cost numbers.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

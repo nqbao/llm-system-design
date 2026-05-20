@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-03/gemini-3.1-pro/news-feed_cold.json",
+  "question_id": "news-feed",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-03T22:08:26.726892+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists both functional requirements (publish, feed, follow) and non-functional requirements (availability, latency with a specific 200ms target, eventual consistency, scale). It explicitly states the celebrity problem as a scale concern. However, it does not state explicit non-goals, does not resolve any ambiguity in the prompt, and the NFRs lack full quantification (availability % is not specified, durability guarantees are absent). The 200ms latency target is stated but not justified or tied to a user-facing SLA.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives QPS from DAU assumptions (300M DAU to 17,500 read QPS, 1,150 write QPS) and includes peak estimates. Storage is computed for both text and media with a clear chain. The 1.9 TB Redis memory estimate in the tradeoffs section directly drives the decision to use a Redis cluster, showing numbers propagating into design. However, the response does not flag which assumptions are fragile and does not sanity-check the 7.3 PB/year media figure against real-world benchmarks.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every major component is justified: Cassandra for write throughput and time-series, Redis ZSET for sorted feed, Kafka for async fanout decoupling, CDN for media. The hybrid fanout model is directly tied to the celebrity problem stated in requirements. The diagram is present and the read/write paths are traced end-to-end. The CelebCache as a separate Redis structure is a slightly non-obvious but well-explained choice. No hallucinated services are present.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are present: Cassandra schema with partition key and clustering key with explicit reasoning about time-ordering; Redis ZSET with key structure, capacity cap of 800 posts, and fallback behavior; fanout worker mechanics including Redis pipelining to batch writes. The Cassandra hotspot mitigation with time-bucketed partition key surfaces a non-obvious failure mode and addresses it specifically. Tradeoffs are named per mechanism. This is strong across multiple components.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response covers multiple concrete tradeoffs tied to specific decisions: chronological vs. algorithmic feed with implementation cost reasoning, Redis memory cost quantified at 1.9 TB with an explicit alternative considered, and fanout worker batching via pipelining. Failure modes include Redis node death with graceful degradation to pull model, Kafka consumer lag with auto-scaling mitigation, thundering herd on celebrity posts with two-layer caching mitigation, and Cassandra hotspot with time-bucketed partition key fix. The thundering herd is a non-obvious failure mode addressed specifically. The design does not explicitly acknowledge its own limits, which would be needed for a 5.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response lists both functional requirements (publish, feed, follow) and non-functional requirements (availability, latency with a specific 200ms target, eventual consistency, scale). It explicitly states the celebrity problem as a scale concern. However, it does not state explicit non-goals, does not resolve any ambiguity in the prompt, and the NFRs lack full quantification (availability % is not specified, durability guarantees are absent). The 200ms latency target is stated but not justified or tied to a user-facing SLA.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The response derives QPS from DAU assumptions (300M DAU to 17,500 read QPS, 1,150 write QPS) and includes peak estimates. Storage is computed for both text and media with a clear chain. The 1.9 TB Redis memory estimate in the tradeoffs section directly drives the decision to use a Redis cluster, showing numbers propagating into design. However, the response does not flag which assumptions are fragile and does not sanity-check the 7.3 PB/year media figure against real-world benchmarks.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every major component is justified: Cassandra for write throughput and time-series, Redis ZSET for sorted feed, Kafka for async fanout decoupling, CDN for media. The hybrid fanout model is directly tied to the celebrity problem stated in requirements. The diagram is present and the read/write paths are traced end-to-end. The CelebCache as a separate Redis structure is a slightly non-obvious but well-explained choice. No hallucinated services are present.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives are present: Cassandra schema with partition key and clustering key with explicit reasoning about time-ordering; Redis ZSET with key structure, capacity cap of 800 posts, and fallback behavior; fanout worker mechanics including Redis pipelining to batch writes. The Cassandra hotspot mitigation with time-bucketed partition key surfaces a non-obvious failure mode and addresses it specifically. Tradeoffs are named per mechanism. This is strong across multiple components.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The response covers multiple concrete tradeoffs tied to specific decisions: chronological vs. algorithmic feed with implementation cost reasoning, Redis memory cost quantified at 1.9 TB with an explicit alternative considered, and fanout worker batching via pipelining. Failure modes include Redis node death with graceful degradation to pull model, Kafka consumer lag with auto-scaling mitigation, thundering herd on celebrity posts with two-layer caching mitigation, and Cassandra hotspot with time-bucketed partition key fix. The thundering herd is a non-obvious failure mode addressed specifically. The design does not explicitly acknowledge its own limits, which would be needed for a 5.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

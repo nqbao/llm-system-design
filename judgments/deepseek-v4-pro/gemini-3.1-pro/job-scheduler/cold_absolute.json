@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemini-3.1-pro/job-scheduler_cold.json",
+  "question_id": "job-scheduler",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T09:18:15.400231+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response states both functional (job submission, execution, state management, cancellation) and non-functional requirements (HA, throughput, low latency, fault tolerance, idempotency). It sets an explicit scale assumption of 100M jobs/day in the capacity section, but non-functional requirements are not quantified with specific SLAs (e.g., latency is 'within seconds' without a p99 target). No non-goals or ambiguity resolution are provided.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives TPS (avg & peak 5x), daily storage, annual storage, and memory for a 5-minute pre-fetch window from the 100M jobs/day assumption. These numbers directly motivate the Redis time-wheel design (memory fits in Redis) and the need for data partitioning/archiving. However, bandwidth is not computed, and the estimation does not propagate into explicit component sizing (e.g., no shard counts or worker node counts based on TPS).",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (API Server, DB, Dispatcher, Redis, MQ, Workers, Reaper) serves a stated requirement and is connected via a clear data flow. The architecture diagram and descriptions avoid hallucinations. Notably, the choice of Redis time-wheel over MQ delayed messages is explicitly justified, demonstrating a less obvious but correct choice, which elevates coherence.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response provides multiple deep-dives: the dispatcher flow with forward-fetching, Redis ZSET, and SQL queries using FOR UPDATE SKIP LOCKED; the failure handling mechanisms with Lua scripts for atomicity and Redis key expirations for heartbeats. These include concrete mechanisms and address non-obvious edge cases (dispatcher crash mid-flight, reaper rescue) and tradeoffs (e.g., why not pre-generate cron rows).",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "A dedicated 'Explicit Tradeoffs' section covers four choices (RDBMS vs NoSQL, push vs pull, Redis vs MQ delays, cron row generation) with reasoning. The 'Failure Scenarios' section details four specific failures with steady-state analysis and mitigations (Reaper process, Lua scripts, heartbeats, idempotency). The design acknowledges its limit (at-least-once delivery, not exactly-once) and surfaces non-obvious failure modes like the dispatcher crash after DB pull but before Redis write.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response states both functional (job submission, execution, state management, cancellation) and non-functional requirements (HA, throughput, low latency, fault tolerance, idempotency). It sets an explicit scale assumption of 100M jobs/day in the capacity section, but non-functional requirements are not quantified with specific SLAs (e.g., latency is 'within seconds' without a p99 target). No non-goals or ambiguity resolution are provided.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The response derives TPS (avg & peak 5x), daily storage, annual storage, and memory for a 5-minute pre-fetch window from the 100M jobs/day assumption. These numbers directly motivate the Redis time-wheel design (memory fits in Redis) and the need for data partitioning/archiving. However, bandwidth is not computed, and the estimation does not propagate into explicit component sizing (e.g., no shard counts or worker node counts based on TPS).\",\n    \"score\": 3\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (API Server, DB, Dispatcher, Redis, MQ, Workers, Reaper) serves a stated requirement and is connected via a clear data flow. The architecture diagram and descriptions avoid hallucinations. Notably, the choice of Redis time-wheel over MQ delayed messages is explicitly justified, demonstrating a less obvious but correct choice, which elevates coherence.\",\n    \"score\": 5\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response provides multiple deep-dives: the dispatcher flow with forward-fetching, Redis ZSET, and SQL queries using FOR UPDATE SKIP LOCKED; the failure handling mechanisms with Lua scripts for atomicity and Redis key expirations for heartbeats. These include concrete mechanisms and address non-obvious edge cases (dispatcher crash mid-flight, reaper rescue) and tradeoffs (e.g., why not pre-generate cron rows).\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"A dedicated 'Explicit Tradeoffs' section covers four choices (RDBMS vs NoSQL, push vs pull, Redis vs MQ delays, cron row generation) with reasoning. The 'Failure Scenarios' section details four specific failures with steady-state analysis and mitigations (Reaper process, Lua scripts, heartbeats, idempotency). The design acknowledges its limit (at-least-once delivery, not exactly-once) and surfaces non-obvious failure modes like the dispatcher crash after DB pull but before Redis write.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

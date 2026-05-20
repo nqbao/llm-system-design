@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-20b/chat-system_cold.json",
+  "question_id": "chat-system",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-20b",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T07:29:10.409674+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The intro blurb states functional requirements (multi-channel chat, attachments, history, search) and one non-functional target (sub-300ms real-time semantics), but there is no dedicated requirements section. Scale assumptions (10M registered users, 1M DAU, 50 msgs/user/day) appear only inside the capacity math section and are never explicitly framed as assumptions. There are no explicit non-goals and no resolution of prompt ambiguities.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The estimation chain is present and mostly correct: 50M msgs/day → 580 msg/s → 200 partitions at 29 msg/s/partition peak → node counts for WebSocket servers and Redis memory. However, two notable errors undermine confidence: (1) the upload throughput row says '5 GB/s' with the note '5 MB × 1 msg/s', which is off by orders of magnitude; (2) 'Message pushes per second' shows 200k baseline in the table but the inline calculation yields 5.8k, a direct contradiction. Numbers do propagate into Kafka partition sizing and WS node count decisions, preventing a score of 2, but the errors prevent a score of 4.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component maps to a stated requirement: Chat Service (writes), Kafka (decoupled delivery), Message Consumer (Kafka-to-WS bridge), Presence/Redis (online lookup), S3 (attachments), ElasticSearch (search). The end-to-end message flow in Section 3 is traceable step-by-step with specific mechanisms. The Kafka choice is justified (ordering, exactly-once) and the decision to separate write path from push path is well-reasoned. No hallucinated or decorative components are evident.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The data model section provides one concrete deep-dive: partition key = channel_id, clustering key = seq, with a specific message ID generation formula using Cassandra LWT for ordering. The workflow section adds concrete mechanism for offline handling and WebSocket routing via socket_id in Presence. However, there is only essentially one true deep-dive and it does not surface non-obvious edge cases such as hot-channel hotspots on the Cassandra partition, Kafka consumer lag during rebalance, or thundering herd on reconnect.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The tradeoffs table covers CAP (AP chosen), search eventual consistency, storage cost, and Kafka complexity, each tied to a specific decision. The failure modes table covers 10 scenarios with mitigations and includes a chaos-testing strategy. However, no tradeoff is quantified and the failure modes stay at the surface level — none surfaces non-obvious issues like thundering herd on mass reconnect after a WS node crash, hot-channel write amplification in Cassandra, or time-of-check-to-time-of-use races in the Presence lookup.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The intro blurb states functional requirements (multi-channel chat, attachments, history, search) and one non-functional target (sub-300ms real-time semantics), but there is no dedicated requirements section. Scale assumptions (10M registered users, 1M DAU, 50 msgs/user/day) appear only inside the capacity math section and are never explicitly framed as assumptions. There are no explicit non-goals and no resolution of prompt ambiguities.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The estimation chain is present and mostly correct: 50M msgs/day → 580 msg/s → 200 partitions at 29 msg/s/partition peak → node counts for WebSocket servers and Redis memory. However, two notable errors undermine confidence: (1) the upload throughput row says '5 GB/s' with the note '5 MB × 1 msg/s', which is off by orders of magnitude; (2) 'Message pushes per second' shows 200k baseline in the table but the inline calculation yields 5.8k, a direct contradiction. Numbers do propagate into Kafka partition sizing and WS node count decisions, preventing a score of 2, but the errors prevent a score of 4.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component maps to a stated requirement: Chat Service (writes), Kafka (decoupled delivery), Message Consumer (Kafka-to-WS bridge), Presence/Redis (online lookup), S3 (attachments), ElasticSearch (search). The end-to-end message flow in Section 3 is traceable step-by-step with specific mechanisms. The Kafka choice is justified (ordering, exactly-once) and the decision to separate write path from push path is well-reasoned. No hallucinated or decorative components are evident.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"The data model section provides one concrete deep-dive: partition key = channel_id, clustering key = seq, with a specific message ID generation formula using Cassandra LWT for ordering. The workflow section adds concrete mechanism for offline handling and WebSocket routing via socket_id in Presence. However, there is only essentially one true deep-dive and it does not surface non-obvious edge cases such as hot-channel hotspots on the Cassandra partition, Kafka consumer lag during rebalance, or thundering herd on reconnect.\", \"score\": 3}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The tradeoffs table covers CAP (AP chosen), search eventual consistency, storage cost, and Kafka complexity, each tied to a specific decision. The failure modes table covers 10 scenarios with mitigations and includes a chaos-testing strategy. However, no tradeoff is quantified and the failure modes stay at the surface level — none surfaces non-obvious issues like thundering herd on mass reconnect after a WS node crash, hot-channel write amplification in Cassandra, or time-of-check-to-time-of-use races in the Presence lookup.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

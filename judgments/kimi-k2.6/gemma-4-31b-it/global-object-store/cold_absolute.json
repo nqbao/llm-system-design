@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemma-4-31b-it/global-object-store_cold.json",
+  "question_id": "global-object-store",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T06:01:38.517250+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with a clear scoped problem statement (global-scale object storage). It lists explicit functional requirements (PUT, GET, DELETE, LIST) and non-functional requirements with quantified targets (11 nines durability, 99.99% availability, strong consistency). However, it lacks explicit non-goals and does not resolve ambiguities in the prompt (the prompt itself wasn't shown, but the response doesn't note where it made arbitrary choices that could change). Assumptions are stated but not justified (why 10EB? why 100k write RPS?).",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The math is present and derived: 10EB / 1MB = 10 trillion objects, 100k RPS * 1MB = 100GB/s writes, 1M RPS * 1MB = 1TB/s reads. The erasure coding math propagates (1.4x overhead → 14EB raw). Metadata size calculation (10PB) drives the distributed DB decision. However, numbers don't fully propagate into component sizing (how many storage nodes? how many metadata shards?). No sanity-check on whether 10 trillion objects at 1MB average makes sense (real object stores have highly skewed sizes). No flagging of fragile assumptions.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component connects to requirements: Metadata Service for strong consistency and LIST, Placement Service for failure domain isolation, Erasure Coding for durability at scale, Scrubber for bit rot. No hallucinated services. Data flow is traceable end-to-end for PUT and GET. However, the architecture doesn't justify why a separate Placement Service is needed versus embedding placement in Metadata Service. The CDN/edge cache for hot objects appears in failure analysis but not in the main architecture diagram.",
+        "score": 3
+      },
+      "deep_dive_depth": {
+        "reasoning": "Two deep-dives with concrete mechanisms: (1) Metadata Service with schema, LSM-tree key design (BucketID+Key), and Raft/Paxos per shard for strong consistency; (2) Data Plane with chunking, 10+4 EC, parallel streaming, and reconstruction on GET. Tradeoffs are named (LSM-tree vs B-tree for write throughput). However, no edge case surfaced in the deep-dives themselves—the thundering herd discussion is in failure analysis, not embedded in the component design. The 'why Raft/Paxos per shard' isn't explored (latency cost? leader election time?).",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Four specific tradeoffs in table format, each tied to a decision with justification (EC vs replication for cost, strong vs eventual for user expectation, LSM vs B-tree for write throughput, chunk vs object for large file handling). Four failure modes with specific mitigations: bit rot (checksums+scrubber), node/rack failure (EC reconstruction), metadata partition (quorum/CP), hot objects (CDN/cache). However, tradeoffs are not quantified (no '20ms p99' numbers). The design acknowledges limits partially (CP over CA in partition), but doesn't explicitly state 'this design cannot handle X'—the closest is noting EC handles 4 failures but not what happens at 5+ simultaneous failures in a stripe.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with a clear scoped problem statement (global-scale object storage). It lists explicit functional requirements (PUT, GET, DELETE, LIST) and non-functional requirements with quantified targets (11 nines durability, 99.99% availability, strong consistency). However, it lacks explicit non-goals and does not resolve ambiguities in the prompt (the prompt itself wasn't shown, but the response doesn't note where it made arbitrary choices that could change). Assumptions are stated but not justified (why 10EB? why 100k write RPS?).\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The math is present and derived: 10EB / 1MB = 10 trillion objects, 100k RPS * 1MB = 100GB/s writes, 1M RPS * 1MB = 1TB/s reads. The erasure coding math propagates (1.4x overhead → 14EB raw). Metadata size calculation (10PB) drives the distributed DB decision. However, numbers don't fully propagate into component sizing (how many storage nodes? how many metadata shards?). No sanity-check on whether 10 trillion objects at 1MB average makes sense (real object stores have highly skewed sizes). No flagging of fragile assumptions.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component connects to requirements: Metadata Service for strong consistency and LIST, Placement Service for failure domain isolation, Erasure Coding for durability at scale, Scrubber for bit rot. No hallucinated services. Data flow is traceable end-to-end for PUT and GET. However, the architecture doesn't justify why a separate Placement Service is needed versus embedding placement in Metadata Service. The CDN/edge cache for hot objects appears in failure analysis but not in the main architecture diagram.\", \"score\": 3}, \"deep_dive_depth\": {\"reasoning\": \"Two deep-dives with concrete mechanisms: (1) Metadata Service with schema, LSM-tree key design (BucketID+Key), and Raft/Paxos per shard for strong consistency; (2) Data Plane with chunking, 10+4 EC, parallel streaming, and reconstruction on GET. Tradeoffs are named (LSM-tree vs B-tree for write throughput). However, no edge case surfaced in the deep-dives themselves—the thundering herd discussion is in failure analysis, not embedded in the component design. The 'why Raft/Paxos per shard' isn't explored (latency cost? leader election time?).\", \"score\": 3}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Four specific tradeoffs in table format, each tied to a decision with justification (EC vs replication for cost, strong vs eventual for user expectation, LSM vs B-tree for write throughput, chunk vs object for large file handling). Four failure modes with specific mitigations: bit rot (checksums+scrubber), node/rack failure (EC reconstruction), metadata partition (quorum/CP), hot objects (CDN/cache). However, tradeoffs are not quantified (no '20ms p99' numbers). The design acknowledges limits partially (CP over CA in partition), but doesn't explicitly state 'this design cannot handle X'—the closest is noting EC handles 4 failures but not what happens at 5+ simultaneous failures in a stripe.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

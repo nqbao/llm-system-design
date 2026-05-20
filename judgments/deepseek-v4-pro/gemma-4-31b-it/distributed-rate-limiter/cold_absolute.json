@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemma-4-31b-it/distributed-rate-limiter_cold.json",
+  "question_id": "distributed-rate-limiter",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T05:46:59.772555+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Both functional (rate limiting, distributed enforcement, low latency, accuracy) and non-functional (high availability, scalability) requirements are listed. Explicit assumptions (peak traffic, user count, rate limit) are provided in the capacity planning section. However, non-functional requirements are not quantified with specific SLA targets (e.g., 99.9% availability, p99 latency <5ms) and no non-goals or ambiguity resolution are stated.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "Clearly derived numbers: peak RPS (100k), then storage estimation (24 GB for 10M users with 2.4 KB per user), network I/O (40 MB/s), and Redis latency (2-4 ms). Numbers propagate to design choices (64 GB Redis cluster, 3 shards for headroom). However, no sanity-check or fragile assumption flagging is present.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (Redis cluster, Lua scripts, sliding window) is justified against a specific requirement (distributed enforcement, low latency, accuracy). Data flow is clear (client → Gateway → Redis via Lua script → backend). The diagram and textual description are informative and without hallucinations.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The Lua script implementation is a concrete deep-dive with mechanism (ZSET operations), tradeoff justification (precision vs memory), and explanation of sliding window algorithm. A second deep-dive, such as on the local L1 cache or Redis Sentinel failover, is mentioned only briefly without concrete mechanism or tradeoff analysis.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "A tradeoff table presents four specific decisions (Redis vs local cache, ZSET vs token bucket, Lua scripts, fail-open) tied to concrete tradeoffs. Failure analysis covers Redis cluster, hot key, clock drift, and race conditions with mitigations. However, tradeoffs are not quantified or concretely scoped (e.g., latency numbers, data loss bounds), and failure modes remain at a high level.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"Both functional (rate limiting, distributed enforcement, low latency, accuracy) and non-functional (high availability, scalability) requirements are listed. Explicit assumptions (peak traffic, user count, rate limit) are provided in the capacity planning section. However, non-functional requirements are not quantified with specific SLA targets (e.g., 99.9% availability, p99 latency <5ms) and no non-goals or ambiguity resolution are stated.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Clearly derived numbers: peak RPS (100k), then storage estimation (24 GB for 10M users with 2.4 KB per user), network I/O (40 MB/s), and Redis latency (2-4 ms). Numbers propagate to design choices (64 GB Redis cluster, 3 shards for headroom). However, no sanity-check or fragile assumption flagging is present.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (Redis cluster, Lua scripts, sliding window) is justified against a specific requirement (distributed enforcement, low latency, accuracy). Data flow is clear (client → Gateway → Redis via Lua script → backend). The diagram and textual description are informative and without hallucinations.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The Lua script implementation is a concrete deep-dive with mechanism (ZSET operations), tradeoff justification (precision vs memory), and explanation of sliding window algorithm. A second deep-dive, such as on the local L1 cache or Redis Sentinel failover, is mentioned only briefly without concrete mechanism or tradeoff analysis.\",\n    \"score\": 3\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"A tradeoff table presents four specific decisions (Redis vs local cache, ZSET vs token bucket, Lua scripts, fail-open) tied to concrete tradeoffs. Failure analysis covers Redis cluster, hot key, clock drift, and race conditions with mitigations. However, tradeoffs are not quantified or concretely scoped (e.g., latency numbers, data loss bounds), and failure modes remain at a high level.\",\n    \"score\": 3\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

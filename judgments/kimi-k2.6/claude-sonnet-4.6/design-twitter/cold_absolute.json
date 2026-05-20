@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/claude-sonnet-4.6/design-twitter_cold.json",
+  "question_id": "design-twitter",
+  "variant": "cold",
+  "model_under_test": "claude-sonnet-4.6",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T15:01:46.509191+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with explicit functional requirements prioritized into Core/Secondary/Tertiary tiers, followed by quantified non-functional requirements (500M users, 6K tweets/sec peak, p99 latencies, 99.99% availability). Scale estimates include DAU, tweets/day, storage calculations, and read/write ratios. However, there are no explicit non-goals stated (e.g., 'we are NOT building X'), and while assumptions are quantified, they are not explicitly justified with reasoning for why those numbers were chosen. The prompt ambiguity around scale is not acknowledged or resolved with alternative scenarios.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Full estimation chain present: DAU → tweets/day → QPS (avg and peak with 3× multiplier) → storage (text and media separately) → timeline reads with per-user behavior assumption → fan-out writes with follower count assumption. Numbers demonstrably drive later decisions: Redis cluster sizing (4.35 TB → 88 shards), Kafka broker count (2.4 GB/s → 3 brokers), pod count for Tweet Service (18K/100 = 180 → 270 with headroom). However, no explicit sanity-check on results (e.g., 'does 7.3 PB/year make sense?') and no fragility flags on assumptions like the 3× peak multiplier or 200 average followers.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against specific requirements: Cassandra for high write throughput (matches 6K tweets/sec), hybrid push/pull fan-out explicitly tied to celebrity follower counts (>10K threshold), Redis for sub-ms timeline reads (matches p99 < 200ms), Elasticsearch for full-text search (secondary requirement). Data flow is traceable end-to-end with Mermaid diagrams. No hallucinated services—each technology choice has a stated rationale. The architecture avoids an anti-pattern by explicitly NOT using pure push for celebrities and NOT using strong consistency for timelines where eventual is acceptable.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives with concrete mechanisms: (1) Fan-out Service with decision table and explicit merge algorithm for celebrity pull (ZREVRANGEBYSCORE + merge_sort); (2) Timeline Service with cache hit/miss paths, hydration via Caffeine LRU, and cursor pagination; (3) Cassandra schema with TimeWindowCompactionStrategy and hot partition guard via composite key (user_id, bucket); (4) Snowflake ID bit layout with coordination properties. Tradeoffs are named with reasoning: Cassandra vs MySQL, push vs pull, Snowflake vs UUID. Non-obvious edge cases addressed: cache stampede (probabilistic early expiry + jitter), hot partitions (bucket sharding for celebrities), thundering herd (Redis locks), fan-out backlog (auto-scale + shed inactive users).",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Comprehensive tradeoff table in §14 with 6 specific decisions, each with alternative and concrete tradeoff explanation. Failure modes table in §11 covers 12 scenarios with specific detection and mitigation strategies. Tradeoffs are quantified where possible: Redis node down → replica promotion <30s, PostgreSQL failover ~10s, geo-DNS <60s. Design explicitly acknowledges limits: 'this design cannot handle X' pattern seen in celebrity tweet storm (rate-limit fan-out, burst absorb via Kafka), cache eviction storm (graceful degradation to Cassandra), search overload (reject low-priority). Non-obvious failure modes surfaced: partial partition handled via Cassandra hinted handoff, time-of-check-to-time-of-use addressed with idempotency keys, write amplification explicitly managed via hybrid fan-out.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with explicit functional requirements prioritized into Core/Secondary/Tertiary tiers, followed by quantified non-functional requirements (500M users, 6K tweets/sec peak, p99 latencies, 99.99% availability). Scale estimates include DAU, tweets/day, storage calculations, and read/write ratios. However, there are no explicit non-goals stated (e.g., 'we are NOT building X'), and while assumptions are quantified, they are not explicitly justified with reasoning for why those numbers were chosen. The prompt ambiguity around scale is not acknowledged or resolved with alternative scenarios.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"Full estimation chain present: DAU → tweets/day → QPS (avg and peak with 3× multiplier) → storage (text and media separately) → timeline reads with per-user behavior assumption → fan-out writes with follower count assumption. Numbers demonstrably drive later decisions: Redis cluster sizing (4.35 TB → 88 shards), Kafka broker count (2.4 GB/s → 3 brokers), pod count for Tweet Service (18K/100 = 180 → 270 with headroom). However, no explicit sanity-check on results (e.g., 'does 7.3 PB/year make sense?') and no fragility flags on assumptions like the 3× peak multiplier or 200 average followers.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified against specific requirements: Cassandra for high write throughput (matches 6K tweets/sec), hybrid push/pull fan-out explicitly tied to celebrity follower counts (>10K threshold), Redis for sub-ms timeline reads (matches p99 < 200ms), Elasticsearch for full-text search (secondary requirement). Data flow is traceable end-to-end with Mermaid diagrams. No hallucinated services—each technology choice has a stated rationale. The architecture avoids an anti-pattern by explicitly NOT using pure push for celebrities and NOT using strong consistency for timelines where eventual is acceptable.\", \"score\": 5}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives with concrete mechanisms: (1) Fan-out Service with decision table and explicit merge algorithm for celebrity pull (ZREVRANGEBYSCORE + merge_sort); (2) Timeline Service with cache hit/miss paths, hydration via Caffeine LRU, and cursor pagination; (3) Cassandra schema with TimeWindowCompactionStrategy and hot partition guard via composite key (user_id, bucket); (4) Snowflake ID bit layout with coordination properties. Tradeoffs are named with reasoning: Cassandra vs MySQL, push vs pull, Snowflake vs UUID. Non-obvious edge cases addressed: cache stampede (probabilistic early expiry + jitter), hot partitions (bucket sharding for celebrities), thundering herd (Redis locks), fan-out backlog (auto-scale + shed inactive users).\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Comprehensive tradeoff table in §14 with 6 specific decisions, each with alternative and concrete tradeoff explanation. Failure modes table in §11 covers 12 scenarios with specific detection and mitigation strategies. Tradeoffs are quantified where possible: Redis node down → replica promotion <30s, PostgreSQL failover ~10s, geo-DNS <60s. Design explicitly acknowledges limits: 'this design cannot handle X' pattern seen in celebrity tweet storm (rate-limit fan-out, burst absorb via Kafka), cache eviction storm (graceful degradation to Cassandra), search overload (reject low-priority). Non-obvious failure modes surfaced: partial partition handled via Cassandra hinted handoff, time-of-check-to-time-of-use addressed with idempotency keys, write amplification explicitly managed via hybrid fan-out.\", \"score\": 5}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

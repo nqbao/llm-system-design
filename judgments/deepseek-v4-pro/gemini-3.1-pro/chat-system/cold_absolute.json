@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemini-3.1-pro/chat-system_cold.json",
+  "question_id": "chat-system",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T09:14:57.720419+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists functional and non-functional requirements, but the non-functional ones are partially quantified (latency <200ms, availability 99.99%, durability qualitative). Assumptions about scale (50M DAU, 5M concurrent) are stated in the capacity section but not justified. There are no explicit non-goals or ambiguity resolutions.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "Derives QPS, storage, and connection counts from stated assumptions. The math is correct and roughly right, but the numbers only partially drive later design choices (connection count used, but no database shard sizing from QPS). No sanity-checking of results.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component serves a stated requirement, with no hallucinations. The diagram and text describe a coherent data flow from client to storage and back. Components like Kafka and Cassandra are justified against real-time and durability needs, and the description is genuinely informative.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple components are explored with concrete mechanisms (e.g., Cassandra schema with partition key chat_id and clustering key message_id, Redis TTL for presence, Snowflake ID generation). However, most deep-dives lack explicit tradeoffs or reasoning beyond basic descriptions. Only the presence service discusses a fan-out vs. pull tradeoff, so depth is moderate.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design explicitly discusses three tradeoffs tied to specific decisions (WebSocket vs SSE, fan-out on write vs read, consistency vs availability). It acknowledges its own limits (e.g., fan-out on write for very large groups) and surfaces non-obvious failure modes with mitigations (thundering herd, message order, split-brain), meeting the highest criteria.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response lists functional and non-functional requirements, but the non-functional ones are partially quantified (latency <200ms, availability 99.99%, durability qualitative). Assumptions about scale (50M DAU, 5M concurrent) are stated in the capacity section but not justified. There are no explicit non-goals or ambiguity resolutions.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Derives QPS, storage, and connection counts from stated assumptions. The math is correct and roughly right, but the numbers only partially drive later design choices (connection count used, but no database shard sizing from QPS). No sanity-checking of results.\",\n    \"score\": 3\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component serves a stated requirement, with no hallucinations. The diagram and text describe a coherent data flow from client to storage and back. Components like Kafka and Cassandra are justified against real-time and durability needs, and the description is genuinely informative.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple components are explored with concrete mechanisms (e.g., Cassandra schema with partition key chat_id and clustering key message_id, Redis TTL for presence, Snowflake ID generation). However, most deep-dives lack explicit tradeoffs or reasoning beyond basic descriptions. Only the presence service discusses a fan-out vs. pull tradeoff, so depth is moderate.\",\n    \"score\": 3\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The design explicitly discusses three tradeoffs tied to specific decisions (WebSocket vs SSE, fan-out on write vs read, consistency vs availability). It acknowledges its own limits (e.g., fan-out on write for very large groups) and surfaces non-obvious failure modes with mitigations (thundering herd, message order, split-brain), meeting the highest criteria.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

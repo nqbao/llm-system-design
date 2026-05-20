@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/minimax-m2.7/distributed-rate-limiter_cold.json",
+  "question_id": "distributed-rate-limiter",
+  "variant": "cold",
+  "model_under_test": "minimax-m2.7",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T06:49:07.291608+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design states both functional and non-functional requirements, quantifies non-functionals (p99 latency ≤5ms, availability ≥99.99%), and provides explicit, justified assumptions in the capacity planning section. No explicit non‑goals are declared, which prevents a score of 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "A full estimation chain is present: assumptions → QPS (200k) → Redis ops per request → shard sizing (3 shards, 66.7k ops/s each) → memory estimation (6 GB concurrent). These numbers directly drive the design choices. However, no fragile assumptions are flagged and no sanity checks are performed, keeping the score at 4.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is linked to a specific requirement (local tier for sub‑ms latency, Redis for strong consistency, gRPC for efficiency). The data flow is described end‑to‑end, and no hallucinations are present. The diagram and text are cohesive and informative. The choice of sliding window over fixed is justified, but no less obvious or anti‑pattern avoidance is highlighted, so it scores 4.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The deep‑dive into the global sliding‑window algorithm is detailed, including a Lua script, complexity analysis, and a comparison table with concrete tradeoffs (accuracy, memory, performance, atomicity). This provides both mechanism and reasoning. However, no non‑obvious edge case or failure mode is surfaced within this deep‑dive, so the score is 4.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Multiple tradeoffs are explicitly documented with pros/cons tied to decisions (two‑tier, sliding window, Lua, Redis cluster, fallback). Some are quantified (e.g., Lua script CPU overhead 'acceptable because script is short'). A detailed failure‑mode table is provided with specific mitigations, and the design acknowledges limits (fallback may over‑allow). It does not, however, include an explicit 'cannot handle X' statement or surface a truly non‑obvious failure like thundering herd, so 4 is appropriate.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The design states both functional and non-functional requirements, quantifies non-functionals (p99 latency ≤5ms, availability ≥99.99%), and provides explicit, justified assumptions in the capacity planning section. No explicit non‑goals are declared, which prevents a score of 5.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"A full estimation chain is present: assumptions → QPS (200k) → Redis ops per request → shard sizing (3 shards, 66.7k ops/s each) → memory estimation (6 GB concurrent). These numbers directly drive the design choices. However, no fragile assumptions are flagged and no sanity checks are performed, keeping the score at 4.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component is linked to a specific requirement (local tier for sub‑ms latency, Redis for strong consistency, gRPC for efficiency). The data flow is described end‑to‑end, and no hallucinations are present. The diagram and text are cohesive and informative. The choice of sliding window over fixed is justified, but no less obvious or anti‑pattern avoidance is highlighted, so it scores 4.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The deep‑dive into the global sliding‑window algorithm is detailed, including a Lua script, complexity analysis, and a comparison table with concrete tradeoffs (accuracy, memory, performance, atomicity). This provides both mechanism and reasoning. However, no non‑obvious edge case or failure mode is surfaced within this deep‑dive, so the score is 4.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Multiple tradeoffs are explicitly documented with pros/cons tied to decisions (two‑tier, sliding window, Lua, Redis cluster, fallback). Some are quantified (e.g., Lua script CPU overhead 'acceptable because script is short'). A detailed failure‑mode table is provided with specific mitigations, and the design acknowledges limits (fallback may over‑allow). It does not, however, include an explicit 'cannot handle X' statement or surface a truly non‑obvious failure like thundering herd, so 4 is appropriate.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

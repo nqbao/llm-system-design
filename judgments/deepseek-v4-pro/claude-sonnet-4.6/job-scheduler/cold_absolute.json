@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/claude-sonnet-4.6/job-scheduler_cold.json",
+  "question_id": "job-scheduler",
+  "variant": "cold",
+  "model_under_test": "claude-sonnet-4.6",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T08:54:08.071259+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design lists functional and non-functional requirements with quantified targets (scheduling lag ≤1s, availability 99.99%, throughput 1000/10000 jobs/s). It explicitly assumes 10M daily jobs, which drives capacity estimates. However, it does not set explicit non-goals, but it meets the 4-level criteria of quantified SLAs and justified assumptions.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The design derives QPS (peak 5800 jobs/s), storage (20GB active, 2.7TB history), queue throughput (11.6 MB/s), and worker concurrency (58K slots) from the 10M jobs/day assumption. These numbers directly inform Kafka partitions (160), worker scaling (~2900 pods), and sharding decisions. A sanity check confirms 320 partitions far exceed needed throughput, but the design does not flag which assumptions are fragile.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (Scheduler, PostgreSQL, Kafka, Redis, Workers) is justified against specific requirements and capacity numbers. The mermaid diagram traces end-to-end data flow. The document explains tradeoffs like SKIP LOCKED over leader election and PostgreSQL over Cassandra, picking less obvious but correct choices and avoiding anti-patterns like 2PC. This exceeds typical coherence and demonstrates exceptional justification.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Two deep dives (Scheduler Loop and Worker Lifecycle) provide concrete mechanisms: SKIP LOCKED SQL, idempotency key deduplication, lease management with background renewal, and retry with backoff. Tradeoffs are named (SKIP LOCKED vs leader election, lease in DB vs ZooKeeper). Edge cases like clock skew are addressed, but the deep dives do not surface a non-obvious failure mode like thundering herd within the algorithm; that is covered later. The depth is strong but not exceptional.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response includes a comprehensive tradeoffs table with 7 decisions comparing alternatives with reasons. A failure modes table and 'What Could Go Wrong' section cover thundering herd (with jitter), clock skew, DST bugs, retry storms, and large payload OOM. The design explicitly acknowledges limits (e.g., exactly-once is effectively guaranteed, not true exactly-once) and surfaces non-obvious failure modes (clock skew, DST miscalculation). This meets the 5-level criteria.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The design lists functional and non-functional requirements with quantified targets (scheduling lag ≤1s, availability 99.99%, throughput 1000/10000 jobs/s). It explicitly assumes 10M daily jobs, which drives capacity estimates. However, it does not set explicit non-goals, but it meets the 4-level criteria of quantified SLAs and justified assumptions.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The design derives QPS (peak 5800 jobs/s), storage (20GB active, 2.7TB history), queue throughput (11.6 MB/s), and worker concurrency (58K slots) from the 10M jobs/day assumption. These numbers directly inform Kafka partitions (160), worker scaling (~2900 pods), and sharding decisions. A sanity check confirms 320 partitions far exceed needed throughput, but the design does not flag which assumptions are fragile.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (Scheduler, PostgreSQL, Kafka, Redis, Workers) is justified against specific requirements and capacity numbers. The mermaid diagram traces end-to-end data flow. The document explains tradeoffs like SKIP LOCKED over leader election and PostgreSQL over Cassandra, picking less obvious but correct choices and avoiding anti-patterns like 2PC. This exceeds typical coherence and demonstrates exceptional justification.\",\n    \"score\": 5\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Two deep dives (Scheduler Loop and Worker Lifecycle) provide concrete mechanisms: SKIP LOCKED SQL, idempotency key deduplication, lease management with background renewal, and retry with backoff. Tradeoffs are named (SKIP LOCKED vs leader election, lease in DB vs ZooKeeper). Edge cases like clock skew are addressed, but the deep dives do not surface a non-obvious failure mode like thundering herd within the algorithm; that is covered later. The depth is strong but not exceptional.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The response includes a comprehensive tradeoffs table with 7 decisions comparing alternatives with reasons. A failure modes table and 'What Could Go Wrong' section cover thundering herd (with jitter), clock skew, DST bugs, retry storms, and large payload OOM. The design explicitly acknowledges limits (e.g., exactly-once is effectively guaranteed, not true exactly-once) and surfaces non-obvious failure modes (clock skew, DST miscalculation). This meets the 5-level criteria.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

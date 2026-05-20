@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-20b/url-shortener_cold.json",
+  "question_id": "url-shortener",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-20b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T07:27:01.005101+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response starts with a formal problem statement listing functional and non-functional requirements, including quantified SLAs like <50ms creation latency and 99.999% availability. It states explicit assumptions (e.g., key space size, DB throughput limits) and justifies some (e.g., key collision probability). However, it lacks explicit non-goals and does not resolve ambiguities from the prompt.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives QPS, storage, and bandwidth from assumed traffic (10M read RPS, 1k write RPS) and propagates numbers into component sizing, like Redis shards based on cache hit rate and DB reads per AZ. The estimation chain is present but lacks an explicit sanity check (e.g., questioning whether 10M RPS is plausible).",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (CDN, API Gateway, Redis, Cassandra, Kafka, ClickHouse) serves a specific requirement, with clear data flows described for creation, redirection, and analytics. The diagram and textual description support traceability; components are justified against capacity numbers (e.g., Redis sharding to meet read RPS).",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The key generation deep dive provides a concrete mechanism (conditional writes with a global counter) and discusses collision handling. The redirect path describes caching details but lacks an explicit tradeoff. Only one deep dive includes a named tradeoff with reasoning (atomic counter vs. random+check); a second deep dive is present but lacks a tradeoff discussion.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The trade-offs section lists several decisions (DB choice, cache, analytics store) with brief reasoning, and the failure modes checklist covers common issues with mitigations. However, tradeoffs are not quantified (e.g., no latency numbers for alternatives), no non-obvious failure mode is surfaced, and the design does not explicitly acknowledge its own limits.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response starts with a formal problem statement listing functional and non-functional requirements, including quantified SLAs like <50ms creation latency and 99.999% availability. It states explicit assumptions (e.g., key space size, DB throughput limits) and justifies some (e.g., key collision probability). However, it lacks explicit non-goals and does not resolve ambiguities from the prompt.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The response derives QPS, storage, and bandwidth from assumed traffic (10M read RPS, 1k write RPS) and propagates numbers into component sizing, like Redis shards based on cache hit rate and DB reads per AZ. The estimation chain is present but lacks an explicit sanity check (e.g., questioning whether 10M RPS is plausible).\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (CDN, API Gateway, Redis, Cassandra, Kafka, ClickHouse) serves a specific requirement, with clear data flows described for creation, redirection, and analytics. The diagram and textual description support traceability; components are justified against capacity numbers (e.g., Redis sharding to meet read RPS).\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The key generation deep dive provides a concrete mechanism (conditional writes with a global counter) and discusses collision handling. The redirect path describes caching details but lacks an explicit tradeoff. Only one deep dive includes a named tradeoff with reasoning (atomic counter vs. random+check); a second deep dive is present but lacks a tradeoff discussion.\",\n    \"score\": 3\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The trade-offs section lists several decisions (DB choice, cache, analytics store) with brief reasoning, and the failure modes checklist covers common issues with mitigations. However, tradeoffs are not quantified (e.g., no latency numbers for alternatives), no non-obvious failure mode is surfaced, and the design does not explicitly acknowledge its own limits.\",\n    \"score\": 3\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

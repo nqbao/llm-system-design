@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemma-4-31b-it/global-object-store_cold.json",
+  "question_id": "global-object-store",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T06:01:38.517250+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response states functional requirements (PUT, GET, DELETE, LIST) and non-functional requirements (durability 11 nines, availability 99.99%, strong consistency, scalability to exabytes, low latency, global reach). Non-functional SLAs are quantified. Assumptions about scale are provided in the capacity planning section (10 EB total storage, 1 MB average object size, etc.), though not explicitly justified. No non-goals are set, but the scoping is clear and quantified.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives QPS, storage, bandwidth, and total objects from assumptions. It uses these numbers to justify design choices (erasure coding vs. replication, distributed metadata database). However, it does not propagate the numbers into concrete component sizing (e.g., number of storage nodes or metadata shards), which falls short of the full 'assumptions → component sizing' chain required for a 4.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component in the diagram (Load Balancer, API Gateway, Metadata Service, Placement Service, Blob Store, Storage Nodes, Scrubber) is tied to a stated requirement. The data flow is clearly traceable in the PUT and GET lifecycles. No decorative or hallucinated services are present, and the architecture description is genuinely informative.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Three components are deeply explored: Metadata Service (schema, LSM-tree indexing, Raft/Paxos consistency), Data Plane (chunking, 10+4 erasure coding, parallel shard streaming), and Placement Service (consistent hashing, failure domain awareness). Each provides concrete mechanisms. The associated tradeoffs (LSM vs. B-Tree, EC vs. replication, chunk vs. object) are named and reasoned, effectively meeting the depth criterion though tradeoff discussion is in a separate table.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design explicitly lists tradeoffs (durability, consistency, indexing, granularity) with decisions and justifications, some quantified (e.g., 1.4x vs. 3x overhead). Failure analysis covers bit rot, node/rack failure, metadata partition (with quorum mitigation), and thundering herd (CDN). These include non-obvious failures (silent corruption, hot objects) and specific mitigations, though the design does not state its own explicit limits.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response states functional requirements (PUT, GET, DELETE, LIST) and non-functional requirements (durability 11 nines, availability 99.99%, strong consistency, scalability to exabytes, low latency, global reach). Non-functional SLAs are quantified. Assumptions about scale are provided in the capacity planning section (10 EB total storage, 1 MB average object size, etc.), though not explicitly justified. No non-goals are set, but the scoping is clear and quantified.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The response derives QPS, storage, bandwidth, and total objects from assumptions. It uses these numbers to justify design choices (erasure coding vs. replication, distributed metadata database). However, it does not propagate the numbers into concrete component sizing (e.g., number of storage nodes or metadata shards), which falls short of the full 'assumptions → component sizing' chain required for a 4.\",\n    \"score\": 3\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component in the diagram (Load Balancer, API Gateway, Metadata Service, Placement Service, Blob Store, Storage Nodes, Scrubber) is tied to a stated requirement. The data flow is clearly traceable in the PUT and GET lifecycles. No decorative or hallucinated services are present, and the architecture description is genuinely informative.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Three components are deeply explored: Metadata Service (schema, LSM-tree indexing, Raft/Paxos consistency), Data Plane (chunking, 10+4 erasure coding, parallel shard streaming), and Placement Service (consistent hashing, failure domain awareness). Each provides concrete mechanisms. The associated tradeoffs (LSM vs. B-Tree, EC vs. replication, chunk vs. object) are named and reasoned, effectively meeting the depth criterion though tradeoff discussion is in a separate table.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The design explicitly lists tradeoffs (durability, consistency, indexing, granularity) with decisions and justifications, some quantified (e.g., 1.4x vs. 3x overhead). Failure analysis covers bit rot, node/rack failure, metadata partition (with quorum mitigation), and thundering herd (CDN). These include non-obvious failures (silent corruption, hot objects) and specific mitigations, though the design does not state its own explicit limits.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-20b/job-scheduler_cold.json",
+  "question_id": "job-scheduler",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-20b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T07:34:09.414292+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response includes both functional and non-functional requirements in a clear table, with quantified targets (latency ≤200ms, ≤15s, 99.9% availability). Assumptions are stated (CPU-bound, 5-min runtime), but they lack explicit justification and no non-goals are set.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The design derives jobs/sec from the daily volume, computes concurrency from average runtime, applies a burst buffer to estimate worker count, and then calculates resource needs (CPU, RAM). These numbers drive worker sizing and autoscaling configuration. No fragile assumptions are flagged or results sanity-checked.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is clearly defined, with a purpose mapped to a requirement. The step-by-step job flow traces the data end-to-end, and the diagram is coherent. No hallucinations or unnecessary components, and the description is genuinely informative.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The scheduler mechanics section is a deep-dive with concrete mechanisms (polling, etcd lock, Kafka produce) and timings. However, no other component receives a deep-dive of similar depth; tradeoffs and failure modes do not count as additional deep-dives into internals.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design explicitly lists multiple tradeoffs tied to specific decisions (e.g., Redis vs. Kafka, central vs. sharded scheduler). Failure modes are detailed with concrete mitigations (Raft reelection, Redis persistence). Tradeoffs are not quantified but are concretely scoped and tied to decisions.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response includes both functional and non-functional requirements in a clear table, with quantified targets (latency ≤200ms, ≤15s, 99.9% availability). Assumptions are stated (CPU-bound, 5-min runtime), but they lack explicit justification and no non-goals are set.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The design derives jobs/sec from the daily volume, computes concurrency from average runtime, applies a burst buffer to estimate worker count, and then calculates resource needs (CPU, RAM). These numbers drive worker sizing and autoscaling configuration. No fragile assumptions are flagged or results sanity-checked.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is clearly defined, with a purpose mapped to a requirement. The step-by-step job flow traces the data end-to-end, and the diagram is coherent. No hallucinations or unnecessary components, and the description is genuinely informative.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"The scheduler mechanics section is a deep-dive with concrete mechanisms (polling, etcd lock, Kafka produce) and timings. However, no other component receives a deep-dive of similar depth; tradeoffs and failure modes do not count as additional deep-dives into internals.\", \"score\": 3}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The design explicitly lists multiple tradeoffs tied to specific decisions (e.g., Redis vs. Kafka, central vs. sharded scheduler). Failure modes are detailed with concrete mitigations (Raft reelection, Redis persistence). Tradeoffs are not quantified but are concretely scoped and tied to decisions.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

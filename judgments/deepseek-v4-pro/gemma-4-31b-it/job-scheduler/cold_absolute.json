@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemma-4-31b-it/job-scheduler_cold.json",
+  "question_id": "job-scheduler",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T06:04:02.175351+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Both functional and non-functional requirements are listed, but non-functional are not quantified with specific SLAs (e.g., latency target, availability %). Assumptions like scale (100M jobs/day) are stated but not justified or linked to the problem scope. No explicit non-goals.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "Capacity math derives QPS (avg ~1157, peak ~5785), storage (~1.8TB for 7 days), and bandwidth (11.5MB/s write, 5.8MB/s read) from stated assumptions. Numbers are roughly correct but do not visibly propagate into design choices like shard count or instance sizing.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Architecture diagram and description clearly map components to requirements (API, DB for persistence, schedulers for polling/claiming, coordination for high availability, queue for decoupling, workers for execution). Every component has a stated purpose, no hallucinations. Data flow is traceable. However, component choices are not explicitly justified against capacity numbers.",
+        "score": 3
+      },
+      "deep_dive_depth": {
+        "reasoning": "The deep-dive into the scheduling layer provides concrete mechanisms: sharding by job_id, atomic conditional update for claiming jobs, ZooKeeper-based shard assignment, and specific polling logic. It avoids a generic overview. However, it stays at one deep-dive and lacks a detailed tradeoff discussion within the mechanism (e.g., why job_id shard key, hotspot risks). The execution layer deep-dive is very shallow.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Two explicit tradeoffs are discussed with reasoning: polling precision (1s delay) vs. timer wheel complexity, and at-least-once vs. exactly-once with idempotency mandate. The failure analysis table lists five specific scenarios with concrete mitigations (ZK rebalance, Reaper process, replication, backpressure, NTP). The design acknowledges the thundering herd problem and addresses it via sharding and conditional update.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"Both functional and non-functional requirements are listed, but non-functional are not quantified with specific SLAs (e.g., latency target, availability %). Assumptions like scale (100M jobs/day) are stated but not justified or linked to the problem scope. No explicit non-goals.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"Capacity math derives QPS (avg ~1157, peak ~5785), storage (~1.8TB for 7 days), and bandwidth (11.5MB/s write, 5.8MB/s read) from stated assumptions. Numbers are roughly correct but do not visibly propagate into design choices like shard count or instance sizing.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Architecture diagram and description clearly map components to requirements (API, DB for persistence, schedulers for polling/claiming, coordination for high availability, queue for decoupling, workers for execution). Every component has a stated purpose, no hallucinations. Data flow is traceable. However, component choices are not explicitly justified against capacity numbers.\", \"score\": 3}, \"deep_dive_depth\": {\"reasoning\": \"The deep-dive into the scheduling layer provides concrete mechanisms: sharding by job_id, atomic conditional update for claiming jobs, ZooKeeper-based shard assignment, and specific polling logic. It avoids a generic overview. However, it stays at one deep-dive and lacks a detailed tradeoff discussion within the mechanism (e.g., why job_id shard key, hotspot risks). The execution layer deep-dive is very shallow.\", \"score\": 3}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Two explicit tradeoffs are discussed with reasoning: polling precision (1s delay) vs. timer wheel complexity, and at-least-once vs. exactly-once with idempotency mandate. The failure analysis table lists five specific scenarios with concrete mitigations (ZK rebalance, Reaper process, replication, backpressure, NTP). The design acknowledges the thundering herd problem and addresses it via sharding and conditional update.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

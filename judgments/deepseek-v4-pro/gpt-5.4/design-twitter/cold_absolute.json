@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-5.4/design-twitter_cold.json",
+  "question_id": "design-twitter",
+  "variant": "cold",
+  "model_under_test": "gpt-5.4",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T07:57:00.660190+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response states both functional (core features) and non-functional requirements (high read QPS, low write latency, home timeline in a few hundred ms, high availability, eventual consistency). It includes explicit scale assumptions (600M users, 250M DAU, 500M tweets/day) but does not quantify non-functionals with precise SLAs (no p99 latency, availability %, or durability guarantees) and lacks non-goals or prompt ambiguity resolution.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives QPS, storage, and peak multiples from assumptions. It shows math for writes/sec, reads/sec, and storage for tweets, follow graph, and media. The hybrid fanout decision is directly driven by estimated fanout inserts/sec (4.6M peak). Storage estimates force media to object store+CDN. It forms a full chain that demonstrably influences later design choices.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "A clear Mermaid diagram and text trace components to requirements. Every component is justified (e.g., event bus for async fanout, Cassandra for high-volume tweet writes, sharded timeline stores). Data flows are described (posting sequence diagram, read path merging). The design avoids graph DB for simple lookups, explaining why a less obvious choice is correct.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are present: hybrid fanout with mechanics and tradeoff reasoning, home timeline store schema and retention, partitioning by viewer, caching layers with invalidation strategy, celebrity hot spot mitigation. The fanout deep-dive includes concrete math and a named tradeoff (push cost vs pull cost). The failure-modes section addresses thundering herd with coalescing and rate limits, a non-obvious edge case.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design explicitly discusses several tradeoffs (push vs pull, async pipelines, materialized timelines, Cassandra vs relational) and ties each to a concrete design decision. It lists seven failure modes with causes, effects, and mitigations, including non-obvious ones like thundering herd and duplicate events. However, it does not explicitly acknowledge a limitation of the overall design (e.g., 'this design cannot handle X'), which prevents a score of 5.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response states both functional (core features) and non-functional requirements (high read QPS, low write latency, home timeline in a few hundred ms, high availability, eventual consistency). It includes explicit scale assumptions (600M users, 250M DAU, 500M tweets/day) but does not quantify non-functionals with precise SLAs (no p99 latency, availability %, or durability guarantees) and lacks non-goals or prompt ambiguity resolution.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The response derives QPS, storage, and peak multiples from assumptions. It shows math for writes/sec, reads/sec, and storage for tweets, follow graph, and media. The hybrid fanout decision is directly driven by estimated fanout inserts/sec (4.6M peak). Storage estimates force media to object store+CDN. It forms a full chain that demonstrably influences later design choices.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"A clear Mermaid diagram and text trace components to requirements. Every component is justified (e.g., event bus for async fanout, Cassandra for high-volume tweet writes, sharded timeline stores). Data flows are described (posting sequence diagram, read path merging). The design avoids graph DB for simple lookups, explaining why a less obvious choice is correct.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives are present: hybrid fanout with mechanics and tradeoff reasoning, home timeline store schema and retention, partitioning by viewer, caching layers with invalidation strategy, celebrity hot spot mitigation. The fanout deep-dive includes concrete math and a named tradeoff (push cost vs pull cost). The failure-modes section addresses thundering herd with coalescing and rate limits, a non-obvious edge case.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The design explicitly discusses several tradeoffs (push vs pull, async pipelines, materialized timelines, Cassandra vs relational) and ties each to a concrete design decision. It lists seven failure modes with causes, effects, and mitigations, including non-obvious ones like thundering herd and duplicate events. However, it does not explicitly acknowledge a limitation of the overall design (e.g., 'this design cannot handle X'), which prevents a score of 5.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

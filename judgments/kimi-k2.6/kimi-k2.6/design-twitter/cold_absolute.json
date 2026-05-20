@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/kimi-k2.6/design-twitter_cold.json",
+  "question_id": "design-twitter",
+  "variant": "cold",
+  "model_under_test": "kimi-k2.6",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T06:29:45.249557+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with explicit functional and non-functional requirements, including quantified targets (99.99% availability, p99 latency <200ms, 500M DAU). It states explicit assumptions (10% content creators, 10 timeline views per DAU, average 200 followers). However, it lacks explicit non-goals (e.g., 'we are NOT building X') and does not resolve ambiguities in the prompt by exploring alternative scale scenarios. The requirements are solid but not exceptional.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The response provides a full estimation chain with a detailed table: DAU → tweets/day → peak TPS → timeline views → peak QPS → fanout writes → Redis ops/sec → storage/day → bandwidth → raw storage with replication multipliers. Numbers demonstrably drive design decisions: 220k Redis ops/sec peak justifies 8 shards with 2 replicas; 300k peak timeline read QPS drives the hybrid fanout model. However, there is no explicit sanity-check or fragility flag (e.g., 'does 1.7 PB text/year make sense?'), and some assumptions like 30% media rate and 300KB average media size are stated without justification.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against specific requirements or capacity numbers: Cassandra for tweets due to write volume (3k peak TPS), Redis for timelines due to sorted set semantics and 300k QPS read requirement, hybrid fanout explicitly chosen to handle celebrity vs normal user distinction. The data flow is traceable end-to-end with a Mermaid diagram. The response avoids anti-patterns by explicitly rejecting pure push and pure pull models. One minor concern: the 'CDN-like edge caches' for celebrity follower lists is vague compared to other components, but this is a small gap.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response contains multiple deep dives with concrete mechanisms: (1) Fanout worker logic with actual Python pseudocode, pipelining details, and shard sizing math; (2) Timeline read path with exact Redis commands (ZREVRANGE), celebrity merge algorithm, and hydration strategy; (3) Media pipeline with specific processing steps (WebP thumbnails, HLS/DASH transcoding); (4) Search sharding by time. Each includes tradeoffs: hybrid fanout rationale, Cassandra vs PostgreSQL, Redis vs Memcached. The fanout deep-dive surfaces non-obvious edge cases: hot key mitigation via hash-tagging, thundering herd with singleflight. This is near-exceptional but could use one more edge case analysis at the 5 level.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response includes a full table of 7 tradeoffs with alternatives and rationale, plus a separate failure modes table with 7 entries including specific mitigations. Tradeoffs are quantified where relevant (sub-second staleness acceptable, 2PC would destroy latency). Failure modes are specific and non-obvious: thundering herd on celebrity tweet with singleflight mitigation, Redis hot key with hash-tagging, cross-region partition with LOCAL_QUORUM and CRDT options. The design explicitly acknowledges its own limits: 'we sacrifice complex transactions (no multi-row ACID) which we don't need for tweets.' This is very strong but just short of 5 because it doesn't fully explore what breaks if scale assumptions change (e.g., 'if DAU grows to 2B, we'd need Y').",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with explicit functional and non-functional requirements, including quantified targets (99.99% availability, p99 latency <200ms, 500M DAU). It states explicit assumptions (10% content creators, 10 timeline views per DAU, average 200 followers). However, it lacks explicit non-goals (e.g., 'we are NOT building X') and does not resolve ambiguities in the prompt by exploring alternative scale scenarios. The requirements are solid but not exceptional.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The response provides a full estimation chain with a detailed table: DAU → tweets/day → peak TPS → timeline views → peak QPS → fanout writes → Redis ops/sec → storage/day → bandwidth → raw storage with replication multipliers. Numbers demonstrably drive design decisions: 220k Redis ops/sec peak justifies 8 shards with 2 replicas; 300k peak timeline read QPS drives the hybrid fanout model. However, there is no explicit sanity-check or fragility flag (e.g., 'does 1.7 PB text/year make sense?'), and some assumptions like 30% media rate and 300KB average media size are stated without justification.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified against specific requirements or capacity numbers: Cassandra for tweets due to write volume (3k peak TPS), Redis for timelines due to sorted set semantics and 300k QPS read requirement, hybrid fanout explicitly chosen to handle celebrity vs normal user distinction. The data flow is traceable end-to-end with a Mermaid diagram. The response avoids anti-patterns by explicitly rejecting pure push and pure pull models. One minor concern: the 'CDN-like edge caches' for celebrity follower lists is vague compared to other components, but this is a small gap.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"The response contains multiple deep dives with concrete mechanisms: (1) Fanout worker logic with actual Python pseudocode, pipelining details, and shard sizing math; (2) Timeline read path with exact Redis commands (ZREVRANGE), celebrity merge algorithm, and hydration strategy; (3) Media pipeline with specific processing steps (WebP thumbnails, HLS/DASH transcoding); (4) Search sharding by time. Each includes tradeoffs: hybrid fanout rationale, Cassandra vs PostgreSQL, Redis vs Memcached. The fanout deep-dive surfaces non-obvious edge cases: hot key mitigation via hash-tagging, thundering herd with singleflight. This is near-exceptional but could use one more edge case analysis at the 5 level.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The response includes a full table of 7 tradeoffs with alternatives and rationale, plus a separate failure modes table with 7 entries including specific mitigations. Tradeoffs are quantified where relevant (sub-second staleness acceptable, 2PC would destroy latency). Failure modes are specific and non-obvious: thundering herd on celebrity tweet with singleflight mitigation, Redis hot key with hash-tagging, cross-region partition with LOCAL_QUORUM and CRDT options. The design explicitly acknowledges its own limits: 'we sacrifice complex transactions (no multi-row ACID) which we don't need for tweets.' This is very strong but just short of 5 because it doesn't fully explore what breaks if scale assumptions change (e.g., 'if DAU grows to 2B, we'd need Y').\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-03/gemini-3.1-pro/job-scheduler_cold.json",
+  "question_id": "job-scheduler",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-03T22:09:50.909349+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response states both functional requirements (submit/cancel/view, one-time and recurring schedules, <1s latency) and non-functional requirements (HA, scalability with specific numbers, fault tolerance, at-least-once semantics). It explicitly justifies the at-least-once choice over exactly-once with a technical rationale. However, it does not set explicit non-goals (e.g., 'we are NOT building a workflow orchestrator') and does not resolve any ambiguity in the prompt by acknowledging the prompt's underspecification. The scale is chosen but not framed as a resolution of an ambiguous prompt parameter.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives storage from assumptions (100M jobs x 1KB = 100GB; 10K TPS x 86400 x 7 x 1KB = 6TB history), computes peak bandwidth (50K x 1KB = 50MB/s), and identifies the real bottleneck as DB IOPS rather than storage volume. This insight directly drives the Time-Partitioned Staging Architecture decision. However, the chain stops short of propagating numbers into component sizing (e.g., how many Redis nodes, how many Kafka partitions, how many Dispatcher or Trigger nodes are needed at 50K TPS). No fragile-assumption flagging or sanity-check is present.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against a stated requirement or bottleneck: the Dispatcher solves the polling bottleneck, Redis Sorted Sets enable sub-second precision, Kafka absorbs thundering herd spikes, ZooKeeper handles leader election for HA. The data flow is traceable end-to-end from client submission through execution and status update. The Mermaid diagram reinforces the textual description. No hallucinated or decorative components are present. The design picks the less obvious Time-Partitioned Staging approach over naive DB polling and explains why, which elevates coherence.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are present: (1) Redis Sorted Set design with specific key/score/value schema and atomic ZPOPMIN Lua script to prevent duplicate processing; (2) Dispatcher look-ahead with a concrete 5-minute window rationale tied to failure recovery time; (3) Worker post-execution recalculation of next_execution_time for cron jobs; (4) Kafka DLQ/retry topic with exponential backoff. Each includes a concrete mechanism and a named tradeoff. The thundering herd failure mode is explicitly surfaced and addressed via Kafka buffering. The one gap is that Cassandra's secondary index on next_execution_time is mentioned without noting it is a known anti-pattern in Cassandra for high-cardinality columns, which would have been a non-obvious edge case worth flagging.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Three explicit tradeoffs are discussed with specific decisions and reasoning: push vs. pull, at-least-once vs. exactly-once (with technical justification about 2PC latency), and RDBMS vs. NoSQL (leading to a hybrid split). The failure modes table covers six distinct scenarios with specific mitigations, including the non-obvious clock drift scenario with NTP as the mitigation. However, tradeoffs are not quantified (e.g., no latency numbers attached to the exactly-once cost), and the design does not explicitly acknowledge its own limits (e.g., this design cannot handle sub-100ms precision jobs). The thundering herd is surfaced in the Kafka section but not tied back into the tradeoffs section.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response states both functional requirements (submit/cancel/view, one-time and recurring schedules, <1s latency) and non-functional requirements (HA, scalability with specific numbers, fault tolerance, at-least-once semantics). It explicitly justifies the at-least-once choice over exactly-once with a technical rationale. However, it does not set explicit non-goals (e.g., 'we are NOT building a workflow orchestrator') and does not resolve any ambiguity in the prompt by acknowledging the prompt's underspecification. The scale is chosen but not framed as a resolution of an ambiguous prompt parameter.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The response derives storage from assumptions (100M jobs x 1KB = 100GB; 10K TPS x 86400 x 7 x 1KB = 6TB history), computes peak bandwidth (50K x 1KB = 50MB/s), and identifies the real bottleneck as DB IOPS rather than storage volume. This insight directly drives the Time-Partitioned Staging Architecture decision. However, the chain stops short of propagating numbers into component sizing (e.g., how many Redis nodes, how many Kafka partitions, how many Dispatcher or Trigger nodes are needed at 50K TPS). No fragile-assumption flagging or sanity-check is present.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified against a stated requirement or bottleneck: the Dispatcher solves the polling bottleneck, Redis Sorted Sets enable sub-second precision, Kafka absorbs thundering herd spikes, ZooKeeper handles leader election for HA. The data flow is traceable end-to-end from client submission through execution and status update. The Mermaid diagram reinforces the textual description. No hallucinated or decorative components are present. The design picks the less obvious Time-Partitioned Staging approach over naive DB polling and explains why, which elevates coherence.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives are present: (1) Redis Sorted Set design with specific key/score/value schema and atomic ZPOPMIN Lua script to prevent duplicate processing; (2) Dispatcher look-ahead with a concrete 5-minute window rationale tied to failure recovery time; (3) Worker post-execution recalculation of next_execution_time for cron jobs; (4) Kafka DLQ/retry topic with exponential backoff. Each includes a concrete mechanism and a named tradeoff. The thundering herd failure mode is explicitly surfaced and addressed via Kafka buffering. The one gap is that Cassandra's secondary index on next_execution_time is mentioned without noting it is a known anti-pattern in Cassandra for high-cardinality columns, which would have been a non-obvious edge case worth flagging.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Three explicit tradeoffs are discussed with specific decisions and reasoning: push vs. pull, at-least-once vs. exactly-once (with technical justification about 2PC latency), and RDBMS vs. NoSQL (leading to a hybrid split). The failure modes table covers six distinct scenarios with specific mitigations, including the non-obvious clock drift scenario with NTP as the mitigation. However, tradeoffs are not quantified (e.g., no latency numbers attached to the exactly-once cost), and the design does not explicitly acknowledge its own limits (e.g., this design cannot handle sub-100ms precision jobs). The thundering herd is surfaced in the Kafka section but not tied back into the tradeoffs section.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

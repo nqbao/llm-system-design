@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+
+# Virtual environment
+.venv/
+
+# Environment / API keys
+.env
+.env.*
+!.env.example
+
+# Generated outputs
+analysis.db
+report.md
+docs/
+*.db-journal
+*.db-wal
+
+# Site build output
+leaderboard/dist/
+
+# IDE
+.idea/
+.vscode/

@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-04/minimax-m2.7/job-scheduler_cold.json",
+  "question_id": "job-scheduler",
+  "variant": "cold",
+  "model_under_test": "minimax-m2.7",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T00:20:07.507498+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response states throughput (10K jobs/sec), latency (100ms dispatch), scale (100-10K workers), and availability (99.99%) with specific targets. However, it lacks explicit non-goals (e.g., 'we are NOT building a workflow engine or cron scheduler'), doesn't resolve ambiguities in the prompt (e.g., what kind of jobs, idempotency requirements), and doesn't justify why these specific numbers were chosen. The assumptions are implicit rather than stated and justified. This is solidly quantified but missing the non-goals and ambiguity-resolution that would push it to a 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The response has multiple estimation chains: gateway capacity (10K rps → 3 instances), worker pool sizing (50K jobs/min, 30s avg runtime → ~35,700 workers), Kafka sizing (10K jobs/sec × 10KB → 100MB/s → broker specs), DB storage (100 bytes × 1M/day × 30 days = 3GB), and Redis sizing. Numbers do propagate into design choices (64 partitions for parallelism, 40K workers provisioned). However, the 50K jobs/minute figure appears without derivation from the stated 10K/sec requirement (which would be 600K/min), and the 30s average job runtime is assumed without justification. The response doesn't flag which assumptions are fragile or sanity-check results.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every major component is justified against a stated requirement: Kafka for throughput, ZooKeeper for leader election/HA, PostgreSQL as durable state store, Redis for rate limiting and caching. The data flow is traceable from client submission through gateway → scheduler → Kafka → worker → DB. The Mermaid diagrams provide clear visual architecture. The Kafka-over-RabbitMQ decision is explicitly justified with a comparison table. No hallucinated services are present. The design correctly identifies that workers pull from Kafka rather than being pushed to, which is appropriate for backpressure.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are present: (1) Kafka partition strategy with specific key design (tenant_id + job_type), replication factor, ISR settings, and partition count formula; (2) Scheduler state machine with concrete state transitions; (3) Job scheduling algorithms including priority queue with fairness (SQL query shown), gang scheduling, and bin-packing with Go code; (4) Worker heartbeat protocol with specific timeout values. Each includes concrete mechanisms. The bin-packing algorithm names a specific tradeoff (waste minimization). However, non-obvious failure modes like thundering herd on leader re-election or hot partition from tenant_id skew are not surfaced in the deep-dives themselves.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response has a dedicated tradeoffs section with four explicit decisions (centralized vs distributed scheduler, push vs pull, DB vs in-memory, eager vs lazy assignment), each with a comparison table and stated rationale. Three failure scenarios are walked through with timelines and impact analysis. However, the tradeoffs lack quantification (e.g., 'centralized adds Xms latency but saves Y complexity'), and non-obvious failure modes like thundering herd on leader re-election (many workers reconnecting simultaneously), hot partition from tenant_id skew, or the TOCTOU race between job assignment and worker crash are not addressed. The design doesn't acknowledge its own limits explicitly.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response states throughput (10K jobs/sec), latency (100ms dispatch), scale (100-10K workers), and availability (99.99%) with specific targets. However, it lacks explicit non-goals (e.g., 'we are NOT building a workflow engine or cron scheduler'), doesn't resolve ambiguities in the prompt (e.g., what kind of jobs, idempotency requirements), and doesn't justify why these specific numbers were chosen. The assumptions are implicit rather than stated and justified. This is solidly quantified but missing the non-goals and ambiguity-resolution that would push it to a 5.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The response has multiple estimation chains: gateway capacity (10K rps → 3 instances), worker pool sizing (50K jobs/min, 30s avg runtime → ~35,700 workers), Kafka sizing (10K jobs/sec × 10KB → 100MB/s → broker specs), DB storage (100 bytes × 1M/day × 30 days = 3GB), and Redis sizing. Numbers do propagate into design choices (64 partitions for parallelism, 40K workers provisioned). However, the 50K jobs/minute figure appears without derivation from the stated 10K/sec requirement (which would be 600K/min), and the 30s average job runtime is assumed without justification. The response doesn't flag which assumptions are fragile or sanity-check results.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every major component is justified against a stated requirement: Kafka for throughput, ZooKeeper for leader election/HA, PostgreSQL as durable state store, Redis for rate limiting and caching. The data flow is traceable from client submission through gateway → scheduler → Kafka → worker → DB. The Mermaid diagrams provide clear visual architecture. The Kafka-over-RabbitMQ decision is explicitly justified with a comparison table. No hallucinated services are present. The design correctly identifies that workers pull from Kafka rather than being pushed to, which is appropriate for backpressure.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives are present: (1) Kafka partition strategy with specific key design (tenant_id + job_type), replication factor, ISR settings, and partition count formula; (2) Scheduler state machine with concrete state transitions; (3) Job scheduling algorithms including priority queue with fairness (SQL query shown), gang scheduling, and bin-packing with Go code; (4) Worker heartbeat protocol with specific timeout values. Each includes concrete mechanisms. The bin-packing algorithm names a specific tradeoff (waste minimization). However, non-obvious failure modes like thundering herd on leader re-election or hot partition from tenant_id skew are not surfaced in the deep-dives themselves.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The response has a dedicated tradeoffs section with four explicit decisions (centralized vs distributed scheduler, push vs pull, DB vs in-memory, eager vs lazy assignment), each with a comparison table and stated rationale. Three failure scenarios are walked through with timelines and impact analysis. However, the tradeoffs lack quantification (e.g., 'centralized adds Xms latency but saves Y complexity'), and non-obvious failure modes like thundering herd on leader re-election (many workers reconnecting simultaneously), hot partition from tenant_id skew, or the TOCTOU race between job assignment and worker crash are not addressed. The design doesn't acknowledge its own limits explicitly.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

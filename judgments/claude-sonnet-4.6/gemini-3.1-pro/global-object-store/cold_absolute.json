@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-03/gemini-3.1-pro/global-object-store_cold.json",
+  "question_id": "global-object-store",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-03T22:11:07.996024+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response states functional goals (durability, availability, consistency, object size range) with quantified SLAs (11 9s durability, 4 9s availability, strong read-after-write consistency). It explicitly states scale assumptions (100K RPS, 80/20 read/write ratio, 1MB average object size). However, it does not state explicit non-goals (e.g., 'we are NOT building a block storage or file system'), does not resolve ambiguities in the prompt, and does not justify why these specific numbers were chosen over alternatives. The assumptions are stated but not justified.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives a full estimation chain: RPS to bandwidth (20 GB/s ingress, 80 GB/s egress) to storage growth (1.7 PB/day, ~620 PB/year logical) to physical storage with EC multiplier (~930 PB/year). The EC overhead calculation (1.33x for 12+4) is used to justify the hybrid replication/EC approach. However, the response does not propagate numbers into component sizing (e.g., how many data nodes are needed, how many metadata DB shards), and does not flag fragile assumptions or sanity-check results.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against a stated requirement: the Placement Service addresses topology-aware writes, the Metadata DB addresses strong consistency, the Scrubber addresses bit rot, the EC Engine addresses storage cost. The data flow is traceable end-to-end for both read and write paths. No hallucinated services are present. The separation of control/metadata plane from data plane is a non-obvious but correct architectural choice that is explicitly justified. The diagram is present and informative.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are present with concrete mechanisms: (1) Metadata partitioning by Hash(BucketName+ObjectKey) with a named tradeoff (destroys lexicographic ordering, requiring a separate LSM-tree index for ListObjects); (2) EC with specific parameters (12+4), storage overhead math (1.33x), and the hybrid hot/cold path with a concrete lifecycle; (3) Multipart upload with chunk-level parallelism and metadata structure. Each deep-dive names a tradeoff with reasoning. The thundering herd failure mode is surfaced with a non-obvious mitigation (dynamic read replica spawning).",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Tradeoffs are tied to specific decisions: synchronous 3-replica write vs. EC (latency vs. cost), hashing partition key vs. range (consistency/scale vs. ListObjects support), Raft quorum vs. availability during partition (CP choice explicitly stated). Failure modes include bit rot (with scrubber mitigation), AZ failure (with topology-aware placement), thundering herd (with CDN and dynamic replicas), and metadata split-brain (with Raft quorum behavior). The response does not explicitly acknowledge its own limits and the dynamic read replica mitigation glosses over consistency complexity of updating metadata under load.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response states functional goals (durability, availability, consistency, object size range) with quantified SLAs (11 9s durability, 4 9s availability, strong read-after-write consistency). It explicitly states scale assumptions (100K RPS, 80/20 read/write ratio, 1MB average object size). However, it does not state explicit non-goals (e.g., 'we are NOT building a block storage or file system'), does not resolve ambiguities in the prompt, and does not justify why these specific numbers were chosen over alternatives. The assumptions are stated but not justified.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The response derives a full estimation chain: RPS to bandwidth (20 GB/s ingress, 80 GB/s egress) to storage growth (1.7 PB/day, ~620 PB/year logical) to physical storage with EC multiplier (~930 PB/year). The EC overhead calculation (1.33x for 12+4) is used to justify the hybrid replication/EC approach. However, the response does not propagate numbers into component sizing (e.g., how many data nodes are needed, how many metadata DB shards), and does not flag fragile assumptions or sanity-check results.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified against a stated requirement: the Placement Service addresses topology-aware writes, the Metadata DB addresses strong consistency, the Scrubber addresses bit rot, the EC Engine addresses storage cost. The data flow is traceable end-to-end for both read and write paths. No hallucinated services are present. The separation of control/metadata plane from data plane is a non-obvious but correct architectural choice that is explicitly justified. The diagram is present and informative.\", \"score\": 5}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives are present with concrete mechanisms: (1) Metadata partitioning by Hash(BucketName+ObjectKey) with a named tradeoff (destroys lexicographic ordering, requiring a separate LSM-tree index for ListObjects); (2) EC with specific parameters (12+4), storage overhead math (1.33x), and the hybrid hot/cold path with a concrete lifecycle; (3) Multipart upload with chunk-level parallelism and metadata structure. Each deep-dive names a tradeoff with reasoning. The thundering herd failure mode is surfaced with a non-obvious mitigation (dynamic read replica spawning).\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Tradeoffs are tied to specific decisions: synchronous 3-replica write vs. EC (latency vs. cost), hashing partition key vs. range (consistency/scale vs. ListObjects support), Raft quorum vs. availability during partition (CP choice explicitly stated). Failure modes include bit rot (with scrubber mitigation), AZ failure (with topology-aware placement), thundering herd (with CDN and dynamic replicas), and metadata split-brain (with Raft quorum behavior). The response does not explicitly acknowledge its own limits and the dynamic read replica mitigation glosses over consistency complexity of updating metadata under load.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

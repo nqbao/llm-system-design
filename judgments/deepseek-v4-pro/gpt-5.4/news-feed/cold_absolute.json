@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-5.4/news-feed_cold.json",
+  "question_id": "news-feed",
+  "variant": "cold",
+  "model_under_test": "gpt-5.4",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T08:01:29.953712+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response clearly states functional and non-functional requirements, quantifies non-functionals (p95 < 200ms, 99.95% availability, etc.), and provides explicit scale assumptions (500M users, 400M posts/day). Assumptions are justified but not explicitly flagged as fragile, and non-goals are not stated.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Full estimation chain: scale assumptions lead to derived QPS (posts 25k/sec peak, reads 350k/sec peak), storage (social graph 9.6TB, posts 400GB/day), and fanout throughput (4.2M inserts/sec peak). These numbers directly drive design decisions like hybrid fanout, batching, and active-user bitmap. However, no explicit sanity-check or qualification of fragile assumptions is given.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (Post Service, Fanout Orchestrator, Home Timeline Store, Ranker, etc.) is tied to specific requirements or capacity numbers. The data flow is traceable from client to CDN. The design picks the less obvious hybrid fanout and explains why it balances read/write cost. It also explicitly avoids the anti-pattern of using SQL joins for large-scale feed generation.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives with concrete mechanisms: fanout throughput math with active-user filtering, celebrity handling with dynamic threshold, sharding strategy with hash partitioning and bucketing, ranking with candidate precomputation and online features, pagination with opaque cursors and session snapshots. Tradeoffs are named and reasoned (e.g., push vs pull, cache TTL, consistency delays). Non-obvious failure modes like duplicate fanout due to retries, dual-write inconsistency, and hot partitions are specifically addressed with fixes.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Dedicated section covers 8 failure modes with specific mitigations (transactional outbox for dual-write, idempotent writes for duplicates, fallback to reverse chrono for ranker timeouts). Tradeoffs are quantified in a latency budget and discussed throughout (eventual consistency, caching tradeoff, celebrity pull vs push). The design explicitly acknowledges its own limits, such as the need for eventual consistency and the workaround for ranked feed pagination. Non-obvious failure modes like write amplification and fanout backlog are surfaced.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response clearly states functional and non-functional requirements, quantifies non-functionals (p95 < 200ms, 99.95% availability, etc.), and provides explicit scale assumptions (500M users, 400M posts/day). Assumptions are justified but not explicitly flagged as fragile, and non-goals are not stated.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Full estimation chain: scale assumptions lead to derived QPS (posts 25k/sec peak, reads 350k/sec peak), storage (social graph 9.6TB, posts 400GB/day), and fanout throughput (4.2M inserts/sec peak). These numbers directly drive design decisions like hybrid fanout, batching, and active-user bitmap. However, no explicit sanity-check or qualification of fragile assumptions is given.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (Post Service, Fanout Orchestrator, Home Timeline Store, Ranker, etc.) is tied to specific requirements or capacity numbers. The data flow is traceable from client to CDN. The design picks the less obvious hybrid fanout and explains why it balances read/write cost. It also explicitly avoids the anti-pattern of using SQL joins for large-scale feed generation.\",\n    \"score\": 5\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives with concrete mechanisms: fanout throughput math with active-user filtering, celebrity handling with dynamic threshold, sharding strategy with hash partitioning and bucketing, ranking with candidate precomputation and online features, pagination with opaque cursors and session snapshots. Tradeoffs are named and reasoned (e.g., push vs pull, cache TTL, consistency delays). Non-obvious failure modes like duplicate fanout due to retries, dual-write inconsistency, and hot partitions are specifically addressed with fixes.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Dedicated section covers 8 failure modes with specific mitigations (transactional outbox for dual-write, idempotent writes for duplicates, fallback to reverse chrono for ranker timeouts). Tradeoffs are quantified in a latency budget and discussed throughout (eventual consistency, caching tradeoff, celebrity pull vs push). The design explicitly acknowledges its own limits, such as the need for eventual consistency and the workaround for ranked feed pagination. Non-obvious failure modes like write amplification and fanout backlog are surfaced.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

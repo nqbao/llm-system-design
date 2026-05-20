@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-03/claude-sonnet-4.6/job-scheduler_cold.json",
+  "question_id": "job-scheduler",
+  "variant": "cold",
+  "model_under_test": "claude-sonnet-4.6",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-03T21:10:31.347094+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response provides both functional (F1-F8) and non-functional requirements (N1-N5) with quantified targets: 1M active jobs, 100k triggers/min, P99 trigger latency <1s, 99.99% availability, and durability guarantees. It explicitly states out-of-scope items (execution environment, auth beyond API keys). However, it does not resolve ambiguities in the prompt or note where the design would change at different scales, and the non-goals section is thin. It doesn't explicitly justify why those scale numbers were chosen.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The estimation chain is solid: active jobs -> peak trigger rate -> QPS (1,667/s) -> storage (2GB) -> Kafka partition sizing (32 partitions x 52 msg/s) -> worker CPU cores (8.3 cores, run 20 for headroom). Numbers propagate into design decisions: 32 Kafka partitions, 20 workers, BATCH_SIZE=500, and the sharding threshold of ~5,000 writes/s. However, the response does not flag which assumptions are fragile or sanity-check any result against real-world benchmarks.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified: Postgres for SKIP LOCKED semantics, Kafka for durability and back-pressure, Redis for sub-millisecond lock acquisition. Data flow is traceable end-to-end via both the Mermaid flowchart and the sequence diagram. No hallucinated services. The scheduler sharding approach (job_id % N with independent leader election per shard) is a non-obvious but correct choice that avoids the single-leader bottleneck, and the response explicitly explains why SKIP LOCKED enables this.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives with concrete mechanisms: (1) Scheduler polling loop with actual SQL using SKIP LOCKED, batch sizing tied to capacity numbers, and sharding strategy; (2) Worker execution flow with Redis SET NX lock, heartbeat mechanism, and offset commit ordering; (3) Job Store with full DDL including partial index on status='scheduled', monthly partitioning of executions, and explicit sharding threshold. The thundering herd failure mode and DST timezone bug are non-obvious edge cases that are specifically surfaced and addressed.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The failure modes table covers 10 specific scenarios with concrete mitigations, including non-obvious ones: thundering herd at :00 (jitter), poison pill jobs (circuit breaker per endpoint), cron timezone DST bugs (store UTC next_run_at), and double-dispatch (Redis NX + idempotency key). The exactly-once section explicitly acknowledges the design's limit: true EOS requires endpoint cooperation. The response does not quantify tradeoff costs (e.g., latency added by Redis lock acquisition) which would push it higher.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response provides both functional (F1-F8) and non-functional requirements (N1-N5) with quantified targets: 1M active jobs, 100k triggers/min, P99 trigger latency <1s, 99.99% availability, and durability guarantees. It explicitly states out-of-scope items (execution environment, auth beyond API keys). However, it does not resolve ambiguities in the prompt or note where the design would change at different scales, and the non-goals section is thin. It doesn't explicitly justify why those scale numbers were chosen.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The estimation chain is solid: active jobs -> peak trigger rate -> QPS (1,667/s) -> storage (2GB) -> Kafka partition sizing (32 partitions x 52 msg/s) -> worker CPU cores (8.3 cores, run 20 for headroom). Numbers propagate into design decisions: 32 Kafka partitions, 20 workers, BATCH_SIZE=500, and the sharding threshold of ~5,000 writes/s. However, the response does not flag which assumptions are fragile or sanity-check any result against real-world benchmarks.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified: Postgres for SKIP LOCKED semantics, Kafka for durability and back-pressure, Redis for sub-millisecond lock acquisition. Data flow is traceable end-to-end via both the Mermaid flowchart and the sequence diagram. No hallucinated services. The scheduler sharding approach (job_id % N with independent leader election per shard) is a non-obvious but correct choice that avoids the single-leader bottleneck, and the response explicitly explains why SKIP LOCKED enables this.\", \"score\": 5}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives with concrete mechanisms: (1) Scheduler polling loop with actual SQL using SKIP LOCKED, batch sizing tied to capacity numbers, and sharding strategy; (2) Worker execution flow with Redis SET NX lock, heartbeat mechanism, and offset commit ordering; (3) Job Store with full DDL including partial index on status='scheduled', monthly partitioning of executions, and explicit sharding threshold. The thundering herd failure mode and DST timezone bug are non-obvious edge cases that are specifically surfaced and addressed.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The failure modes table covers 10 specific scenarios with concrete mitigations, including non-obvious ones: thundering herd at :00 (jitter), poison pill jobs (circuit breaker per endpoint), cron timezone DST bugs (store UTC next_run_at), and double-dispatch (Redis NX + idempotency key). The exactly-once section explicitly acknowledges the design's limit: true EOS requires endpoint cooperation. The response does not quantify tradeoff costs (e.g., latency added by Redis lock acquisition) which would push it higher.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

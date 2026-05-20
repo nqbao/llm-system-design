@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemini-3.1-pro/url-shortener_cold.json",
+  "question_id": "url-shortener",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T06:40:13.890924+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with clearly separated functional and non-functional requirements. Functionals cover shorten, redirect, custom URLs, analytics, and expiration. Non-functionals include availability, latency, scalability, and read-heaviness with explicit ratio (100:1). However, there are no quantified SLAs (e.g., specific p99 latency target, availability percentage), no explicit non-goals stated, and no resolution of ambiguities in the prompt. The assumptions are stated but not justified—why 100M/month? Why 10 years? These are reasonable defaults but not defended.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The math is present and derived from assumptions: writes at 40 RPS, reads at 4,000 RPS, peak at 5x. Storage calculated at 6 TB with explicit record size breakdown. Cache sizing derived from Pareto principle to 34 GB. However, the numbers do not demonstrably drive design choices—no component is sized based on these numbers (e.g., 'we need N Redis nodes for 34GB' or 'Cassandra shards for X QPS'). No sanity-checking or fragility flags appear; the 6 TB is simply declared 'easily fits' without validating against the 12 billion records assumption.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is connected to a requirement: KGS to zero-collision writes, Redis to low-latency redirects, Kafka/Flink/ClickHouse to analytics, NoSQL to key-value scaling. No hallucinated services. Data flow is traceable end-to-end with a Mermaid diagram. However, the CDN/WAF appears without justification—what does it cache? Static assets for a URL shortener? This is slightly decorative. The choice of Flink specifically is not justified over alternatives. The architecture is coherent but misses opportunities to explicitly justify against capacity numbers.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Two genuine deep-dives present: (1) KGS mechanism with pre-generation, states (unused/used), in-memory chunks, and O(1) write latency; (2) HTTP 301 vs 302 redirect semantics with explicit tradeoff reasoning tied to analytics accuracy. The cache stampede mitigation includes specific mechanisms (local in-memory caching with 5-second TTL, cache promise/mutex). However, the NoSQL deep-dive is shallow—no specific sharding key, replication strategy, or consistency level named. The KGS lacks discussion of how keys are pre-generated (random vs. sequential, coordination between KGS instances). No non-obvious edge case surfaced in the deep-dives themselves.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Three specific tradeoffs tied to concrete decisions: 301 vs 302 redirects, hashing vs KGS, RDBMS vs NoSQL. Each includes reasoning. Failure modes are specific: viral link cache stampede with dual mitigation, KGS outage with local key buffer, Kafka outage with fire-and-forget decoupling. However, tradeoffs are not quantified (no '20ms p99' style scoping). The design does not explicitly acknowledge its own limits—what happens beyond 12 billion URLs? No non-obvious failure mode like partial network partition, write amplification, or time-of-check-to-time-of-use addressed. The KGS local buffer of 1,000 keys is mentioned but not sized against the 200 peak write RPS (that's only 5 seconds of buffer).",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with clearly separated functional and non-functional requirements. Functionals cover shorten, redirect, custom URLs, analytics, and expiration. Non-functionals include availability, latency, scalability, and read-heaviness with explicit ratio (100:1). However, there are no quantified SLAs (e.g., specific p99 latency target, availability percentage), no explicit non-goals stated, and no resolution of ambiguities in the prompt. The assumptions are stated but not justified—why 100M/month? Why 10 years? These are reasonable defaults but not defended.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The math is present and derived from assumptions: writes at 40 RPS, reads at 4,000 RPS, peak at 5x. Storage calculated at 6 TB with explicit record size breakdown. Cache sizing derived from Pareto principle to 34 GB. However, the numbers do not demonstrably drive design choices—no component is sized based on these numbers (e.g., 'we need N Redis nodes for 34GB' or 'Cassandra shards for X QPS'). No sanity-checking or fragility flags appear; the 6 TB is simply declared 'easily fits' without validating against the 12 billion records assumption.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component is connected to a requirement: KGS to zero-collision writes, Redis to low-latency redirects, Kafka/Flink/ClickHouse to analytics, NoSQL to key-value scaling. No hallucinated services. Data flow is traceable end-to-end with a Mermaid diagram. However, the CDN/WAF appears without justification—what does it cache? Static assets for a URL shortener? This is slightly decorative. The choice of Flink specifically is not justified over alternatives. The architecture is coherent but misses opportunities to explicitly justify against capacity numbers.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Two genuine deep-dives present: (1) KGS mechanism with pre-generation, states (unused/used), in-memory chunks, and O(1) write latency; (2) HTTP 301 vs 302 redirect semantics with explicit tradeoff reasoning tied to analytics accuracy. The cache stampede mitigation includes specific mechanisms (local in-memory caching with 5-second TTL, cache promise/mutex). However, the NoSQL deep-dive is shallow—no specific sharding key, replication strategy, or consistency level named. The KGS lacks discussion of how keys are pre-generated (random vs. sequential, coordination between KGS instances). No non-obvious edge case surfaced in the deep-dives themselves.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Three specific tradeoffs tied to concrete decisions: 301 vs 302 redirects, hashing vs KGS, RDBMS vs NoSQL. Each includes reasoning. Failure modes are specific: viral link cache stampede with dual mitigation, KGS outage with local key buffer, Kafka outage with fire-and-forget decoupling. However, tradeoffs are not quantified (no '20ms p99' style scoping). The design does not explicitly acknowledge its own limits—what happens beyond 12 billion URLs? No non-obvious failure mode like partial network partition, write amplification, or time-of-check-to-time-of-use addressed. The KGS local buffer of 1,000 keys is mentioned but not sized against the 200 peak write RPS (that's only 5 seconds of buffer).\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

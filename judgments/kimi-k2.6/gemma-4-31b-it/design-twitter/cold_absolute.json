@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemma-4-31b-it/design-twitter_cold.json",
+  "question_id": "design-twitter",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T06:11:20.094549+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response starts with explicit functional requirements (tweet creation, timeline types, social graph, search, notifications) and non-functional requirements (availability, latency <200ms, 300M MAU, 100:1 read/write ratio). It states assumptions including DAU/MAU ratio, tweets per user, feed views, and follower counts. However, it lacks explicit non-goals ('we are NOT building X') and does not resolve ambiguities in the prompt by exploring alternative scale scenarios or noting where design would change at different scales. The assumptions are stated but not deeply justified.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The math is present and derived from assumptions: 100M tweets/day → 1,160 write QPS, 2B feed views → 23,148 read QPS, peak at 3x → 70k read QPS. Storage estimates propagate to text (10TB/year), media (3.6PB/year), and social graph (640GB). However, the numbers do not clearly drive specific component sizing decisions later (e.g., 'we need N Redis shards because each handles X QPS'). There is no sanity-check on results (3.6PB/year is stated without flagging whether this seems reasonable or fragile). The celebrity threshold of 100k followers is stated but not derived from the capacity math.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component connects to stated requirements: Cassandra for write throughput, Redis for feed cache, Kafka for fan-out, Elasticsearch for search, S3+CDN for media. No hallucinated services. The hybrid fan-out directly addresses the celebrity problem derived from capacity estimates. Data flow is traceable end-to-end (user → API → TweetSvc → Kafka → Fanout → Redis → TimelineSvc). However, the architecture does not explicitly justify why Neo4j/Postgres is chosen over alternatives for the social graph given the stated scale (40B edges), and the mermaid diagram includes Varnish only in failure section not in main architecture.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Two deep-dives with concrete mechanisms: (1) Hybrid fan-out with specific threshold (100k followers), explicit merge semantics, and tradeoff analysis (push vs pull vs hybrid); (2) Cassandra schema design with partition key (user_id) and clustering key (tweet_id), plus composite partition key refinement (user_id + month_year) for hotspot mitigation. Redis data structure specified (Sorted Set with timestamp score). However, the deep-dive on search is shallow (standard Kafka → Elasticsearch pipeline without mechanism details). No non-obvious edge cases surfaced in the deep-dives—hotspots are mentioned but are a standard Cassandra concern.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Four tradeoffs explicitly tied to decisions in a table format (eventual consistency, NoSQL, hybrid fan-out, S3+CDN). Failure modes include thundering herd with mitigation (read-through caching), Redis memory exhaustion with LRU and cold storage, Kafka consumer lag with partition scaling, and Cassandra hotspots with composite keys. However, tradeoffs are not quantified (e.g., no 'strong consistency adds ~20ms'). The design does not explicitly acknowledge its own limits ('this design cannot handle X'). Thundering herd mitigation mentions Varnish/Redis but this was not in the core architecture. No non-obvious failure modes like partial network partitions, write amplification, or time-of-check-to-time-of-use are surfaced.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response starts with explicit functional requirements (tweet creation, timeline types, social graph, search, notifications) and non-functional requirements (availability, latency <200ms, 300M MAU, 100:1 read/write ratio). It states assumptions including DAU/MAU ratio, tweets per user, feed views, and follower counts. However, it lacks explicit non-goals ('we are NOT building X') and does not resolve ambiguities in the prompt by exploring alternative scale scenarios or noting where design would change at different scales. The assumptions are stated but not deeply justified.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The math is present and derived from assumptions: 100M tweets/day → 1,160 write QPS, 2B feed views → 23,148 read QPS, peak at 3x → 70k read QPS. Storage estimates propagate to text (10TB/year), media (3.6PB/year), and social graph (640GB). However, the numbers do not clearly drive specific component sizing decisions later (e.g., 'we need N Redis shards because each handles X QPS'). There is no sanity-check on results (3.6PB/year is stated without flagging whether this seems reasonable or fragile). The celebrity threshold of 100k followers is stated but not derived from the capacity math.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component connects to stated requirements: Cassandra for write throughput, Redis for feed cache, Kafka for fan-out, Elasticsearch for search, S3+CDN for media. No hallucinated services. The hybrid fan-out directly addresses the celebrity problem derived from capacity estimates. Data flow is traceable end-to-end (user → API → TweetSvc → Kafka → Fanout → Redis → TimelineSvc). However, the architecture does not explicitly justify why Neo4j/Postgres is chosen over alternatives for the social graph given the stated scale (40B edges), and the mermaid diagram includes Varnish only in failure section not in main architecture.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Two deep-dives with concrete mechanisms: (1) Hybrid fan-out with specific threshold (100k followers), explicit merge semantics, and tradeoff analysis (push vs pull vs hybrid); (2) Cassandra schema design with partition key (user_id) and clustering key (tweet_id), plus composite partition key refinement (user_id + month_year) for hotspot mitigation. Redis data structure specified (Sorted Set with timestamp score). However, the deep-dive on search is shallow (standard Kafka → Elasticsearch pipeline without mechanism details). No non-obvious edge cases surfaced in the deep-dives—hotspots are mentioned but are a standard Cassandra concern.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Four tradeoffs explicitly tied to decisions in a table format (eventual consistency, NoSQL, hybrid fan-out, S3+CDN). Failure modes include thundering herd with mitigation (read-through caching), Redis memory exhaustion with LRU and cold storage, Kafka consumer lag with partition scaling, and Cassandra hotspots with composite keys. However, tradeoffs are not quantified (e.g., no 'strong consistency adds ~20ms'). The design does not explicitly acknowledge its own limits ('this design cannot handle X'). Thundering herd mitigation mentions Varnish/Redis but this was not in the core architecture. No non-obvious failure modes like partial network partitions, write amplification, or time-of-check-to-time-of-use are surfaced.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemma-4-31b-it/job-scheduler_cold.json",
+  "question_id": "job-scheduler",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T06:04:02.175351+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Both functional requirements (submission, execution, status tracking, retries) and non-functional requirements (HA, durability, precision, at-least-once) are stated clearly. Assumptions (100M jobs/day, 2KB payload, 7-day retention) are given in the capacity section. However, NFRs are not quantified with specific targets — no p99 latency SLA, no availability percentage, no clock precision bound in milliseconds. No explicit non-goals are stated and no ambiguity in the prompt is surfaced or resolved.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The estimation chain is present: assumptions → average QPS (1,157) → peak QPS (5,785) → daily storage (200 GB) → 7-day storage with index overhead (1.8 TB) → peak bandwidth (11.5 MB/s writes, 5.8 MB/s reads). Math is internally consistent. However, the numbers do not propagate into concrete component sizing — there is no statement like 'at 5,785 QPS we need N scheduler nodes, each handling X' or 'Kafka needs Y partitions to sustain peak throughput'. No fragile assumptions are flagged and no sanity checks are performed.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is tied to a stated requirement: CockroachDB for ACID correctness to prevent double-claiming, ZooKeeper for shard assignment and failover, Kafka for decoupling scheduling from execution. The data flow is traceable end-to-end through the Mermaid diagram. The response explicitly identifies and avoids the thundering herd anti-pattern by using per-shard polling rather than a global lock, which is a non-trivial architectural choice with clear justification.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Two genuine deep-dives are present. First, the scheduling layer explains the sharding mechanism, ZooKeeper-based shard assignment, and the precise atomic conditional UPDATE to prevent double-scheduling — a concrete mechanism with a named tradeoff. Second, the failure analysis introduces the Reaper process as a concrete heartbeat-based mechanism to recover stuck RUNNING jobs, surfacing the non-obvious failure mode of a worker crashing after execution but before DB acknowledgment. The timer wheel discussion names in-memory state loss on crash as a specific failure mode and explains the resulting DB spike.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Two specific tradeoffs are tied to decisions: polling interval vs. timer wheel (with the concrete failure mode of in-memory loss causing a DB reload spike) and at-least-once vs. exactly-once (correctly deemed impossible without idempotency, with a concrete mitigation prescribed). The failure analysis table covers five distinct failure modes with specific mitigations. However, tradeoffs are not quantified numerically and the design does not explicitly acknowledge its own limits such as what happens at 10x the assumed scale.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"Both functional requirements (submission, execution, status tracking, retries) and non-functional requirements (HA, durability, precision, at-least-once) are stated clearly. Assumptions (100M jobs/day, 2KB payload, 7-day retention) are given in the capacity section. However, NFRs are not quantified with specific targets — no p99 latency SLA, no availability percentage, no clock precision bound in milliseconds. No explicit non-goals are stated and no ambiguity in the prompt is surfaced or resolved.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The estimation chain is present: assumptions → average QPS (1,157) → peak QPS (5,785) → daily storage (200 GB) → 7-day storage with index overhead (1.8 TB) → peak bandwidth (11.5 MB/s writes, 5.8 MB/s reads). Math is internally consistent. However, the numbers do not propagate into concrete component sizing — there is no statement like 'at 5,785 QPS we need N scheduler nodes, each handling X' or 'Kafka needs Y partitions to sustain peak throughput'. No fragile assumptions are flagged and no sanity checks are performed.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component is tied to a stated requirement: CockroachDB for ACID correctness to prevent double-claiming, ZooKeeper for shard assignment and failover, Kafka for decoupling scheduling from execution. The data flow is traceable end-to-end through the Mermaid diagram. The response explicitly identifies and avoids the thundering herd anti-pattern by using per-shard polling rather than a global lock, which is a non-trivial architectural choice with clear justification.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Two genuine deep-dives are present. First, the scheduling layer explains the sharding mechanism, ZooKeeper-based shard assignment, and the precise atomic conditional UPDATE to prevent double-scheduling — a concrete mechanism with a named tradeoff. Second, the failure analysis introduces the Reaper process as a concrete heartbeat-based mechanism to recover stuck RUNNING jobs, surfacing the non-obvious failure mode of a worker crashing after execution but before DB acknowledgment. The timer wheel discussion names in-memory state loss on crash as a specific failure mode and explains the resulting DB spike.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Two specific tradeoffs are tied to decisions: polling interval vs. timer wheel (with the concrete failure mode of in-memory loss causing a DB reload spike) and at-least-once vs. exactly-once (correctly deemed impossible without idempotency, with a concrete mitigation prescribed). The failure analysis table covers five distinct failure modes with specific mitigations. However, tradeoffs are not quantified numerically and the design does not explicitly acknowledge its own limits such as what happens at 10x the assumed scale.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-20b/global-object-store_cold.json",
+  "question_id": "global-object-store",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-20b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T07:33:42.295133+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design lists functional and non-functional requirements with quantified SLAs (99.999% availability, p99 <200ms, 11-nines durability). Assumptions are given in capacity planning but not justified. No explicit non-goals are set, and no ambiguity in the prompt is resolved. It meets the 3 level with quantified SLAs but lacks justification of assumptions.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives storage capacity from assumptions (1 PB raw → 4.5 PB physical per region → 22.5 PB total → 563 nodes per region) and estimates cost. However, it omits QPS/bandwidth calculations and the numbers do not demonstrably drive later design choices (e.g., sharding, caching sizing). The calculation is standalone, meeting the 3 level where numbers are derived but not propagated.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "A clear diagram and component table are present. Each component serves a stated requirement (e.g., metadata store for consistency, CDN for low-latency reads). No hallucinations or dead weight are obvious. Connections are sensible, but components are not explicitly justified against capacity numbers. This fits the 3 level: coherent, no hallucinations, but not deeply justified against every spec.",
+        "score": 3
+      },
+      "deep_dive_depth": {
+        "reasoning": "The storage and durability section provides one deep-dive into erasure coding (4+2 scheme, chunk distribution across AZs, tradeoff between durability and overhead). Other sections like failure modes and data model are shallow. Only one deep-dive with concrete mechanism is present, placing it at 3.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "A trade-off summary table lists multiple decisions with benefits and costs (e.g., erasure coding vs. replication, SSD vs. HDD). Failure modes are tabulated with specific mitigations (node crash → read replicas, repair). However, tradeoffs are not quantified (e.g., no latency penalty for strong consistency) and failure discussion is somewhat generic, matching the 3 level.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The design lists functional and non-functional requirements with quantified SLAs (99.999% availability, p99 <200ms, 11-nines durability). Assumptions are given in capacity planning but not justified. No explicit non-goals are set, and no ambiguity in the prompt is resolved. It meets the 3 level with quantified SLAs but lacks justification of assumptions.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The response derives storage capacity from assumptions (1 PB raw → 4.5 PB physical per region → 22.5 PB total → 563 nodes per region) and estimates cost. However, it omits QPS/bandwidth calculations and the numbers do not demonstrably drive later design choices (e.g., sharding, caching sizing). The calculation is standalone, meeting the 3 level where numbers are derived but not propagated.\",\n    \"score\": 3\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"A clear diagram and component table are present. Each component serves a stated requirement (e.g., metadata store for consistency, CDN for low-latency reads). No hallucinations or dead weight are obvious. Connections are sensible, but components are not explicitly justified against capacity numbers. This fits the 3 level: coherent, no hallucinations, but not deeply justified against every spec.\",\n    \"score\": 3\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The storage and durability section provides one deep-dive into erasure coding (4+2 scheme, chunk distribution across AZs, tradeoff between durability and overhead). Other sections like failure modes and data model are shallow. Only one deep-dive with concrete mechanism is present, placing it at 3.\",\n    \"score\": 3\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"A trade-off summary table lists multiple decisions with benefits and costs (e.g., erasure coding vs. replication, SSD vs. HDD). Failure modes are tabulated with specific mitigations (node crash → read replicas, repair). However, tradeoffs are not quantified (e.g., no latency penalty for strong consistency) and failure discussion is somewhat generic, matching the 3 level.\",\n    \"score\": 3\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

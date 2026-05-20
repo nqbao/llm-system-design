@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/deepseek-v4-pro/chat-system_cold.json",
+  "question_id": "chat-system",
+  "variant": "cold",
+  "model_under_test": "deepseek-v4-pro",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T07:15:40.295441+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Response lists both functional and non-functional requirements with quantified SLAs (99.99% availability, <200ms p95 latency, at-least-once delivery). Assumptions are explicitly stated (MAU, DAU, message sizes, peak factor) but no explicit non-goals are set.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Derives QPS/storage/bandwidth from assumptions (100B messages/day, 500K DAU, etc.). Computes storage (36.5PB/year raw, 1.8EB/year media) and bandwidth (116GB/s peak media). Numbers drive decisions (need object storage, CDN). Includes sanity checks ('That's huge'), but does not explicitly flag fragile assumptions.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (WebSocket gateways, Message Service, Kafka, Redis, Cassandra, etc.) is clearly justified against specific requirements or capacity numbers. Diagram and description trace data flow. No hallucinations. Avoids fan-out explosion with group fan-out strategy, which is a specific anti-pattern avoidance.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple detailed deep-dives: one-to-one message send (idempotency, ordering, fan-out via pub/sub), group messaging (small vs large with queue-based), presence system (heartbeat, TTL, sweeper). Each has concrete mechanisms. Does not surface non-obvious edge cases like hot key sharding or GC tail latency.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Tradeoffs table covers CAP, push vs pull, ordering, DB choice, group fan-out, presence accuracy. Failure scenarios include MS crash, gateway crash, DB partition, fan-out spikes, duplicates, celebrity bursts, each with mitigations. Acknowledges limits (presence delay, offline pull). No deeper non-obvious failure mode (e.g., thundering herd) explored.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"Response lists both functional and non-functional requirements with quantified SLAs (99.99% availability, <200ms p95 latency, at-least-once delivery). Assumptions are explicitly stated (MAU, DAU, message sizes, peak factor) but no explicit non-goals are set.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Derives QPS/storage/bandwidth from assumptions (100B messages/day, 500K DAU, etc.). Computes storage (36.5PB/year raw, 1.8EB/year media) and bandwidth (116GB/s peak media). Numbers drive decisions (need object storage, CDN). Includes sanity checks ('That's huge'), but does not explicitly flag fragile assumptions.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (WebSocket gateways, Message Service, Kafka, Redis, Cassandra, etc.) is clearly justified against specific requirements or capacity numbers. Diagram and description trace data flow. No hallucinations. Avoids fan-out explosion with group fan-out strategy, which is a specific anti-pattern avoidance.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple detailed deep-dives: one-to-one message send (idempotency, ordering, fan-out via pub/sub), group messaging (small vs large with queue-based), presence system (heartbeat, TTL, sweeper). Each has concrete mechanisms. Does not surface non-obvious edge cases like hot key sharding or GC tail latency.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Tradeoffs table covers CAP, push vs pull, ordering, DB choice, group fan-out, presence accuracy. Failure scenarios include MS crash, gateway crash, DB partition, fan-out spikes, duplicates, celebrity bursts, each with mitigations. Acknowledges limits (presence delay, offline pull). No deeper non-obvious failure mode (e.g., thundering herd) explored.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

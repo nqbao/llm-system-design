@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-03/gemini-3.1-pro/url-shortener_cold.json",
+  "question_id": "url-shortener",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-03T22:06:18.191741+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists both functional requirements (shortening, redirection, custom URLs, expiration, analytics) and non-functional requirements with specific targets (99.99% uptime, <50ms latency, 100:1 read/write ratio). However, it does not state explicit non-goals, does not resolve any ambiguity in the prompt, and the non-functionals lack full quantification (e.g., no durability guarantee, no explicit throughput SLA beyond the latency target). The availability and latency targets are stated but not justified against a business case.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives a full estimation chain: assumptions to write RPS (40) to read RPS (4,000) to peak RPS (20,000) to total URLs (12B) to storage (12TB) to cache size (69GB). Numbers are correctly derived and propagate into design decisions (e.g., 7-char Base62 chosen because 12B URLs fit within 3.5T capacity; Redis cluster sized at 69GB; 20,000 peak RPS drives the need for caching). The 5x peak multiplier is stated but not justified. No fragile-assumption flagging or sanity-check of results (e.g., 12TB — is that reasonable for a Cassandra cluster?).",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified: KGS addresses collision/bottleneck concerns, Redis absorbs the 20,000 read RPS, Kafka decouples analytics from the <50ms latency requirement, Cassandra handles 12TB horizontal scaling. The Mermaid diagram provides a clear end-to-end data flow. No hallucinated services. The 302 redirect decision is tied directly to the analytics requirement. The architecture is coherent and traceable.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are present: KGS with batch-loading mechanism, named tradeoff (lost keys on crash vs. write speed), and concrete batch size (1,000 keys); database schema with explicit partition key choice and reasoning; caching strategy with LRU eviction and 301 vs. 302 tradeoff with concrete pros/cons; analytics pipeline with specific technology choices (Kafka to Flink to ClickHouse) and the async rationale. The thundering herd failure mode is surfaced with a concrete mutex mitigation and the hot partition scenario is identified with a specific shielding mechanism. This meets the bar for non-obvious edge cases.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Four distinct failure modes are addressed with specific mitigations: thundering herd (mutex locking), malicious URLs (async Safe Browsing scan with DB status flag), KGS outage (active-standby plus fallback hashing), and hot partitions (Redis shielding). The 301 vs. 302 tradeoff is concretely scoped to the analytics requirement. The KGS key-loss tradeoff is quantified against the 3.5T key space. The response does not explicitly acknowledge its own design limits and the hot-partition mitigation is somewhat shallow. Missing the explicit self-limitation acknowledgment required for a score of 5.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response lists both functional requirements (shortening, redirection, custom URLs, expiration, analytics) and non-functional requirements with specific targets (99.99% uptime, <50ms latency, 100:1 read/write ratio). However, it does not state explicit non-goals, does not resolve any ambiguity in the prompt, and the non-functionals lack full quantification (e.g., no durability guarantee, no explicit throughput SLA beyond the latency target). The availability and latency targets are stated but not justified against a business case.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The response derives a full estimation chain: assumptions to write RPS (40) to read RPS (4,000) to peak RPS (20,000) to total URLs (12B) to storage (12TB) to cache size (69GB). Numbers are correctly derived and propagate into design decisions (e.g., 7-char Base62 chosen because 12B URLs fit within 3.5T capacity; Redis cluster sized at 69GB; 20,000 peak RPS drives the need for caching). The 5x peak multiplier is stated but not justified. No fragile-assumption flagging or sanity-check of results (e.g., 12TB — is that reasonable for a Cassandra cluster?).\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified: KGS addresses collision/bottleneck concerns, Redis absorbs the 20,000 read RPS, Kafka decouples analytics from the <50ms latency requirement, Cassandra handles 12TB horizontal scaling. The Mermaid diagram provides a clear end-to-end data flow. No hallucinated services. The 302 redirect decision is tied directly to the analytics requirement. The architecture is coherent and traceable.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives are present: KGS with batch-loading mechanism, named tradeoff (lost keys on crash vs. write speed), and concrete batch size (1,000 keys); database schema with explicit partition key choice and reasoning; caching strategy with LRU eviction and 301 vs. 302 tradeoff with concrete pros/cons; analytics pipeline with specific technology choices (Kafka to Flink to ClickHouse) and the async rationale. The thundering herd failure mode is surfaced with a concrete mutex mitigation and the hot partition scenario is identified with a specific shielding mechanism. This meets the bar for non-obvious edge cases.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Four distinct failure modes are addressed with specific mitigations: thundering herd (mutex locking), malicious URLs (async Safe Browsing scan with DB status flag), KGS outage (active-standby plus fallback hashing), and hot partitions (Redis shielding). The 301 vs. 302 tradeoff is concretely scoped to the analytics requirement. The KGS key-loss tradeoff is quantified against the 3.5T key space. The response does not explicitly acknowledge its own design limits and the hot-partition mitigation is somewhat shallow. Missing the explicit self-limitation acknowledgment required for a score of 5.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

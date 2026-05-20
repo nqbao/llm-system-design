@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-5.4/url-shortener_cold.json",
+  "question_id": "url-shortener",
+  "variant": "cold",
+  "model_under_test": "gpt-5.4",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T14:04:31.372822+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists functional and non-functional requirements, states explicit assumptions (30M new URLs/day, 3B redirects/day, 10x peak), and provides quantified SLAs for availability (99.99% redirects, 99.9% creates). However, latency is described only as 'very low' without a specific target, and no explicit non-goals are stated (e.g., 'we are not building X'). This meets the criteria for a score of 3.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The design derives QPS (writes and reads at average and peak), short code capacity, and storage estimates from the initial assumptions. These numbers are then used to drive subsequent decisions, such as caching layers (CDN hit rate → DB QPS) and sharding (QPS per shard). This constitutes a full estimation chain that demonstrably influences the architecture, warranting a score of 4.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (CDN, API Gateway, Shorten Service, ID Allocator, KV store, Redis, Kafka, OLAP, etc.) is justified against a specific requirement or capacity number. The data flow is traceable end-to-end for create, redirect, and analytics paths, with no hallucinations. The description is genuinely informative and coherent, meeting the criteria for a score of 4.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response provides multiple deep-dives (key generation, write path, caching strategy, sharding, multi-region) with concrete mechanisms (range leasing with reversible permutation, three-tier caching, hash-based sharding with virtual shards) and named tradeoffs (random vs. sequential IDs, 301 vs. 302 for mutable links). This goes beyond surface-level explanation and demonstrates understanding of why, not just what. A score of 4 is appropriate.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design explicitly lists chosen tradeoffs (immutable links, single writer, async analytics, obfuscated sequential IDs, no global dedupe) tied to specific decisions. Failure modes (cache outage, ID allocator down, DB shard failure, brute-force scanning, key reuse) are discussed with concrete mitigations. Non-obvious edge cases like thundering herd and cache stampede are addressed. This aligns with a score of 4.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response lists functional and non-functional requirements, states explicit assumptions (30M new URLs/day, 3B redirects/day, 10x peak), and provides quantified SLAs for availability (99.99% redirects, 99.9% creates). However, latency is described only as 'very low' without a specific target, and no explicit non-goals are stated (e.g., 'we are not building X'). This meets the criteria for a score of 3.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The design derives QPS (writes and reads at average and peak), short code capacity, and storage estimates from the initial assumptions. These numbers are then used to drive subsequent decisions, such as caching layers (CDN hit rate → DB QPS) and sharding (QPS per shard). This constitutes a full estimation chain that demonstrably influences the architecture, warranting a score of 4.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (CDN, API Gateway, Shorten Service, ID Allocator, KV store, Redis, Kafka, OLAP, etc.) is justified against a specific requirement or capacity number. The data flow is traceable end-to-end for create, redirect, and analytics paths, with no hallucinations. The description is genuinely informative and coherent, meeting the criteria for a score of 4.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response provides multiple deep-dives (key generation, write path, caching strategy, sharding, multi-region) with concrete mechanisms (range leasing with reversible permutation, three-tier caching, hash-based sharding with virtual shards) and named tradeoffs (random vs. sequential IDs, 301 vs. 302 for mutable links). This goes beyond surface-level explanation and demonstrates understanding of why, not just what. A score of 4 is appropriate.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The design explicitly lists chosen tradeoffs (immutable links, single writer, async analytics, obfuscated sequential IDs, no global dedupe) tied to specific decisions. Failure modes (cache outage, ID allocator down, DB shard failure, brute-force scanning, key reuse) are discussed with concrete mitigations. Non-obvious edge cases like thundering herd and cache stampede are addressed. This aligns with a score of 4.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

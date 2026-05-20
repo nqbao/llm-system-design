@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-02/deepseek-v4-pro/global-object-store_cold.json",
+  "question_id": "global-object-store",
+  "variant": "cold",
+  "model_under_test": "deepseek-v4-pro",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-02T23:12:12.136317+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response provides both functional requirements (bucket management, object operations, global namespace, consistency model) and quantified non-functional requirements (11 nines durability, 99.99% availability, <100ms regional latency, exabyte scale). Assumptions about scale are stated explicitly (1EB data, 100B objects, 1M writes/sec). However, there are no explicit non-goals and no resolution of prompt ambiguities. The consistency model is well-specified but the justification for choosing those specific targets is absent.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The estimation chain is solid: assumptions (1EB, 100B objects, 1M writes/sec) -> metadata size (100TB raw, 300TB replicated) -> shard count (10K shards, ~3K physical nodes) -> storage nodes (1.4EB / 100TB usable = 14K nodes) -> per-node bandwidth (7MB/s write, 71MB/s read). Numbers propagate into design decisions. However, the response uses 10KB average object size for metadata math but 100KB for bandwidth math without acknowledging the inconsistency, and does not sanity-check results or flag fragile assumptions.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every major component (CDN, API Gateway, Metadata Store, Storage Nodes, CRR Service) is tied to a stated requirement. The data flow is traceable end-to-end for both read and write paths. The two-phase write (WAL to erasure coding to metadata update) is coherent and well-explained. Kafka for CRR is named and justified. No hallucinated services are present. The design correctly identifies that the root partition map must itself be globally replicated.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives with concrete mechanisms: erasure coding with specific RS parameters (RS(10,4) vs RS(6,2)) and durability math tied to AFR and repair window; metadata partitioning with Raft replication groups and ops/sec per shard; two-phase write path with crash recovery semantics. Each includes named tradeoffs. The hot-spot failure mode surfaces a non-obvious mitigation (replicating the manifest to many nodes for parallel fragment fetching). The object size inconsistency slightly undermines the storage node deep-dive.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The tradeoffs table covers four concrete decisions with rationale and consequences. Failure modes table covers six scenarios with specific mitigations including the non-obvious hot-spot object case. However, tradeoffs are not quantified with latency or throughput numbers, and the design does not explicitly acknowledge its own limits. The cross-region partial partition scenario where the CRR service is partitioned from the source region is not addressed.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response provides both functional requirements (bucket management, object operations, global namespace, consistency model) and quantified non-functional requirements (11 nines durability, 99.99% availability, <100ms regional latency, exabyte scale). Assumptions about scale are stated explicitly (1EB data, 100B objects, 1M writes/sec). However, there are no explicit non-goals and no resolution of prompt ambiguities. The consistency model is well-specified but the justification for choosing those specific targets is absent.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The estimation chain is solid: assumptions (1EB, 100B objects, 1M writes/sec) -> metadata size (100TB raw, 300TB replicated) -> shard count (10K shards, ~3K physical nodes) -> storage nodes (1.4EB / 100TB usable = 14K nodes) -> per-node bandwidth (7MB/s write, 71MB/s read). Numbers propagate into design decisions. However, the response uses 10KB average object size for metadata math but 100KB for bandwidth math without acknowledging the inconsistency, and does not sanity-check results or flag fragile assumptions.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every major component (CDN, API Gateway, Metadata Store, Storage Nodes, CRR Service) is tied to a stated requirement. The data flow is traceable end-to-end for both read and write paths. The two-phase write (WAL to erasure coding to metadata update) is coherent and well-explained. Kafka for CRR is named and justified. No hallucinated services are present. The design correctly identifies that the root partition map must itself be globally replicated.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives with concrete mechanisms: erasure coding with specific RS parameters (RS(10,4) vs RS(6,2)) and durability math tied to AFR and repair window; metadata partitioning with Raft replication groups and ops/sec per shard; two-phase write path with crash recovery semantics. Each includes named tradeoffs. The hot-spot failure mode surfaces a non-obvious mitigation (replicating the manifest to many nodes for parallel fragment fetching). The object size inconsistency slightly undermines the storage node deep-dive.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The tradeoffs table covers four concrete decisions with rationale and consequences. Failure modes table covers six scenarios with specific mitigations including the non-obvious hot-spot object case. However, tradeoffs are not quantified with latency or throughput numbers, and the design does not explicitly acknowledge its own limits. The cross-region partial partition scenario where the CRR service is partitioned from the source region is not addressed.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

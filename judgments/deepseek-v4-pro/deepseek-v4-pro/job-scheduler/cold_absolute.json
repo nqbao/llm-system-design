@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/deepseek-v4-pro/job-scheduler_cold.json",
+  "question_id": "job-scheduler",
+  "variant": "cold",
+  "model_under_test": "deepseek-v4-pro",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T07:24:00.462725+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The overview mentions functional requirements (job submissions, persistence, execution) and non-functional (scalable, fault-tolerant) but does not separate them or state explicit assumptions. No quantified SLAs are provided.",
+        "score": 2
+      },
+      "capacity_estimation": {
+        "reasoning": "Section 5 has detailed capacity planning: assumptions, QPS derivation, worker sizing, Kafka throughput and storage, DB write rates. Numbers drive design choices like worker count, partition count, and etcd vs Postgres. Includes a sanity check on etcd write limits.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "All components (API, leader, followers, cron, DB, MQ, workers) connect to requirements. Data flow is traceable: job submission to DB and MQ, scheduler orchestration, worker pull from MQ. Components are justified (e.g., Kafka for durability, partitioning). No hallucinations.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Deep-dives on Kafka queue (partitioning key, replication, offset commit), metadata store (schema, heartbeats), and scheduling algorithm (hybrid priority approach with tradeoff reasoning). Each provides concrete mechanisms and tradeoffs, demonstrating knowing WHY.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 6 presents specific tradeoffs with choices and rationale (Kafka vs Redis, at-least-once vs exactly-once, pull vs push, hybrid priority, metadata consistency, dependency resolution). Section 7 covers failure scenarios with mitigations. Tradeoffs are concrete and tied to decisions. No explicit acknowledgement of design limits or non-obvious failure modes (like thundering herd).",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The overview mentions functional requirements (job submissions, persistence, execution) and non-functional (scalable, fault-tolerant) but does not separate them or state explicit assumptions. No quantified SLAs are provided.\",\n    \"score\": 2\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Section 5 has detailed capacity planning: assumptions, QPS derivation, worker sizing, Kafka throughput and storage, DB write rates. Numbers drive design choices like worker count, partition count, and etcd vs Postgres. Includes a sanity check on etcd write limits.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"All components (API, leader, followers, cron, DB, MQ, workers) connect to requirements. Data flow is traceable: job submission to DB and MQ, scheduler orchestration, worker pull from MQ. Components are justified (e.g., Kafka for durability, partitioning). No hallucinations.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Deep-dives on Kafka queue (partitioning key, replication, offset commit), metadata store (schema, heartbeats), and scheduling algorithm (hybrid priority approach with tradeoff reasoning). Each provides concrete mechanisms and tradeoffs, demonstrating knowing WHY.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Section 6 presents specific tradeoffs with choices and rationale (Kafka vs Redis, at-least-once vs exactly-once, pull vs push, hybrid priority, metadata consistency, dependency resolution). Section 7 covers failure scenarios with mitigations. Tradeoffs are concrete and tied to decisions. No explicit acknowledgement of design limits or non-obvious failure modes (like thundering herd).\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-20b/metrics-aggregation_cold.json",
+  "question_id": "metrics-aggregation",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-20b",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T07:32:39.803950+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with a clear requirements table covering throughput (1.16M evt/s), event size (200B), retention (7 days), window resolution (10s), latency (5s), availability (99.99%), and security/observability. Non-functionals are quantified with specific targets. However, there are no explicit non-goals, no ambiguity resolution from the prompt, and assumptions like 200B event size and 100M distinct key combinations are stated but never justified. This lands solidly at level 3, not reaching level 4.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "A derivation chain exists: 100B events/day to 1.16M/s to 232 MB/s to storage, then partitions, then core count. Numbers do propagate into design choices (400 partitions derived at 2 MB/s each; 116 Flink cores from 1.16M/10K). However, there are notable errors: the checkpoint estimate of 512 TB/day is wildly inconsistent with the stated Flink state of ~8 GB; the 75 TB broker-disk figure in the component table does not reconcile with the 420 TB figure in Section 4; and no result is sanity-checked. The chain exists but reliability is undermined by these internal inconsistencies, keeping this at level 3.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every major component is tied to a specific requirement: Kafka for durable buffering and replay, Flink for sub-5s exactly-once aggregation, Druid for real-time OLAP, S3/Kafka Connect for 7-day retention. The data flow is traceable end-to-end and both a textual table and Mermaid diagram are provided. The ClickHouse fallback is somewhat weakly justified since Druid also supports SQL, and the combined Druid plus ClickHouse plus Presto query layer introduces redundancy without a fully convincing explanation. Still, the core architecture is coherent and informative, meriting a 4.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The Kafka deep-dive is concrete: 12 brokers, 400 partitions derived from 232 MB/s at 2 MB/s per partition, RF=3, min.insync.replicas=2, acks=all, and disk math shown. The Flink deep-dive specifies RocksDB as state backend with TTL, 512-slot parallelism justified by CPU estimate, 30s checkpoint interval to S3, and KafkaSink for exactly-once. Two concrete mechanisms are present. However, why RocksDB was chosen over heap state is never explained, no hot-key skew in Kafka partitioning is addressed, and no non-obvious failure modes like RocksDB write amplification or thundering herd on checkpoint restore are surfaced. This sits at level 3.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 11 provides a structured tradeoffs table covering Kafka vs Pulsar, Flink vs Spark, Druid vs ClickHouse, and S3 vs HDFS, each with pros and cons tied to specific decisions. Section 5 enumerates eight failure modes with mitigations. However, tradeoffs are not quantified with latency or cost deltas, and failure mitigations are largely procedural rather than architectural. Non-obvious failure modes like hot-key skew, checkpoint restore thundering herd, or write amplification under compaction are absent. The design does not explicitly acknowledge its own limits. This is a solid level 3 with breadth but insufficient depth or quantification to reach level 4.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with a clear requirements table covering throughput (1.16M evt/s), event size (200B), retention (7 days), window resolution (10s), latency (5s), availability (99.99%), and security/observability. Non-functionals are quantified with specific targets. However, there are no explicit non-goals, no ambiguity resolution from the prompt, and assumptions like 200B event size and 100M distinct key combinations are stated but never justified. This lands solidly at level 3, not reaching level 4.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"A derivation chain exists: 100B events/day to 1.16M/s to 232 MB/s to storage, then partitions, then core count. Numbers do propagate into design choices (400 partitions derived at 2 MB/s each; 116 Flink cores from 1.16M/10K). However, there are notable errors: the checkpoint estimate of 512 TB/day is wildly inconsistent with the stated Flink state of ~8 GB; the 75 TB broker-disk figure in the component table does not reconcile with the 420 TB figure in Section 4; and no result is sanity-checked. The chain exists but reliability is undermined by these internal inconsistencies, keeping this at level 3.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every major component is tied to a specific requirement: Kafka for durable buffering and replay, Flink for sub-5s exactly-once aggregation, Druid for real-time OLAP, S3/Kafka Connect for 7-day retention. The data flow is traceable end-to-end and both a textual table and Mermaid diagram are provided. The ClickHouse fallback is somewhat weakly justified since Druid also supports SQL, and the combined Druid plus ClickHouse plus Presto query layer introduces redundancy without a fully convincing explanation. Still, the core architecture is coherent and informative, meriting a 4.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"The Kafka deep-dive is concrete: 12 brokers, 400 partitions derived from 232 MB/s at 2 MB/s per partition, RF=3, min.insync.replicas=2, acks=all, and disk math shown. The Flink deep-dive specifies RocksDB as state backend with TTL, 512-slot parallelism justified by CPU estimate, 30s checkpoint interval to S3, and KafkaSink for exactly-once. Two concrete mechanisms are present. However, why RocksDB was chosen over heap state is never explained, no hot-key skew in Kafka partitioning is addressed, and no non-obvious failure modes like RocksDB write amplification or thundering herd on checkpoint restore are surfaced. This sits at level 3.\", \"score\": 3}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 11 provides a structured tradeoffs table covering Kafka vs Pulsar, Flink vs Spark, Druid vs ClickHouse, and S3 vs HDFS, each with pros and cons tied to specific decisions. Section 5 enumerates eight failure modes with mitigations. However, tradeoffs are not quantified with latency or cost deltas, and failure mitigations are largely procedural rather than architectural. Non-obvious failure modes like hot-key skew, checkpoint restore thundering herd, or write amplification under compaction are absent. The design does not explicitly acknowledge its own limits. This is a solid level 3 with breadth but insufficient depth or quantification to reach level 4.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 3
+  }
+}

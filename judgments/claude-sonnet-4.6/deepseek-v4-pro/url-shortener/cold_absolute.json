@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/deepseek-v4-pro/url-shortener_cold.json",
+  "question_id": "url-shortener",
+  "variant": "cold",
+  "model_under_test": "deepseek-v4-pro",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T06:23:40.514241+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Both functional and non-functional requirements are present and quantified: 99.99% uptime, <100ms redirect latency, 1B new URLs/month, 100:1 read/write ratio. Assumptions are stated (scale, ratio, record size). However, there are no explicit non-goals and no ambiguity resolution from the prompt, both required for a 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "A full estimation chain is present: 1B/month -> 400 writes/sec -> 40k reads/sec -> 1KB/record -> 1TB/month -> 60TB/5yr -> 6.6GB cache -> 15GB Redis cluster. Numbers demonstrably drive design choices: 40k RPS justifies 16-32 shards. Cache hit ratio (80%) is used to reduce DB load to 8k RPS. However, no fragile-assumption flagging and no sanity-check commentary are present, both required for a 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against a specific requirement or capacity number. The 302-vs-301 choice is correctly identified as a non-obvious decision with concrete reasoning (browser caching kills analytics). Data flow is traceable end-to-end for both write and read paths. The bloom filter mention for non-existent codes is a targeted anti-pattern avoidance. Falls just short of 5 because the KGS+pool pattern is a well-known URL-shortener convention rather than a surprising architectural insight.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives with concrete mechanisms: the atomic SQL key claim, sharding strategy by short_code, 7-char base62 math with capacity justification, ClickHouse SummingMergeTree semantics, and the cleanup grace-period race condition. Named tradeoffs with reasoning are present. However, the response does not surface a truly non-obvious failure mode like thundering herd on cache miss or write amplification in the key pool under high contention, which would push to 5.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "A dedicated tradeoffs table and failure-modes table are both present with specific mitigations including circuit-breakers, Patroni failover, and 70%-utilization alerts. The 302-vs-301 and pool-vs-hash tradeoffs are well-reasoned. However, tradeoffs are not numerically quantified and the design does not explicitly acknowledge its own limits, both required for a 5.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"Both functional and non-functional requirements are present and quantified: 99.99% uptime, <100ms redirect latency, 1B new URLs/month, 100:1 read/write ratio. Assumptions are stated (scale, ratio, record size). However, there are no explicit non-goals and no ambiguity resolution from the prompt, both required for a 5.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"A full estimation chain is present: 1B/month -> 400 writes/sec -> 40k reads/sec -> 1KB/record -> 1TB/month -> 60TB/5yr -> 6.6GB cache -> 15GB Redis cluster. Numbers demonstrably drive design choices: 40k RPS justifies 16-32 shards. Cache hit ratio (80%) is used to reduce DB load to 8k RPS. However, no fragile-assumption flagging and no sanity-check commentary are present, both required for a 5.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified against a specific requirement or capacity number. The 302-vs-301 choice is correctly identified as a non-obvious decision with concrete reasoning (browser caching kills analytics). Data flow is traceable end-to-end for both write and read paths. The bloom filter mention for non-existent codes is a targeted anti-pattern avoidance. Falls just short of 5 because the KGS+pool pattern is a well-known URL-shortener convention rather than a surprising architectural insight.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives with concrete mechanisms: the atomic SQL key claim, sharding strategy by short_code, 7-char base62 math with capacity justification, ClickHouse SummingMergeTree semantics, and the cleanup grace-period race condition. Named tradeoffs with reasoning are present. However, the response does not surface a truly non-obvious failure mode like thundering herd on cache miss or write amplification in the key pool under high contention, which would push to 5.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"A dedicated tradeoffs table and failure-modes table are both present with specific mitigations including circuit-breakers, Patroni failover, and 70%-utilization alerts. The 302-vs-301 and pool-vs-hash tradeoffs are well-reasoned. However, tradeoffs are not numerically quantified and the design does not explicitly acknowledge its own limits, both required for a 5.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

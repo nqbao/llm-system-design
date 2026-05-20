@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-120b/news-feed_cold.json",
+  "question_id": "news-feed",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-06T05:33:48.800883+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists functional, non-functional, and operational requirements with quantified non-functional targets (p95 latency 200ms, 99.99% uptime, 1B DAU). Assumptions are stated (DAU, posts/user, followers) and justified. However, no explicit non-goals are set, and it does not resolve an ambiguity from the prompt, so it falls short of a 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The capacity planning section fully derives QPS (93k writes peak, 2.8M reads peak), storage (20TB over 30 days), and bandwidth from assumptions. Numbers demonstrably drive component sizing (Redis shards, Cassandra replicas). However, it does not flag fragile assumptions or provide a sanity check, so it doesn't reach 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component in the diagram and table is linked to specific requirements (e.g., Post Service → handle writes, Fan-out Service → push to timelines). Data flow is traceable end-to-end via sync and async paths. No hallucinated components; all tech choices are justified. The description is genuinely informative. No anti-pattern avoidance is highlighted, but otherwise it achieves 4.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response provides multiple deep dives: hybrid push/pull with fan-out service, consistency mechanisms (snowflake IDs, idempotent writes), and scaling techniques. Each includes concrete mechanisms (e.g., Kafka offset commit, Redis atomic INCR) and named tradeoffs with reasoning (push vs pull decision matrix). It surfaces non-obvious edge cases like hot-shard overload for celebrities, write amplification, and cross-device deduplication, addressing them specifically. This meets the criteria for a 5.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response explicitly discusses tradeoffs (hybrid vs push vs pull, Cassandra vs DynamoDB, Redis vs Memcached) with a decision matrix and reasoning tied to specific decisions. Failure modes are extensive (Kafka broker failure, DB outage, cache loss, hot shard) with concrete mitigations and graceful degradation (pull fallback). However, it does not explicitly state its own limits (e.g., 'this design cannot handle X'), which the rubric requires for a 5. Thus it scores 4.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response lists functional, non-functional, and operational requirements with quantified non-functional targets (p95 latency 200ms, 99.99% uptime, 1B DAU). Assumptions are stated (DAU, posts/user, followers) and justified. However, no explicit non-goals are set, and it does not resolve an ambiguity from the prompt, so it falls short of a 5.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The capacity planning section fully derives QPS (93k writes peak, 2.8M reads peak), storage (20TB over 30 days), and bandwidth from assumptions. Numbers demonstrably drive component sizing (Redis shards, Cassandra replicas). However, it does not flag fragile assumptions or provide a sanity check, so it doesn't reach 5.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component in the diagram and table is linked to specific requirements (e.g., Post Service → handle writes, Fan-out Service → push to timelines). Data flow is traceable end-to-end via sync and async paths. No hallucinated components; all tech choices are justified. The description is genuinely informative. No anti-pattern avoidance is highlighted, but otherwise it achieves 4.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response provides multiple deep dives: hybrid push/pull with fan-out service, consistency mechanisms (snowflake IDs, idempotent writes), and scaling techniques. Each includes concrete mechanisms (e.g., Kafka offset commit, Redis atomic INCR) and named tradeoffs with reasoning (push vs pull decision matrix). It surfaces non-obvious edge cases like hot-shard overload for celebrities, write amplification, and cross-device deduplication, addressing them specifically. This meets the criteria for a 5.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The response explicitly discusses tradeoffs (hybrid vs push vs pull, Cassandra vs DynamoDB, Redis vs Memcached) with a decision matrix and reasoning tied to specific decisions. Failure modes are extensive (Kafka broker failure, DB outage, cache loss, hot shard) with concrete mitigations and graceful degradation (pull fallback). However, it does not explicitly state its own limits (e.g., 'this design cannot handle X'), which the rubric requires for a 5. Thus it scores 4.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

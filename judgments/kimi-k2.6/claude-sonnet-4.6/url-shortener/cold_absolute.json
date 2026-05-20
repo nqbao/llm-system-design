@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/claude-sonnet-4.6/url-shortener_cold.json",
+  "question_id": "url-shortener",
+  "variant": "cold",
+  "model_under_test": "claude-sonnet-4.6",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T15:01:24.482833+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with explicit functional and non-functional requirements, including quantified targets (p99 < 20ms, 99.99% uptime, 10B clicks/month). It states clear assumptions (100:1 read:write ratio, bit.ly scale). Crucially, it includes an 'Out of Scope' section explicitly naming non-goals (auth/billing deep-dive, spam pipeline). It also resolves ambiguity by choosing specific scale targets and noting where headroom exists. This exceeds standard expectations.",
+        "score": 5
+      },
+      "capacity_estimation": {
+        "reasoning": "Full estimation chain present: 10B clicks/month → 3,858 RPS average, 11,500 peak; writes 10M/day → 116 WPS. Storage derived from schema sizing (133 bytes/record) → 2.4 TB for mappings, 2 TB/month analytics. Cache sizing from Zipf distribution (24 GB for hot 1%). Numbers demonstrably drive design: 'fits in a few sharded nodes,' 'single large Redis instance,' and the back-of-envelope validation in section 12 shows Redis and MySQL load calculations. However, no explicit sanity-check on whether 2.4 TB feels right or wrong, and no flagging of fragile assumptions (e.g., 100:1 ratio stability at scale).",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against requirements: CDN for latency, Redis for read-heavy pattern, Kafka for analytics decoupling, MySQL for strong consistency on mappings. Data flow is traceable end-to-end with Mermaid diagrams. The counter service choice is defended against hashing and UUID alternatives. One minor gap: the Bloom filter is mentioned as optional but its necessity isn't quantified (would it actually help at 46 RPS DB load?). No hallucinated services; all components serve stated needs.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives with concrete mechanisms: (1) Counter service with exact SQL and range allocation logic, including semi-sync replication detail; (2) Redirect service with explicit L1/L2/L3 cache hierarchy and 301 vs 302 tradeoff with analytics reasoning; (3) Database sharding with consistent hashing discussion and schema; (4) Analytics pipeline with Flink windowing and ClickHouse query example. Tradeoffs named with reasoning: hash prefix sharding, counter vs hash. Missing: no specific non-obvious edge case surfaced in deep-dive (thundering herd is in failure modes table but not explored mechanistically in a deep-dive).",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Tradeoffs are quantified and tied to decisions: 302 chosen over 301 because analytics requires server hits; MySQL over Cassandra because write volume doesn't justify it; active-passive writes for simplicity. Failure modes table covers 12 specific scenarios with mitigations, including non-obvious ones: thundering herd (cache-aside with mutex), SSRF via URL validation, counter service fallback to pre-allocated pools. Explicitly acknowledges design limits: 'slight write latency penalty in non-primary regions,' analytics delay acceptable. However, no explicit 'this design cannot handle X' statement for a hard limit.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with explicit functional and non-functional requirements, including quantified targets (p99 < 20ms, 99.99% uptime, 10B clicks/month). It states clear assumptions (100:1 read:write ratio, bit.ly scale). Crucially, it includes an 'Out of Scope' section explicitly naming non-goals (auth/billing deep-dive, spam pipeline). It also resolves ambiguity by choosing specific scale targets and noting where headroom exists. This exceeds standard expectations.\", \"score\": 5}, \"capacity_estimation\": {\"reasoning\": \"Full estimation chain present: 10B clicks/month → 3,858 RPS average, 11,500 peak; writes 10M/day → 116 WPS. Storage derived from schema sizing (133 bytes/record) → 2.4 TB for mappings, 2 TB/month analytics. Cache sizing from Zipf distribution (24 GB for hot 1%). Numbers demonstrably drive design: 'fits in a few sharded nodes,' 'single large Redis instance,' and the back-of-envelope validation in section 12 shows Redis and MySQL load calculations. However, no explicit sanity-check on whether 2.4 TB feels right or wrong, and no flagging of fragile assumptions (e.g., 100:1 ratio stability at scale).\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified against requirements: CDN for latency, Redis for read-heavy pattern, Kafka for analytics decoupling, MySQL for strong consistency on mappings. Data flow is traceable end-to-end with Mermaid diagrams. The counter service choice is defended against hashing and UUID alternatives. One minor gap: the Bloom filter is mentioned as optional but its necessity isn't quantified (would it actually help at 46 RPS DB load?). No hallucinated services; all components serve stated needs.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives with concrete mechanisms: (1) Counter service with exact SQL and range allocation logic, including semi-sync replication detail; (2) Redirect service with explicit L1/L2/L3 cache hierarchy and 301 vs 302 tradeoff with analytics reasoning; (3) Database sharding with consistent hashing discussion and schema; (4) Analytics pipeline with Flink windowing and ClickHouse query example. Tradeoffs named with reasoning: hash prefix sharding, counter vs hash. Missing: no specific non-obvious edge case surfaced in deep-dive (thundering herd is in failure modes table but not explored mechanistically in a deep-dive).\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Tradeoffs are quantified and tied to decisions: 302 chosen over 301 because analytics requires server hits; MySQL over Cassandra because write volume doesn't justify it; active-passive writes for simplicity. Failure modes table covers 12 specific scenarios with mitigations, including non-obvious ones: thundering herd (cache-aside with mutex), SSRF via URL validation, counter service fallback to pre-allocated pools. Explicitly acknowledges design limits: 'slight write latency penalty in non-primary regions,' analytics delay acceptable. However, no explicit 'this design cannot handle X' statement for a hard limit.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

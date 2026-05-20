@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemma-4-31b-it/job-scheduler_cold.json",
+  "question_id": "job-scheduler",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T06:04:02.175351+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response starts with clear functional requirements (job submission, execution, status tracking, retries, scalability) and non-functional requirements (HA, durability, precision, at-least-once). However, there are no explicit assumptions stated upfront about scale, read/write ratio, or other operational parameters—these only appear later in the capacity section. There are no quantified SLAs (e.g., p99 latency targets, availability percentage). No non-goals are defined, and no ambiguity in the prompt is resolved. The requirements are adequate but not impressive.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives QPS (1,157 average, 5,785 peak), storage (1.4 TB raw, 1.8 TB with indexes), and bandwidth (11.5 MB/s write, 5.8 MB/s read) from explicit assumptions (100M jobs/day, 5x peak, 2KB payload, 7-day retention). The numbers form a connected chain. However, the numbers don't demonstrably drive later design decisions—there's no 'because of X QPS we need Y shards' linkage. No fragile assumptions are flagged, and no sanity check is performed (e.g., 'does 1.8TB make sense?'). The storage conclusion 'easily fits on a modern distributed DB cluster' is hand-wavy rather than component-sizing.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component serves a stated requirement: API gateway for submission, distributed DB for durability/HA, ZooKeeper for coordination to avoid duplicate execution, Kafka for decoupling, workers for execution. The data flow is traceable end-to-end. No hallucinated services. However, there's a notable tension: the response recommends 'CockroachDB or Postgres with Partitioning' and later 'CockroachDB/Cassandra'—these have very different consistency models, and the choice isn't resolved. The optimistic locking mechanism with 'version' column is introduced but never used in the described claim logic (which uses only status check). The architecture description is genuinely informative but has this unresolved inconsistency.",
+        "score": 3
+      },
+      "deep_dive_depth": {
+        "reasoning": "There are two deep-dive attempts: (1) scheduling layer with sharding by job_id, ZooKeeper coordination, polling logic, and conditional update for atomic claim; (2) the precision tradeoff with timer wheels vs polling. The scheduling deep-dive has concrete mechanism but lacks tradeoff reasoning—why job_id sharding specifically? The timer wheel discussion has a named tradeoff (precision vs reliability) with reasoning. However, the optimistic locking 'version' field is never explained in use. No non-obvious edge case is surfaced—thundering herd is named but the solution (sharding) is standard. The 'Reaper' process is mentioned but not deep-dived.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response presents two explicit tradeoffs: precision vs resource utilization (with quantified polling interval: 1 second) and at-least-once vs exactly-once (with clear decision and user mandate for idempotency). Failure modes are presented in a table with specific mitigations: scheduler crash with ZooKeeper rebalancing, worker crash with Reaper process, DB partition with replication factor 3, queue overflow with backpressure, clock drift with NTP. However, tradeoffs are not quantified in terms of latency impact ('adds ~20ms p99'). The design doesn't explicitly acknowledge its own limits ('this design cannot handle X'). The thundering herd mention is superficial—it's named as a problem but the solution is standard sharding without deeper analysis of edge cases like hot shards or power-user concentration.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response starts with clear functional requirements (job submission, execution, status tracking, retries, scalability) and non-functional requirements (HA, durability, precision, at-least-once). However, there are no explicit assumptions stated upfront about scale, read/write ratio, or other operational parameters—these only appear later in the capacity section. There are no quantified SLAs (e.g., p99 latency targets, availability percentage). No non-goals are defined, and no ambiguity in the prompt is resolved. The requirements are adequate but not impressive.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The response derives QPS (1,157 average, 5,785 peak), storage (1.4 TB raw, 1.8 TB with indexes), and bandwidth (11.5 MB/s write, 5.8 MB/s read) from explicit assumptions (100M jobs/day, 5x peak, 2KB payload, 7-day retention). The numbers form a connected chain. However, the numbers don't demonstrably drive later design decisions—there's no 'because of X QPS we need Y shards' linkage. No fragile assumptions are flagged, and no sanity check is performed (e.g., 'does 1.8TB make sense?'). The storage conclusion 'easily fits on a modern distributed DB cluster' is hand-wavy rather than component-sizing.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component serves a stated requirement: API gateway for submission, distributed DB for durability/HA, ZooKeeper for coordination to avoid duplicate execution, Kafka for decoupling, workers for execution. The data flow is traceable end-to-end. No hallucinated services. However, there's a notable tension: the response recommends 'CockroachDB or Postgres with Partitioning' and later 'CockroachDB/Cassandra'—these have very different consistency models, and the choice isn't resolved. The optimistic locking mechanism with 'version' column is introduced but never used in the described claim logic (which uses only status check). The architecture description is genuinely informative but has this unresolved inconsistency.\", \"score\": 3}, \"deep_dive_depth\": {\"reasoning\": \"There are two deep-dive attempts: (1) scheduling layer with sharding by job_id, ZooKeeper coordination, polling logic, and conditional update for atomic claim; (2) the precision tradeoff with timer wheels vs polling. The scheduling deep-dive has concrete mechanism but lacks tradeoff reasoning—why job_id sharding specifically? The timer wheel discussion has a named tradeoff (precision vs reliability) with reasoning. However, the optimistic locking 'version' field is never explained in use. No non-obvious edge case is surfaced—thundering herd is named but the solution (sharding) is standard. The 'Reaper' process is mentioned but not deep-dived.\", \"score\": 3}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The response presents two explicit tradeoffs: precision vs resource utilization (with quantified polling interval: 1 second) and at-least-once vs exactly-once (with clear decision and user mandate for idempotency). Failure modes are presented in a table with specific mitigations: scheduler crash with ZooKeeper rebalancing, worker crash with Reaper process, DB partition with replication factor 3, queue overflow with backpressure, clock drift with NTP. However, tradeoffs are not quantified in terms of latency impact ('adds ~20ms p99'). The design doesn't explicitly acknowledge its own limits ('this design cannot handle X'). The thundering herd mention is superficial—it's named as a problem but the solution is standard sharding without deeper analysis of edge cases like hot shards or power-user concentration.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

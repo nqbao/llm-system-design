@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-5.4/chat-system_cold.json",
+  "question_id": "chat-system",
+  "variant": "cold",
+  "model_under_test": "gpt-5.4",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T07:38:18.226833+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response states functional and non-functional requirements, with quantified non-functional targets (p99 latency, availability). It sets explicit non-goals (voice/video, feed/ranking) and resolves the ambiguous scale by choosing specific assumptions (100M DAU, 40 msgs/user/day) and justifying them. It lacks an explicit note on design changes at 1B users, which prevents a score of 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "A full estimation chain is present: assumptions lead to QPS (46K avg, 370K peak), delivery fanout (11.8B deliveries/day, 1.09M peak), storage (4TB/day), and heartbeat load. These numbers directly drive the hybrid fanout decision and component sizing (gateways, shard leaders, fanout workers). However, there is no explicit fragility flag or sanity check of a result (e.g., 'does 1.46PB/year make sense?'), so it does not meet the level 5 standard.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (edge gateways, shard leaders, replicated log, fanout workers, materializers) is tied to a stated requirement or capacity number. The data flow is traceable end-to-end via the write path sequence diagram. The design explicitly avoids the active-active multi-leader anti-pattern for conversations, explaining why single-leader is chosen, which satisfies the level 5 criterion of identifying and avoiding a specific anti-pattern.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response provides multiple deep-dives, including the write path with idempotency and deduplication, sharding with bucket_id, hybrid fanout with threshold justifications, and the read sync with cursor-based catch-up. Each includes concrete mechanism and tradeoffs (e.g., eager vs lazy fanout). Additionally, it surfaces non-obvious edge cases like split-brain leaders, membership races with serialized ordering, and client clock skew, addressing each specifically. This exceeds the level 4 threshold and reaches level 5.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design presents a tradeoffs table with decisions, choices, benefits, and costs, quantifying some (e.g., shard leader throughput). It includes explicit failure modes with specific mitigations (e.g., split brain, hot channel overload, APNs outage). It acknowledges its own limits, such as the tension between E2E privacy and server-side search/compliance. Non-obvious failure modes like membership race serialization and client clock skew are surfaced. This meets the level 5 criteria of both acknowledging limits and handling non-obvious failure modes.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response states functional and non-functional requirements, with quantified non-functional targets (p99 latency, availability). It sets explicit non-goals (voice/video, feed/ranking) and resolves the ambiguous scale by choosing specific assumptions (100M DAU, 40 msgs/user/day) and justifying them. It lacks an explicit note on design changes at 1B users, which prevents a score of 5.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"A full estimation chain is present: assumptions lead to QPS (46K avg, 370K peak), delivery fanout (11.8B deliveries/day, 1.09M peak), storage (4TB/day), and heartbeat load. These numbers directly drive the hybrid fanout decision and component sizing (gateways, shard leaders, fanout workers). However, there is no explicit fragility flag or sanity check of a result (e.g., 'does 1.46PB/year make sense?'), so it does not meet the level 5 standard.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (edge gateways, shard leaders, replicated log, fanout workers, materializers) is tied to a stated requirement or capacity number. The data flow is traceable end-to-end via the write path sequence diagram. The design explicitly avoids the active-active multi-leader anti-pattern for conversations, explaining why single-leader is chosen, which satisfies the level 5 criterion of identifying and avoiding a specific anti-pattern.\",\n    \"score\": 5\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response provides multiple deep-dives, including the write path with idempotency and deduplication, sharding with bucket_id, hybrid fanout with threshold justifications, and the read sync with cursor-based catch-up. Each includes concrete mechanism and tradeoffs (e.g., eager vs lazy fanout). Additionally, it surfaces non-obvious edge cases like split-brain leaders, membership races with serialized ordering, and client clock skew, addressing each specifically. This exceeds the level 4 threshold and reaches level 5.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The design presents a tradeoffs table with decisions, choices, benefits, and costs, quantifying some (e.g., shard leader throughput). It includes explicit failure modes with specific mitigations (e.g., split brain, hot channel overload, APNs outage). It acknowledges its own limits, such as the tension between E2E privacy and server-side search/compliance. Non-obvious failure modes like membership race serialization and client clock skew are surfaced. This meets the level 5 criteria of both acknowledging limits and handling non-obvious failure modes.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

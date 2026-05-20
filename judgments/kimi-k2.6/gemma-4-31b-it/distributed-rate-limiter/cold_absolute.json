@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemma-4-31b-it/distributed-rate-limiter_cold.json",
+  "question_id": "distributed-rate-limiter",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T05:46:59.772555+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with clear functional requirements (limit requests, distributed enforcement, low latency, accuracy) and non-functional requirements (high availability, scalability). It states explicit assumptions: 100K RPS peak, 10M unique users, 100 RPM limit, 1KB header size. However, it lacks quantified SLAs (no specific p99 latency target, no availability percentage), lacks explicit non-goals, and does not resolve ambiguities in the prompt. The 'sub-5ms' latency is mentioned as a functional requirement rather than a quantified SLA with measurement methodology. No explicit statement of what is NOT being built.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The math is present and derived from assumptions: 100K RPS → storage per user (2.4KB) → total memory (24GB) → Redis cluster sizing. Network I/O is calculated (40 MB/s). However, the numbers don't fully propagate into design choices—there's no explicit 'therefore we need N shards' calculation based on Redis throughput limits. The 100K ops/sec per core claim is stated without sourcing, and there's no sanity check on the 24GB conclusion (is 64GB 'comfortable' with replication overhead?). The bandwidth calculation uses '200 bytes packet' without justification. No fragility analysis of assumptions.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Components connect to requirements: Redis serves distributed consistency, Lua scripts serve atomicity, ZSET serves sliding window accuracy. The data flow is traceable: Gateway → Redis → Lua → return. No hallucinated services. However, the architecture has a coherence gap: the 'L1 Cache' mitigation for hot keys appears in section 5 but isn't in the diagram or architecture description. The 'Consistent Hashing' mention is vague—is this Redis Cluster's native hashing or a custom layer? The Lua script has a subtle bug: using `current_time` as both score and member in ZADD means duplicate timestamps overwrite, losing count accuracy when multiple requests arrive in the same second.",
+        "score": 3
+      },
+      "deep_dive_depth": {
+        "reasoning": "One genuine deep-dive: the Lua script with specific Redis commands (ZREMRANGEBYSCORE, ZCARD, ZADD, EXPIRE) and the atomicity mechanism. However, this deep-dive has a flaw: the ZADD uses timestamp as member, causing collisions for same-second requests. A second shallow dive on hot keys mentions L1 cache and consistent hashing but lacks concrete mechanism (how long is the L1 TTL? what eviction policy?). No tradeoff reasoning within deep-dives—why ZSET over Hash with HINCRBY? The token bucket comparison in the table is shallow (just 'more memory efficient'). No edge cases surfaced in the Lua deep-dive (e.g., what happens at exactly window boundary with EXPIRE?).",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Four specific tradeoffs in table format, each tied to a decision (Redis vs local cache, ZSET vs token bucket, Lua scripts, fail-open). Tradeoffs are named but not quantified. Failure modes are specific: Redis cluster failure, hot key, clock drift, race conditions. Mitigations are concrete for some (Sentinel/Cluster, fail-open, Lua atomicity) but shallow for hot keys ('L1 cache' without sizing or consistency implications). No acknowledgment of design limits (e.g., 'this cannot handle cross-user rate limiting' or 'at 1B users, memory becomes prohibitive'). The clock drift mitigation has a gap: calling TIME adds an extra round-trip, not accounted in latency. No non-obvious failure modes like Lua script saturation on Redis single-threading, or thundering herd on fail-open recovery.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with clear functional requirements (limit requests, distributed enforcement, low latency, accuracy) and non-functional requirements (high availability, scalability). It states explicit assumptions: 100K RPS peak, 10M unique users, 100 RPM limit, 1KB header size. However, it lacks quantified SLAs (no specific p99 latency target, no availability percentage), lacks explicit non-goals, and does not resolve ambiguities in the prompt. The 'sub-5ms' latency is mentioned as a functional requirement rather than a quantified SLA with measurement methodology. No explicit statement of what is NOT being built.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The math is present and derived from assumptions: 100K RPS → storage per user (2.4KB) → total memory (24GB) → Redis cluster sizing. Network I/O is calculated (40 MB/s). However, the numbers don't fully propagate into design choices—there's no explicit 'therefore we need N shards' calculation based on Redis throughput limits. The 100K ops/sec per core claim is stated without sourcing, and there's no sanity check on the 24GB conclusion (is 64GB 'comfortable' with replication overhead?). The bandwidth calculation uses '200 bytes packet' without justification. No fragility analysis of assumptions.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Components connect to requirements: Redis serves distributed consistency, Lua scripts serve atomicity, ZSET serves sliding window accuracy. The data flow is traceable: Gateway → Redis → Lua → return. No hallucinated services. However, the architecture has a coherence gap: the 'L1 Cache' mitigation for hot keys appears in section 5 but isn't in the diagram or architecture description. The 'Consistent Hashing' mention is vague—is this Redis Cluster's native hashing or a custom layer? The Lua script has a subtle bug: using `current_time` as both score and member in ZADD means duplicate timestamps overwrite, losing count accuracy when multiple requests arrive in the same second.\", \"score\": 3}, \"deep_dive_depth\": {\"reasoning\": \"One genuine deep-dive: the Lua script with specific Redis commands (ZREMRANGEBYSCORE, ZCARD, ZADD, EXPIRE) and the atomicity mechanism. However, this deep-dive has a flaw: the ZADD uses timestamp as member, causing collisions for same-second requests. A second shallow dive on hot keys mentions L1 cache and consistent hashing but lacks concrete mechanism (how long is the L1 TTL? what eviction policy?). No tradeoff reasoning within deep-dives—why ZSET over Hash with HINCRBY? The token bucket comparison in the table is shallow (just 'more memory efficient'). No edge cases surfaced in the Lua deep-dive (e.g., what happens at exactly window boundary with EXPIRE?).\", \"score\": 3}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Four specific tradeoffs in table format, each tied to a decision (Redis vs local cache, ZSET vs token bucket, Lua scripts, fail-open). Tradeoffs are named but not quantified. Failure modes are specific: Redis cluster failure, hot key, clock drift, race conditions. Mitigations are concrete for some (Sentinel/Cluster, fail-open, Lua atomicity) but shallow for hot keys ('L1 cache' without sizing or consistency implications). No acknowledgment of design limits (e.g., 'this cannot handle cross-user rate limiting' or 'at 1B users, memory becomes prohibitive'). The clock drift mitigation has a gap: calling TIME adds an extra round-trip, not accounted in latency. No non-obvious failure modes like Lua script saturation on Redis single-threading, or thundering herd on fail-open recovery.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

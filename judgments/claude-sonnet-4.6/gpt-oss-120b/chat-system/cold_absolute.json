@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-120b/chat-system_cold.json",
+  "question_id": "chat-system",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-06T05:31:47.018420+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists both functional requirements (DM, groups, presence, media, search, etc.) and quantified non-functional requirements (< 200ms p95 latency, >= 10k msgs/s throughput, 99.9% uptime, at-least-once delivery, E2EE). Scale assumptions are explicit (10M DAU growing to 100M). However, there are no stated non-goals and no explicit resolution of prompt ambiguity. Assumptions are stated but not justified (e.g., why 35 msgs/user/day is not explained).",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The estimation chain is mostly present: 10M DAU x 35 msgs -> 350M/day -> 29k msgs/s peak -> 75 WebSocket nodes (1.5M connections / 20k per node) and Redis sizing (~1 GiB). Numbers do propagate into concrete design choices. However, there is a mathematical error in the Kafka section conflating replication overhead with capacity gain, the Cassandra write count drops unexplained from 29k to ~6k writes/sec, and no assumption is flagged as fragile nor is any result sanity-checked.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component has a clear role, tech choice, and tie to a stated requirement or capacity number. The Mermaid diagram and end-to-end sequence diagram together make data flow traceable from client send to Cassandra write and push notification. The explicit separation of the real-time path from the storage/analytics path to avoid latency coupling is a justified architectural choice. No hallucinated or decorative services are present.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple concrete deep-dives are present: the Cassandra CQL schema with specific partition key (conv_id), clustering column (timeuuid), ordering strategy; Redis presence structure with specific key patterns, TTL=30s, heartbeat=10s; and E2EE with Signal Protocol, X3DH, double ratchet named explicitly. Each includes a named tradeoff. Clock skew on timeuuid ordering is addressed. However, the hot-partition problem on conv_id for large groups (10k members writing to one partition) is never surfaced, which is the canonical non-obvious failure mode for this exact schema choice.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 5 contains a formal tradeoffs table with 8 specific decisions, each with pros, cons, and a when-to-re-evaluate trigger. Section 6 has 10 failure scenarios with detection methods and concrete mitigations. However, tradeoffs are not quantified numerically, the design never explicitly states what it cannot handle, and the most non-obvious failure mode for this design (hot partition on large group conversations in Cassandra) is absent from both sections.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response lists both functional requirements (DM, groups, presence, media, search, etc.) and quantified non-functional requirements (< 200ms p95 latency, >= 10k msgs/s throughput, 99.9% uptime, at-least-once delivery, E2EE). Scale assumptions are explicit (10M DAU growing to 100M). However, there are no stated non-goals and no explicit resolution of prompt ambiguity. Assumptions are stated but not justified (e.g., why 35 msgs/user/day is not explained).\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The estimation chain is mostly present: 10M DAU x 35 msgs -> 350M/day -> 29k msgs/s peak -> 75 WebSocket nodes (1.5M connections / 20k per node) and Redis sizing (~1 GiB). Numbers do propagate into concrete design choices. However, there is a mathematical error in the Kafka section conflating replication overhead with capacity gain, the Cassandra write count drops unexplained from 29k to ~6k writes/sec, and no assumption is flagged as fragile nor is any result sanity-checked.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component has a clear role, tech choice, and tie to a stated requirement or capacity number. The Mermaid diagram and end-to-end sequence diagram together make data flow traceable from client send to Cassandra write and push notification. The explicit separation of the real-time path from the storage/analytics path to avoid latency coupling is a justified architectural choice. No hallucinated or decorative services are present.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple concrete deep-dives are present: the Cassandra CQL schema with specific partition key (conv_id), clustering column (timeuuid), ordering strategy; Redis presence structure with specific key patterns, TTL=30s, heartbeat=10s; and E2EE with Signal Protocol, X3DH, double ratchet named explicitly. Each includes a named tradeoff. Clock skew on timeuuid ordering is addressed. However, the hot-partition problem on conv_id for large groups (10k members writing to one partition) is never surfaced, which is the canonical non-obvious failure mode for this exact schema choice.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 5 contains a formal tradeoffs table with 8 specific decisions, each with pros, cons, and a when-to-re-evaluate trigger. Section 6 has 10 failure scenarios with detection methods and concrete mitigations. However, tradeoffs are not quantified numerically, the design never explicitly states what it cannot handle, and the most non-obvious failure mode for this design (hot partition on large group conversations in Cassandra) is absent from both sections.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

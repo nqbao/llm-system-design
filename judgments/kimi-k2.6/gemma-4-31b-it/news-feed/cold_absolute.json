@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemma-4-31b-it/news-feed_cold.json",
+  "question_id": "news-feed",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T05:48:40.012969+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with both functional and non-functional requirements. Functionals cover posting, feed generation, following, sorting, and latency. Non-functionals include availability, scalability (500M DAU), eventual consistency, and read-heavy ratio. However, there are no explicit assumptions stated (e.g., 'I assume 500M DAU based on...'), no quantified SLAs beyond the single latency target, and no non-goals or ambiguity resolution. The 'Latency' requirement is oddly placed under Functional rather than Non-Functional. The requirements are adequate but not impressive.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives QPS from DAU assumptions: 580 writes/sec and 58,000 reads/sec from 500M DAU with stated per-user behaviors. Storage estimates include metadata (10 GB/day), media (5 TB/day), and social graph (1.6 TB). However, these numbers don't demonstrably drive design choices—there's no explicit 'because X QPS, we need Y shards' linkage. The refined Redis capacity math in section 6 does propagate (500B IDs → 4TB → 8-10TB with replication → 50-100 nodes), but this appears after the architecture is already presented rather than shaping it. No sanity checks or fragility flags on assumptions.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Components are connected to requirements: Kafka for fan-out queue, Redis for feed cache (read latency), Cassandra for post store (write throughput), S3 for media. The hybrid fan-out approach directly addresses the celebrity problem derived from requirements. No hallucinated services—Neo4j/MySQL for graph is reasonable, though Neo4j is arguably decorative for a simple follow graph (MySQL with proper indexing would suffice). The data flow is traceable end-to-end with the mermaid diagram and textual walkthrough. The architecture description is genuinely informative with clear write/read path separation.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Two genuine deep-dives: (1) The fan-out strategy with concrete push/pull/hybrid mechanism, specific threshold (10K followers), and named tradeoffs; (2) Redis ZSET with specific data structure (Sorted Set), score (timestamp), value (post ID), and explicit limit (500-1000 entries). However, the tradeoff reasoning in the fan-out dive is somewhat generic. The Cassandra partition key (user_id) and clustering key (post_id) are stated but without exploring the hot partition problem this creates for celebrities. No non-obvious edge cases surfaced—hot key is mentioned in failure modes but not as a deep-dive mechanism with specific mitigation design.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Three specific tradeoffs in table format: consistency (eventual vs strong), storage (RAM vs latency), database (Cassandra vs ACID). Three failure modes with specific mitigations: Redis cache miss (fallback to pull model), fan-out lag (priority queues + dropping inactive users), hot key (local LRU cache). However, tradeoffs are not quantified ('adds ~20ms p99'). The hot key mitigation is standard, not non-obvious. The design does not explicitly acknowledge its own limits—e.g., what if celebrity count grows, what if 1000 post IDs is insufficient for power users, what if the 10K threshold is wrong. No mention of partial network partitions, thundering herd during cache warm, or time-of-check-to-time-of-use issues.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with both functional and non-functional requirements. Functionals cover posting, feed generation, following, sorting, and latency. Non-functionals include availability, scalability (500M DAU), eventual consistency, and read-heavy ratio. However, there are no explicit assumptions stated (e.g., 'I assume 500M DAU based on...'), no quantified SLAs beyond the single latency target, and no non-goals or ambiguity resolution. The 'Latency' requirement is oddly placed under Functional rather than Non-Functional. The requirements are adequate but not impressive.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The response derives QPS from DAU assumptions: 580 writes/sec and 58,000 reads/sec from 500M DAU with stated per-user behaviors. Storage estimates include metadata (10 GB/day), media (5 TB/day), and social graph (1.6 TB). However, these numbers don't demonstrably drive design choices—there's no explicit 'because X QPS, we need Y shards' linkage. The refined Redis capacity math in section 6 does propagate (500B IDs → 4TB → 8-10TB with replication → 50-100 nodes), but this appears after the architecture is already presented rather than shaping it. No sanity checks or fragility flags on assumptions.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Components are connected to requirements: Kafka for fan-out queue, Redis for feed cache (read latency), Cassandra for post store (write throughput), S3 for media. The hybrid fan-out approach directly addresses the celebrity problem derived from requirements. No hallucinated services—Neo4j/MySQL for graph is reasonable, though Neo4j is arguably decorative for a simple follow graph (MySQL with proper indexing would suffice). The data flow is traceable end-to-end with the mermaid diagram and textual walkthrough. The architecture description is genuinely informative with clear write/read path separation.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Two genuine deep-dives: (1) The fan-out strategy with concrete push/pull/hybrid mechanism, specific threshold (10K followers), and named tradeoffs; (2) Redis ZSET with specific data structure (Sorted Set), score (timestamp), value (post ID), and explicit limit (500-1000 entries). However, the tradeoff reasoning in the fan-out dive is somewhat generic. The Cassandra partition key (user_id) and clustering key (post_id) are stated but without exploring the hot partition problem this creates for celebrities. No non-obvious edge cases surfaced—hot key is mentioned in failure modes but not as a deep-dive mechanism with specific mitigation design.\", \"score\": 3}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Three specific tradeoffs in table format: consistency (eventual vs strong), storage (RAM vs latency), database (Cassandra vs ACID). Three failure modes with specific mitigations: Redis cache miss (fallback to pull model), fan-out lag (priority queues + dropping inactive users), hot key (local LRU cache). However, tradeoffs are not quantified ('adds ~20ms p99'). The hot key mitigation is standard, not non-obvious. The design does not explicitly acknowledge its own limits—e.g., what if celebrity count grows, what if 1000 post IDs is insufficient for power users, what if the 10K threshold is wrong. No mention of partial network partitions, thundering herd during cache warm, or time-of-check-to-time-of-use issues.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

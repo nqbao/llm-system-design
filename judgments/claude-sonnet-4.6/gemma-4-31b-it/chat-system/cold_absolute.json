@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemma-4-31b-it/chat-system_cold.json",
+  "question_id": "chat-system",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T05:45:10.654793+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response clearly lists functional requirements (one-on-one, group, presence, delivery status, persistence, push notifications) and states the scale assumption (100M DAU). Non-functional requirements are mentioned in the intro (low latency, high availability, eventual consistency) but not quantified with specific targets — no p99 latency budget, no availability SLA percentage. No explicit non-goals are declared, and no prompt ambiguities are surfaced or resolved.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The estimation chain is present and mechanically correct: 100M DAU x 50 msgs gives 5B/day, ~58k avg QPS, 175k peak (3x), plus 1TB/day storage and 3.3M/s presence pings. These numbers do connect to design choices (Cassandra for 1TB/day writes via LSM-trees, Redis clusters for 3.3M presence pings/s, tiered S3 storage for 365TB/year). However, there is no component-level sizing ('at 175k QPS we need N Cassandra nodes'), no bandwidth estimation for the WebSocket layer, and no fragile-assumption flagging or sanity-checking of any result.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component in the diagram is explicitly justified: WebSockets for bidirectionality, Cassandra for write-heavy sequential reads, Redis for write-behind caching and presence TTL, Kafka specifically for decoupling large fan-out in group chats and offline notification delivery, FCM/APNs for the push path. The 6-step message flow traces the end-to-end path from sender to recipient or offline push. No hallucinated services are present, and the stateful WebSocket scaling problem is correctly identified and addressed via a session store.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Two substantive deep-dives are present. The Cassandra schema deep-dive specifies partition key (conversation_id) and clustering key (time-ordered UUID) with a stated reason (sequential read for chat history, LSM-tree for writes). The presence deep-dive specifies a concrete TTL mechanism (60s TTL, 30s heartbeat) and compares push vs. pull with explicit complexity reasoning (O(N^2) vs. O(1)), arriving at a hybrid. However, neither deep-dive surfaces a truly non-obvious failure mode such as hot partitions in Cassandra when conversation_id maps to a celebrity group, or Redis TTL clock skew causing phantom online states.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Two concrete tradeoffs are presented: eventual vs. strong consistency (with 500ms as the acceptable lag threshold and causal consistency via Snowflake IDs as the mitigation) and pull vs. push for presence (with O(N^2) vs. O(1) load quantification and a reasoned hybrid). The failure modes table is specific and actionable, covering reconnect storms (jitter), Cassandra latency (write-behind), message loss (two-phase ACK), and WebSocket crashes (exponential backoff plus resume from last ID). The thundering herd, a non-obvious failure mode, is explicitly named and addressed. The design falls short of a 5 because it never acknowledges its own limits and the consistency tradeoff is not quantified with concrete latency numbers.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response clearly lists functional requirements (one-on-one, group, presence, delivery status, persistence, push notifications) and states the scale assumption (100M DAU). Non-functional requirements are mentioned in the intro (low latency, high availability, eventual consistency) but not quantified with specific targets — no p99 latency budget, no availability SLA percentage. No explicit non-goals are declared, and no prompt ambiguities are surfaced or resolved.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The estimation chain is present and mechanically correct: 100M DAU x 50 msgs gives 5B/day, ~58k avg QPS, 175k peak (3x), plus 1TB/day storage and 3.3M/s presence pings. These numbers do connect to design choices (Cassandra for 1TB/day writes via LSM-trees, Redis clusters for 3.3M presence pings/s, tiered S3 storage for 365TB/year). However, there is no component-level sizing ('at 175k QPS we need N Cassandra nodes'), no bandwidth estimation for the WebSocket layer, and no fragile-assumption flagging or sanity-checking of any result.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component in the diagram is explicitly justified: WebSockets for bidirectionality, Cassandra for write-heavy sequential reads, Redis for write-behind caching and presence TTL, Kafka specifically for decoupling large fan-out in group chats and offline notification delivery, FCM/APNs for the push path. The 6-step message flow traces the end-to-end path from sender to recipient or offline push. No hallucinated services are present, and the stateful WebSocket scaling problem is correctly identified and addressed via a session store.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Two substantive deep-dives are present. The Cassandra schema deep-dive specifies partition key (conversation_id) and clustering key (time-ordered UUID) with a stated reason (sequential read for chat history, LSM-tree for writes). The presence deep-dive specifies a concrete TTL mechanism (60s TTL, 30s heartbeat) and compares push vs. pull with explicit complexity reasoning (O(N^2) vs. O(1)), arriving at a hybrid. However, neither deep-dive surfaces a truly non-obvious failure mode such as hot partitions in Cassandra when conversation_id maps to a celebrity group, or Redis TTL clock skew causing phantom online states.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Two concrete tradeoffs are presented: eventual vs. strong consistency (with 500ms as the acceptable lag threshold and causal consistency via Snowflake IDs as the mitigation) and pull vs. push for presence (with O(N^2) vs. O(1) load quantification and a reasoned hybrid). The failure modes table is specific and actionable, covering reconnect storms (jitter), Cassandra latency (write-behind), message loss (two-phase ACK), and WebSocket crashes (exponential backoff plus resume from last ID). The thundering herd, a non-obvious failure mode, is explicitly named and addressed. The design falls short of a 5 because it never acknowledges its own limits and the consistency tradeoff is not quantified with concrete latency numbers.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

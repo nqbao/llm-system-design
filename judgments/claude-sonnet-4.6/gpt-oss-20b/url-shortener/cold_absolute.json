@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-20b/url-shortener_cold.json",
+  "question_id": "url-shortener",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-20b",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T07:27:01.005101+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response provides both functional requirements (URL creation, redirection, analytics, rate-limiting) and quantified non-functional requirements (create ≤ 50ms, redirect ≤ 5ms, 99.999% uptime, 10M read RPS). Assumptions are stated and justified (10B records over 3 years, 62-char alphabet, 5%/day growth). However, there are no explicit non-goals ('we are NOT building X') and no acknowledgment that the prompt left scale unspecified with a note on what changes at different scales — both of which are required for a 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "There is an estimation chain: 10B URLs × 200B → 2TB storage; 10M read RPS × 70% hot → 7M Redis RPS → 8 shards at 875K each; Cassandra replication factor 3 → 12K writes/s cluster-wide. Numbers do propagate into Redis shard count and Cassandra node sizing. However, there is a significant arithmetic error: the analytics storage table states '200 B × 1 T events = 200 GB' when 200 bytes × 10^12 events = 200 TB, a 1000× error. Additionally, 10M RPS × 86,400s = 864B events/day, not 1T. These errors undercut confidence in the rest of the math. The chain is present but not reliable enough for a 4.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every major component serves a stated requirement: Redis for low-latency redirect, Kafka for analytics decoupling, Cassandra/DynamoDB for durable mapping, CDN for sub-5ms edge redirects. Both the creation and redirect paths are described step-by-step with traceable data flow. The Mermaid diagram reinforces the textual description. Weaknesses: the design never commits to Cassandra vs. DynamoDB, hedging throughout; the diagram's 'Storage & Compute' subgraph shows Redis pointing to Cassandra which is not explained; cost section mixes GCP Bigtable and BigQuery inconsistently with the rest. These issues prevent a 4.",
+        "score": 3
+      },
+      "deep_dive_depth": {
+        "reasoning": "Two solid deep-dives are present. First, key generation: pseudocode for the global atomic counter with conditional writes, explicit tradeoff table (atomic counter vs random+check), and collision analysis (56B capacity for 6-char codes). Second, the caching strategy: 8 shards, dual TTL tiers (5s for hot, 30min for rest), and the cache-aside redirect path. Both include concrete mechanisms and named tradeoffs with reasoning. The response stops short of a 5 because no non-obvious failure mode is surfaced at the mechanism level (e.g., thundering herd on simultaneous cache misses for a popular URL, or hot-key hotspotting despite sharding).",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 11 provides a structured tradeoff table with specific reasoning: 6 vs 5 char codes is quantified ('5 → ~916B collisions; 6 → safe until 56B links'), Cassandra vs DynamoDB is explained as DIY vs managed, ClickHouse vs BigQuery framed around real-time vs multi-dim. Section 12 lists seven failure modes with mitigations (conditional writes for races, LFU for cache eviction, exactly-once semantics for analytics). However, tradeoffs are not quantified in latency or throughput terms (no 'strong consistency adds ~20ms p99'), and no genuinely non-obvious failure mode is surfaced — thundering herd on cache cold-start, hot-key skew in Redis despite sharding, or write amplification in Cassandra with RF=3 are all absent.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response provides both functional requirements (URL creation, redirection, analytics, rate-limiting) and quantified non-functional requirements (create ≤ 50ms, redirect ≤ 5ms, 99.999% uptime, 10M read RPS). Assumptions are stated and justified (10B records over 3 years, 62-char alphabet, 5%/day growth). However, there are no explicit non-goals ('we are NOT building X') and no acknowledgment that the prompt left scale unspecified with a note on what changes at different scales — both of which are required for a 5.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"There is an estimation chain: 10B URLs × 200B → 2TB storage; 10M read RPS × 70% hot → 7M Redis RPS → 8 shards at 875K each; Cassandra replication factor 3 → 12K writes/s cluster-wide. Numbers do propagate into Redis shard count and Cassandra node sizing. However, there is a significant arithmetic error: the analytics storage table states '200 B × 1 T events = 200 GB' when 200 bytes × 10^12 events = 200 TB, a 1000× error. Additionally, 10M RPS × 86,400s = 864B events/day, not 1T. These errors undercut confidence in the rest of the math. The chain is present but not reliable enough for a 4.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every major component serves a stated requirement: Redis for low-latency redirect, Kafka for analytics decoupling, Cassandra/DynamoDB for durable mapping, CDN for sub-5ms edge redirects. Both the creation and redirect paths are described step-by-step with traceable data flow. The Mermaid diagram reinforces the textual description. Weaknesses: the design never commits to Cassandra vs. DynamoDB, hedging throughout; the diagram's 'Storage & Compute' subgraph shows Redis pointing to Cassandra which is not explained; cost section mixes GCP Bigtable and BigQuery inconsistently with the rest. These issues prevent a 4.\", \"score\": 3}, \"deep_dive_depth\": {\"reasoning\": \"Two solid deep-dives are present. First, key generation: pseudocode for the global atomic counter with conditional writes, explicit tradeoff table (atomic counter vs random+check), and collision analysis (56B capacity for 6-char codes). Second, the caching strategy: 8 shards, dual TTL tiers (5s for hot, 30min for rest), and the cache-aside redirect path. Both include concrete mechanisms and named tradeoffs with reasoning. The response stops short of a 5 because no non-obvious failure mode is surfaced at the mechanism level (e.g., thundering herd on simultaneous cache misses for a popular URL, or hot-key hotspotting despite sharding).\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 11 provides a structured tradeoff table with specific reasoning: 6 vs 5 char codes is quantified ('5 → ~916B collisions; 6 → safe until 56B links'), Cassandra vs DynamoDB is explained as DIY vs managed, ClickHouse vs BigQuery framed around real-time vs multi-dim. Section 12 lists seven failure modes with mitigations (conditional writes for races, LFU for cache eviction, exactly-once semantics for analytics). However, tradeoffs are not quantified in latency or throughput terms (no 'strong consistency adds ~20ms p99'), and no genuinely non-obvious failure mode is surfaced — thundering herd on cache cold-start, hot-key skew in Redis despite sharding, or write amplification in Cassandra with RF=3 are all absent.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

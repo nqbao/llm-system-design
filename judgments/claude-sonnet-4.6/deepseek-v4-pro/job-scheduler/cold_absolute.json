@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-02/deepseek-v4-pro/job-scheduler_cold.json",
+  "question_id": "job-scheduler",
+  "variant": "cold",
+  "model_under_test": "deepseek-v4-pro",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-02T23:07:08.813173+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists both functional and non-functional requirements clearly. Non-functionals include a specific availability target (99.99%) and a latency target (sub-second scheduling). However, there are no quantified SLAs beyond these two, no explicit non-goals stated, and no ambiguity resolution (e.g., the prompt does not specify scale and the 10M jobs/day assumption appears in Section 4 without being introduced as a scoping decision in Section 1.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives QPS from the 10M/day assumption (116 avg, 1,160 peak), then uses those numbers to size schedulers (3 shards), DB write load, queue throughput, and worker count (120 workers at peak given 100ms avg job time). The chain is mostly complete and numbers propagate into design decisions. However, the response does not flag which assumptions are fragile, the 100ms avg job time is critical to worker sizing but never questioned, and there is no sanity-check on any result.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against a stated requirement. Data flow is traceable end-to-end via both a graph diagram and a sequence diagram. The choice of Redis Streams vs Kafka is explained with concrete rationale. No hallucinated services are present. The diagrams add real clarity rather than decoration and the architecture description is genuinely informative.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "There are multiple deep-dives: the SQL schema with a partial index, the sharding and polling mechanism with actual SQL, the work queue semantics covering consumer groups and XCLAIM, and the worker retry and idempotency mechanism. The sharding key choice is explained with a named tradeoff. The idempotency key derivation is concrete. However, no write-amplification or PostgreSQL vacuum and bloat concern is raised under high update load, and the stuck RUNNING sweeper edge case appears in the failure section rather than the deep-dive section.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The tradeoff table covers five concrete decisions with chosen options and rationale, all tied to specific design choices rather than generic CAP theorem statements. Failure modes include network partition, stuck RUNNING jobs with a sweeper mitigation, mass worker outage, cron storm, and idempotency token replay. However, no tradeoff is quantified with latency or cost numbers, the design does not explicitly acknowledge its own limits, and the Redis durability risk of data loss on crash before persistence is mentioned only obliquely.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response lists both functional and non-functional requirements clearly. Non-functionals include a specific availability target (99.99%) and a latency target (sub-second scheduling). However, there are no quantified SLAs beyond these two, no explicit non-goals stated, and no ambiguity resolution (e.g., the prompt does not specify scale and the 10M jobs/day assumption appears in Section 4 without being introduced as a scoping decision in Section 1.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The response derives QPS from the 10M/day assumption (116 avg, 1,160 peak), then uses those numbers to size schedulers (3 shards), DB write load, queue throughput, and worker count (120 workers at peak given 100ms avg job time). The chain is mostly complete and numbers propagate into design decisions. However, the response does not flag which assumptions are fragile, the 100ms avg job time is critical to worker sizing but never questioned, and there is no sanity-check on any result.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified against a stated requirement. Data flow is traceable end-to-end via both a graph diagram and a sequence diagram. The choice of Redis Streams vs Kafka is explained with concrete rationale. No hallucinated services are present. The diagrams add real clarity rather than decoration and the architecture description is genuinely informative.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"There are multiple deep-dives: the SQL schema with a partial index, the sharding and polling mechanism with actual SQL, the work queue semantics covering consumer groups and XCLAIM, and the worker retry and idempotency mechanism. The sharding key choice is explained with a named tradeoff. The idempotency key derivation is concrete. However, no write-amplification or PostgreSQL vacuum and bloat concern is raised under high update load, and the stuck RUNNING sweeper edge case appears in the failure section rather than the deep-dive section.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The tradeoff table covers five concrete decisions with chosen options and rationale, all tied to specific design choices rather than generic CAP theorem statements. Failure modes include network partition, stuck RUNNING jobs with a sweeper mitigation, mass worker outage, cron storm, and idempotency token replay. However, no tradeoff is quantified with latency or cost numbers, the design does not explicitly acknowledge its own limits, and the Redis durability risk of data loss on crash before persistence is mentioned only obliquely.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

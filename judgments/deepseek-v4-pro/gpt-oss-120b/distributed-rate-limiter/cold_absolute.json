@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-120b/distributed-rate-limiter_cold.json",
+  "question_id": "distributed-rate-limiter",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-06T05:32:23.399341+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists both functional and non-functional requirements with quantified targets (1M RPS, 99.99% uptime, ≤2ms latency, ≤100GB RAM). It states explicit assumptions in the capacity planning section, such as global peak traffic, number of nodes, and per-shard load. There is no explicit non-goals section, but the problem is well-scoped with a clear statement and typical limits.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The design includes a full chain: assumptions → QPS/storage/bandwidth → component sizing. It derives 250K RPS per shard, 20 MB/s bandwidth, 520 MB memory, and 0.6 ms latency, all of which directly inform the 4-shard Redis cluster and hardware requirements. A sanity check is performed on memory with overhead.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (Load Balancer, Gateway, RLS, Redis, etcd) ties to a stated requirement (e.g., Redis for strong consistency, etcd for dynamic policies). The architecture is clearly depicted in text and diagram, and data flow is traceable from client to decision. No unnecessary components are present.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response explores multiple components in depth: the token bucket algorithm with a detailed Lua script, Redis cluster configuration with sharding key and TTL, RLS service implementation, and scaling strategy. It includes concrete mechanisms and tradeoffs (e.g., centralized vs. local bucket) with clear reasoning, and addresses edge cases like clock skew and hot keys.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "A dedicated trade-off table compares design choices (centralized vs. local, fail-closed vs. fail-open, etc.) with pros/cons. The failure modes table lists specific failures, impact, and mitigations, covering hot keys, network partitions, and persistence lag. The design acknowledges its limits by indicating the centralized approach is suitable for traffic ≤5M RPS and notes when alternatives would be needed. However, it does not explicitly say 'this design cannot handle X' in a standalone limitations statement, and tradeoff quantification is not numeric.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response lists both functional and non-functional requirements with quantified targets (1M RPS, 99.99% uptime, ≤2ms latency, ≤100GB RAM). It states explicit assumptions in the capacity planning section, such as global peak traffic, number of nodes, and per-shard load. There is no explicit non-goals section, but the problem is well-scoped with a clear statement and typical limits.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The design includes a full chain: assumptions → QPS/storage/bandwidth → component sizing. It derives 250K RPS per shard, 20 MB/s bandwidth, 520 MB memory, and 0.6 ms latency, all of which directly inform the 4-shard Redis cluster and hardware requirements. A sanity check is performed on memory with overhead.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component (Load Balancer, Gateway, RLS, Redis, etcd) ties to a stated requirement (e.g., Redis for strong consistency, etcd for dynamic policies). The architecture is clearly depicted in text and diagram, and data flow is traceable from client to decision. No unnecessary components are present.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"The response explores multiple components in depth: the token bucket algorithm with a detailed Lua script, Redis cluster configuration with sharding key and TTL, RLS service implementation, and scaling strategy. It includes concrete mechanisms and tradeoffs (e.g., centralized vs. local bucket) with clear reasoning, and addresses edge cases like clock skew and hot keys.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"A dedicated trade-off table compares design choices (centralized vs. local, fail-closed vs. fail-open, etc.) with pros/cons. The failure modes table lists specific failures, impact, and mitigations, covering hot keys, network partitions, and persistence lag. The design acknowledges its limits by indicating the centralized approach is suitable for traffic ≤5M RPS and notes when alternatives would be needed. However, it does not explicitly say 'this design cannot handle X' in a standalone limitations statement, and tradeoff quantification is not numeric.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

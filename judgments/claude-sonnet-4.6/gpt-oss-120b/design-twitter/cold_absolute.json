@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-120b/design-twitter_cold.json",
+  "question_id": "design-twitter",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-06T05:37:01.998539+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response provides quantified non-functionals (p99 latency ≤100ms, 99.9%/99.99% availability, RPO ≤5 min, RTO ≤2h) and explicit assumptions (100M DAU, 5 tweets/user/day, burst factor 2.5). However, it never states explicit non-goals ('we are NOT building X'), nor does it call out any ambiguity in the original prompt and explain how it was resolved. The justification for some assumptions (e.g., burst factor 2.5) is stated but not argued. This earns a 4 — strong quantified NFRs with stated assumptions — but misses the 5 threshold for explicit non-goals and ambiguity resolution.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "There is a full estimation chain: 100M DAU x 5 tweets = 500M/day = 15k peak TPS = 1.2M fan-out TPS (15k x 200 avg followers) = 25 Cassandra nodes at 50k TPS each. Node counts for Redis and Elasticsearch are also derived from storage estimates, and numbers demonstrably drive design decisions. Weaknesses: the 20M hot tweets assumption for Redis sizing is not derived from stated assumptions; the 12KB tweet size in Redis conflicts with the 300B tweet size stated earlier; the search index is quoted as 30TB but the implied math (1KB x 500M x 30 days) yields 15TB. No fragile assumptions are flagged and there is no sanity-check on extreme outputs like the 900TB/month media figure.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against a specific requirement or capacity number: Cassandra for 1.2M TPS fan-out writes, Redis for sub-ms hot cache, Kafka for decoupled async pipelines, MySQL for ACID source-of-truth, Elasticsearch for full-text search. The data flow is traceable end-to-end from POST /tweet through MySQL, Kafka, fan-out workers, Cassandra, and Redis. The hybrid fan-out is the less-obvious but more correct design choice and is well explained. No dead-weight or hallucinated services are present. It narrowly misses 5 because the diagram has uninformative self-loop replica edges and no explicit called-out anti-pattern avoidance.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple concrete deep-dives are present: fan-out with specific thresholds (<=10k vs >10k followers), batch sizes (100 tweet IDs per batch), back-pressure via max.poll.records, Cassandra schema (partition_key=user_id, clustering=tweet_ts DESC), and a step-by-step Redis cache path. The hot-partition failure mode for celebrity accounts is surfaced as a non-obvious edge case with a specific mitigation (circuit-break to read-pull). The rate limiter uses Redis Lua scripts for atomicity with a named tradeoff. Two or more deep-dives each contain concrete mechanisms and named tradeoffs, and at least one surfaces a non-obvious failure mode, meeting the 5 criteria.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The fan-out strategy comparison table concretely scopes tradeoffs across write load, read latency, storage overhead, and complexity. The consistency table ties specific models to specific decisions with stated consequences (e.g., eventual consistency on home timeline means ≤2s delay). The failure scenarios table covers 11 distinct failure modes with specific detections and mitigations, including non-obvious ones like hot Cassandra partitions from viral celebrity tweets and network partition split-brain. However, the design does not explicitly acknowledge its own limits ('this design cannot handle X; if that becomes a requirement we would need Y'), which is required for a 5.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response provides quantified non-functionals (p99 latency ≤100ms, 99.9%/99.99% availability, RPO ≤5 min, RTO ≤2h) and explicit assumptions (100M DAU, 5 tweets/user/day, burst factor 2.5). However, it never states explicit non-goals ('we are NOT building X'), nor does it call out any ambiguity in the original prompt and explain how it was resolved. The justification for some assumptions (e.g., burst factor 2.5) is stated but not argued. This earns a 4 — strong quantified NFRs with stated assumptions — but misses the 5 threshold for explicit non-goals and ambiguity resolution.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"There is a full estimation chain: 100M DAU x 5 tweets = 500M/day = 15k peak TPS = 1.2M fan-out TPS (15k x 200 avg followers) = 25 Cassandra nodes at 50k TPS each. Node counts for Redis and Elasticsearch are also derived from storage estimates, and numbers demonstrably drive design decisions. Weaknesses: the 20M hot tweets assumption for Redis sizing is not derived from stated assumptions; the 12KB tweet size in Redis conflicts with the 300B tweet size stated earlier; the search index is quoted as 30TB but the implied math (1KB x 500M x 30 days) yields 15TB. No fragile assumptions are flagged and there is no sanity-check on extreme outputs like the 900TB/month media figure.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified against a specific requirement or capacity number: Cassandra for 1.2M TPS fan-out writes, Redis for sub-ms hot cache, Kafka for decoupled async pipelines, MySQL for ACID source-of-truth, Elasticsearch for full-text search. The data flow is traceable end-to-end from POST /tweet through MySQL, Kafka, fan-out workers, Cassandra, and Redis. The hybrid fan-out is the less-obvious but more correct design choice and is well explained. No dead-weight or hallucinated services are present. It narrowly misses 5 because the diagram has uninformative self-loop replica edges and no explicit called-out anti-pattern avoidance.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple concrete deep-dives are present: fan-out with specific thresholds (<=10k vs >10k followers), batch sizes (100 tweet IDs per batch), back-pressure via max.poll.records, Cassandra schema (partition_key=user_id, clustering=tweet_ts DESC), and a step-by-step Redis cache path. The hot-partition failure mode for celebrity accounts is surfaced as a non-obvious edge case with a specific mitigation (circuit-break to read-pull). The rate limiter uses Redis Lua scripts for atomicity with a named tradeoff. Two or more deep-dives each contain concrete mechanisms and named tradeoffs, and at least one surfaces a non-obvious failure mode, meeting the 5 criteria.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The fan-out strategy comparison table concretely scopes tradeoffs across write load, read latency, storage overhead, and complexity. The consistency table ties specific models to specific decisions with stated consequences (e.g., eventual consistency on home timeline means ≤2s delay). The failure scenarios table covers 11 distinct failure modes with specific detections and mitigations, including non-obvious ones like hot Cassandra partitions from viral celebrity tweets and network partition split-brain. However, the design does not explicitly acknowledge its own limits ('this design cannot handle X; if that becomes a requirement we would need Y'), which is required for a 5.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

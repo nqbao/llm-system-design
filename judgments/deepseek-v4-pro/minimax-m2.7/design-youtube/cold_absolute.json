@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/minimax-m2.7/design-youtube_cold.json",
+  "question_id": "design-youtube",
+  "variant": "cold",
+  "model_under_test": "minimax-m2.7",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T06:49:53.339280+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design lists functional requirements (User Management, Video Upload/Processing, Streaming, Discovery) and states a scale assumption (100M active users, 100M videos), but does not state any non-functional requirements like latency, availability, or SLAs. No explicit non-goals or ambiguity resolution.",
+        "score": 2
+      },
+      "capacity_estimation": {
+        "reasoning": "Storage calculation derives ~30PB final and ~60PB raw, but QPS and bandwidth are not derived from user assumptions. Database scaling mentions read/write patterns (e.g., '1 view = 100s of reads') qualitatively, but there is no quantitative QPS target or shard sizing from numbers. Numbers do not drive specific component sizing decisions.",
+        "score": 2
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (User Service, Video Service, Queue, CDN, etc.) maps to a stated functional requirement. Data flows are traceable via sequence diagrams for upload and watch. Redis cache is justified by read-heavy Watch page, Kafka by async processing, and Elasticsearch for search at scale. No hallucinated or decorative components.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The video upload pipeline deep-dive includes concrete mechanisms (presigned URL, Kafka queue, transcoding workers generating HLS segments) and a named tradeoff (Spot vs On-Demand instances with dead letter queue). Other sections (database schema, recommendation) are described but lack a second deep-dive with a tradeoff and concrete mechanism (the SQL vs NoSQL tradeoff is shallow, lacking sharding key analysis). Therefore, only one strong deep-dive.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Two explicit tradeoffs are tied to specific decisions (SQL vs NoSQL hybrid, Search engine vs SQL LIKE). Two failure points (transcoding bottleneck, CDN origin overload) are identified with mitigations (auto-scaling + priority queues, origin shield). However, none are quantified (e.g., latency/cost impact) and the discussion remains at a moderate depth, not surfacing non-obvious failure modes like thundering herd.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The design lists functional requirements (User Management, Video Upload/Processing, Streaming, Discovery) and states a scale assumption (100M active users, 100M videos), but does not state any non-functional requirements like latency, availability, or SLAs. No explicit non-goals or ambiguity resolution.\",\n    \"score\": 2\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Storage calculation derives ~30PB final and ~60PB raw, but QPS and bandwidth are not derived from user assumptions. Database scaling mentions read/write patterns (e.g., '1 view = 100s of reads') qualitatively, but there is no quantitative QPS target or shard sizing from numbers. Numbers do not drive specific component sizing decisions.\",\n    \"score\": 2\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (User Service, Video Service, Queue, CDN, etc.) maps to a stated functional requirement. Data flows are traceable via sequence diagrams for upload and watch. Redis cache is justified by read-heavy Watch page, Kafka by async processing, and Elasticsearch for search at scale. No hallucinated or decorative components.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The video upload pipeline deep-dive includes concrete mechanisms (presigned URL, Kafka queue, transcoding workers generating HLS segments) and a named tradeoff (Spot vs On-Demand instances with dead letter queue). Other sections (database schema, recommendation) are described but lack a second deep-dive with a tradeoff and concrete mechanism (the SQL vs NoSQL tradeoff is shallow, lacking sharding key analysis). Therefore, only one strong deep-dive.\",\n    \"score\": 3\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Two explicit tradeoffs are tied to specific decisions (SQL vs NoSQL hybrid, Search engine vs SQL LIKE). Two failure points (transcoding bottleneck, CDN origin overload) are identified with mitigations (auto-scaling + priority queues, origin shield). However, none are quantified (e.g., latency/cost impact) and the discussion remains at a moderate depth, not surfacing non-obvious failure modes like thundering herd.\",\n    \"score\": 3\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

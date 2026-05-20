@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/kimi-k2.6/news-feed_cold.json",
+  "question_id": "news-feed",
+  "variant": "cold",
+  "model_under_test": "kimi-k2.6",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T09:06:55.607332+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists both functional and non-functional requirements with quantified SLAs (99.99% availability, p99 <200ms, 5s delay). It states explicit assumptions about scale (500M DAU, 100M posts/day) but does not provide any justification for why those numbers were chosen, so the 'assumptions stated AND justified' requirement for a score of 4 is not fully met. It also lacks non-goals or resolution of prompt ambiguities, ruling out 5. While quantified SLAs normally indicate 4, the missing justification makes 3 more appropriate.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The capacity plan derives QPS, storage, and bandwidth from initial assumptions, then sizes a Redis cluster (200 nodes) based on the calculated throughput. The chain from assumptions to component sizing is complete and the numbers demonstrably drive design choices (e.g., node count). No fragile assumptions are flagged and no sanity-check is performed, so it does not reach level 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (Post Service, Feed Service, Fan-out Workers, Cassandra, Redis, Kafka, etc.) is clearly connected to a stated requirement or capacity number. The data flow is traceable end-to-end via the diagram and textual description. There are no hallucinations or decorative components; each is justified (e.g., Cassandra for write-heavy ingestion, Redis for low-latency sorted sets). The architecture description is genuinely informative.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives (Post Ingestion with Cassandra schema, Fan-Out with hybrid model thresholds, Timeline Storage with Redis sorted sets, Feed Retrieval with ranking pipeline) provide concrete mechanisms (e.g., ZREVRANGE, batch sizing, sharding keys) and named tradeoffs with reasoning (push vs pull, Redis vs Cassandra). However, no deep-dive surfaces a non-obvious edge case or failure mode within its description (though such cases appear later in a separate failure modes section), so it does not meet the level 5 requirement.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response includes a dedicated tradeoffs table with five explicit choices (hybrid fan-out, Redis as cache, eventual consistency, lightweight ranker, lazy unfollow), each tied to a specific decision and concrete rationale. A failure modes table lists six failures with specific mitigations (e.g., circuit breaker for Redis cache down, singleflight for thundering herd). However, it does not explicitly acknowledge its own limits (e.g., 'this design cannot handle X') nor surface a truly non-obvious failure mode (like time-of-check-to-time-of-use or partial partition), so it falls short of level 5.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response lists both functional and non-functional requirements with quantified SLAs (99.99% availability, p99 <200ms, 5s delay). It states explicit assumptions about scale (500M DAU, 100M posts/day) but does not provide any justification for why those numbers were chosen, so the 'assumptions stated AND justified' requirement for a score of 4 is not fully met. It also lacks non-goals or resolution of prompt ambiguities, ruling out 5. While quantified SLAs normally indicate 4, the missing justification makes 3 more appropriate.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The capacity plan derives QPS, storage, and bandwidth from initial assumptions, then sizes a Redis cluster (200 nodes) based on the calculated throughput. The chain from assumptions to component sizing is complete and the numbers demonstrably drive design choices (e.g., node count). No fragile assumptions are flagged and no sanity-check is performed, so it does not reach level 5.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (Post Service, Feed Service, Fan-out Workers, Cassandra, Redis, Kafka, etc.) is clearly connected to a stated requirement or capacity number. The data flow is traceable end-to-end via the diagram and textual description. There are no hallucinations or decorative components; each is justified (e.g., Cassandra for write-heavy ingestion, Redis for low-latency sorted sets). The architecture description is genuinely informative.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives (Post Ingestion with Cassandra schema, Fan-Out with hybrid model thresholds, Timeline Storage with Redis sorted sets, Feed Retrieval with ranking pipeline) provide concrete mechanisms (e.g., ZREVRANGE, batch sizing, sharding keys) and named tradeoffs with reasoning (push vs pull, Redis vs Cassandra). However, no deep-dive surfaces a non-obvious edge case or failure mode within its description (though such cases appear later in a separate failure modes section), so it does not meet the level 5 requirement.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The response includes a dedicated tradeoffs table with five explicit choices (hybrid fan-out, Redis as cache, eventual consistency, lightweight ranker, lazy unfollow), each tied to a specific decision and concrete rationale. A failure modes table lists six failures with specific mitigations (e.g., circuit breaker for Redis cache down, singleflight for thundering herd). However, it does not explicitly acknowledge its own limits (e.g., 'this design cannot handle X') nor surface a truly non-obvious failure mode (like time-of-check-to-time-of-use or partial partition), so it falls short of level 5.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

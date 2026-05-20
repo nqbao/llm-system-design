@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-120b/news-feed_cold.json",
+  "question_id": "news-feed",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-06T05:33:48.800883+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response states both functional and non-functional requirements with quantified targets: p95 feed read ≤ 200ms, post propagation ≤ 1s, 99.99% uptime, >1B DAU, durability guarantee of <1 hour data loss. Assumptions are explicitly stated and framed as worst-case design size. However, there are no explicit non-goals and no resolution of prompt ambiguities in the form of 'the prompt doesn't specify X; I'll assume Y and note where the design changes at Z'.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The estimation chain is complete and propagates into design decisions: 1B DAU x 4 posts -> 46.3k pps -> 93k peak -> fan-out at 200 avg followers -> 17M timeline row writes/s -> 500 workers at 30k rows/s each. Read path chains to 2.8M peak rps -> 80% cache hit -> 10 Redis shards at 230k GET/s -> 6 Cassandra replicas. Numbers demonstrably drive component counts. Missing is explicit flagging of fragile assumptions (the 80% cache hit rate is assumed without justification) and no explicit sanity-check moment on any result.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component serves an explicitly stated requirement: Fan-out Service tied to write amplification, Redis to the 80% cache-hit target, Kafka to decoupling and graceful degradation, Elasticsearch to the search requirement. Data flow is traceable end-to-end from client POST through Kafka to Fan-out to Timeline DB to Redis to Feed Service GET. The hybrid push/pull is the less obvious but more correct choice and is explained against specific capacity numbers. Circuit-breaker and graceful degradation fallback paths are explained contextually rather than decoratively.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are present with concrete mechanisms: fan-out strategy specifies exact thresholds (10k follower boundary) with write amplification calculation; timeline data model specifies partition key (user_id hash) and clustering key (post_ts DESC) with rationale; consistency section specifies snowflake-style IDs for total ordering, Kafka offset as commit point, and Redis INCR for counter atomicity. The celebrity tweet surge scenario surfaces a non-obvious failure mode with a specific mitigation (throttle fan-out to 100k writes/s, fall back to pull). Prevented from scoring 5 by lack of detail on Cassandra compaction behavior, exact Redis data structures used, or Kafka partition count sizing.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Tradeoffs are tied to specific decisions: Redis over Memcached justified by persistence recovery needs; batch ranking over online scoring justified by latency impact; Kafka over Pulsar noted with reasoning. The decision matrix for push vs pull vs hybrid quantifies write amplification and latency impact concretely. Failure modes in Section 9 and 13 have specific symptoms, detection mechanisms, and mitigations. The celebrity fan-out surge is a non-obvious failure mode addressed with a concrete throttling strategy. The design acknowledges its own limits implicitly via the graceful degradation fallback but does not explicitly state 'this design cannot handle X scenario without Y change', which prevents a score of 5.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response states both functional and non-functional requirements with quantified targets: p95 feed read ≤ 200ms, post propagation ≤ 1s, 99.99% uptime, >1B DAU, durability guarantee of <1 hour data loss. Assumptions are explicitly stated and framed as worst-case design size. However, there are no explicit non-goals and no resolution of prompt ambiguities in the form of 'the prompt doesn't specify X; I'll assume Y and note where the design changes at Z'.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The estimation chain is complete and propagates into design decisions: 1B DAU x 4 posts -> 46.3k pps -> 93k peak -> fan-out at 200 avg followers -> 17M timeline row writes/s -> 500 workers at 30k rows/s each. Read path chains to 2.8M peak rps -> 80% cache hit -> 10 Redis shards at 230k GET/s -> 6 Cassandra replicas. Numbers demonstrably drive component counts. Missing is explicit flagging of fragile assumptions (the 80% cache hit rate is assumed without justification) and no explicit sanity-check moment on any result.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component serves an explicitly stated requirement: Fan-out Service tied to write amplification, Redis to the 80% cache-hit target, Kafka to decoupling and graceful degradation, Elasticsearch to the search requirement. Data flow is traceable end-to-end from client POST through Kafka to Fan-out to Timeline DB to Redis to Feed Service GET. The hybrid push/pull is the less obvious but more correct choice and is explained against specific capacity numbers. Circuit-breaker and graceful degradation fallback paths are explained contextually rather than decoratively.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives are present with concrete mechanisms: fan-out strategy specifies exact thresholds (10k follower boundary) with write amplification calculation; timeline data model specifies partition key (user_id hash) and clustering key (post_ts DESC) with rationale; consistency section specifies snowflake-style IDs for total ordering, Kafka offset as commit point, and Redis INCR for counter atomicity. The celebrity tweet surge scenario surfaces a non-obvious failure mode with a specific mitigation (throttle fan-out to 100k writes/s, fall back to pull). Prevented from scoring 5 by lack of detail on Cassandra compaction behavior, exact Redis data structures used, or Kafka partition count sizing.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Tradeoffs are tied to specific decisions: Redis over Memcached justified by persistence recovery needs; batch ranking over online scoring justified by latency impact; Kafka over Pulsar noted with reasoning. The decision matrix for push vs pull vs hybrid quantifies write amplification and latency impact concretely. Failure modes in Section 9 and 13 have specific symptoms, detection mechanisms, and mitigations. The celebrity fan-out surge is a non-obvious failure mode addressed with a concrete throttling strategy. The design acknowledges its own limits implicitly via the graceful degradation fallback but does not explicitly state 'this design cannot handle X scenario without Y change', which prevents a score of 5.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

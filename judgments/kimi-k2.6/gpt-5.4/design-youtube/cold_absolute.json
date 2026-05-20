@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-5.4/design-youtube_cold.json",
+  "question_id": "design-youtube",
+  "variant": "cold",
+  "model_under_test": "gpt-5.4",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T14:18:54.799833+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with explicit core features and non-functional goals, then clearly defines out-of-scope items (live streaming deep dive, ads auction, etc.). It quantifies non-functional goals partially ('global low-latency playback', 'eventual consistency acceptable') but lacks specific SLA numbers like p99 latency targets or availability percentages. No ambiguity in the prompt is resolved explicitly, though the 'YouTube-like hyperscale' sizing is a reasonable assumption. Non-goals are present but not as rigorously scoped as a 5 would require.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Extensive estimation chain from DAU assumptions through plays/day, upload volume, ingest bandwidth, playback QPS, concurrent viewers, streaming bandwidth, segment request rates, metadata sizes, and transcoding worker counts. Numbers demonstrably drive design choices: 'This is why CDN + codec efficiency dominate cost', 'metadata is not the main scale problem', worker fleet sizing derived from 4x realtime assumption. However, no explicit sanity-check on results ('does 421 PB/day make sense?') and no fragility flags on assumptions. The 500 hours/minute upload figure is stated as 'commonly cited' but not critically examined.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component in the mermaid diagram and text is justified against requirements: direct-to-storage upload avoids routing bytes through app servers, CMAF/fMP4 reduces storage vs separate HLS/DASH, distributed SQL chosen for strong consistency needs, hybrid fanout for subscription scalability. Data flow is traceable end-to-end with sequence diagrams. No hallucinated services. However, some components like 'Feature Store' and 'Subscriptions Graph' are named without deep mechanism explanation, and the mermaid diagram is somewhat dense/generic in places.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Strong deep-dives on: (1) upload pipeline with sequence diagram, resumable chunks, signed URLs, idempotency; (2) storage optimization avoiding 'tiny-object explosion' with byte-range fMP4/CMAF, quantified (700 objects/video → 10-15); (3) CMAF packaging choice with explicit tradeoff; (4) view counting with fraud/bot nuance; (5) auth design preserving CDN cache hit ratio with signed cookies vs query params. Multiple named tradeoffs with reasoning. Missing: no specific sharding key mechanism beyond 'partition by video_id', no replication strategy details, no edge case like hot-key on viral video metadata (though thundering herd is mentioned in failure modes).",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Excellent coverage: 11 named failure modes (A-K) each with specific mitigations, 5 explicit design tradeoffs in section 14 with pros/cons, consistency model explicitly split strong/eventual with rationale. Quantification present in some tradeoffs ('low-latency ranker <100 ms p95'). Self-acknowledged limits: 'this design cannot handle X' not explicitly stated, but phase-based MVP approach implicitly acknowledges scaling boundaries. Non-obvious failure modes addressed: thundering herd with prewarm, duplicate upload completion with idempotency keys, corrupt media with scrubbing, takedown delay with CDN purge + token expiration. Could be stronger on explicit 'this design fails if' statements.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with explicit core features and non-functional goals, then clearly defines out-of-scope items (live streaming deep dive, ads auction, etc.). It quantifies non-functional goals partially ('global low-latency playback', 'eventual consistency acceptable') but lacks specific SLA numbers like p99 latency targets or availability percentages. No ambiguity in the prompt is resolved explicitly, though the 'YouTube-like hyperscale' sizing is a reasonable assumption. Non-goals are present but not as rigorously scoped as a 5 would require.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"Extensive estimation chain from DAU assumptions through plays/day, upload volume, ingest bandwidth, playback QPS, concurrent viewers, streaming bandwidth, segment request rates, metadata sizes, and transcoding worker counts. Numbers demonstrably drive design choices: 'This is why CDN + codec efficiency dominate cost', 'metadata is not the main scale problem', worker fleet sizing derived from 4x realtime assumption. However, no explicit sanity-check on results ('does 421 PB/day make sense?') and no fragility flags on assumptions. The 500 hours/minute upload figure is stated as 'commonly cited' but not critically examined.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component in the mermaid diagram and text is justified against requirements: direct-to-storage upload avoids routing bytes through app servers, CMAF/fMP4 reduces storage vs separate HLS/DASH, distributed SQL chosen for strong consistency needs, hybrid fanout for subscription scalability. Data flow is traceable end-to-end with sequence diagrams. No hallucinated services. However, some components like 'Feature Store' and 'Subscriptions Graph' are named without deep mechanism explanation, and the mermaid diagram is somewhat dense/generic in places.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Strong deep-dives on: (1) upload pipeline with sequence diagram, resumable chunks, signed URLs, idempotency; (2) storage optimization avoiding 'tiny-object explosion' with byte-range fMP4/CMAF, quantified (700 objects/video → 10-15); (3) CMAF packaging choice with explicit tradeoff; (4) view counting with fraud/bot nuance; (5) auth design preserving CDN cache hit ratio with signed cookies vs query params. Multiple named tradeoffs with reasoning. Missing: no specific sharding key mechanism beyond 'partition by video_id', no replication strategy details, no edge case like hot-key on viral video metadata (though thundering herd is mentioned in failure modes).\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Excellent coverage: 11 named failure modes (A-K) each with specific mitigations, 5 explicit design tradeoffs in section 14 with pros/cons, consistency model explicitly split strong/eventual with rationale. Quantification present in some tradeoffs ('low-latency ranker <100 ms p95'). Self-acknowledged limits: 'this design cannot handle X' not explicitly stated, but phase-based MVP approach implicitly acknowledges scaling boundaries. Non-obvious failure modes addressed: thundering herd with prewarm, duplicate upload completion with idempotency keys, corrupt media with scrubbing, takedown delay with CDN purge + token expiration. Could be stronger on explicit 'this design fails if' statements.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

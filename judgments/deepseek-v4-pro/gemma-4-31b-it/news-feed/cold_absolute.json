@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gemma-4-31b-it/news-feed_cold.json",
+  "question_id": "news-feed",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T05:48:40.012969+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response states both functional and non-functional requirements, includes explicit assumptions (500M DAU, 100:1 read/write ratio), but non-functionals are not fully quantified (no specific availability or p99 latency SLA, just a broad latency target). No non-goals are set.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "It derives QPS and storage from assumptions, including a refined Redis memory estimate that drives cluster sizing, but the numbers are not consistently propagated into other component choices, and no sanity-checking is performed.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component has a clear purpose, no hallucinations, and the architecture diagram is coherent. Each component is justified (e.g., Cassandra for write throughput, Redis for low latency), and capacity numbers are tied into Redis sizing, making the description genuinely informative.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple components are explored in depth: the fan-out strategy discusses push/pull tradeoffs and a hybrid solution, Redis data structure (ZSET with timestamp score and limit) is specified, and Cassandra partition key design is described. Tradeoffs are named and reasoned about, but non-obvious edge cases (e.g., hot key) are covered in the separate failure analysis section, not within the deep-dive itself.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response includes a tradeoffs table with three choices (consistency, storage, database) tied to specific decisions, and it lists three failure modes with mitigations. However, the tradeoffs are not quantified (e.g., no SLA numbers for eventual consistency or memory cost), and the design does not explicitly state its own limits or non-goals.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response states both functional and non-functional requirements, includes explicit assumptions (500M DAU, 100:1 read/write ratio), but non-functionals are not fully quantified (no specific availability or p99 latency SLA, just a broad latency target). No non-goals are set.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"It derives QPS and storage from assumptions, including a refined Redis memory estimate that drives cluster sizing, but the numbers are not consistently propagated into other component choices, and no sanity-checking is performed.\",\n    \"score\": 3\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component has a clear purpose, no hallucinations, and the architecture diagram is coherent. Each component is justified (e.g., Cassandra for write throughput, Redis for low latency), and capacity numbers are tied into Redis sizing, making the description genuinely informative.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple components are explored in depth: the fan-out strategy discusses push/pull tradeoffs and a hybrid solution, Redis data structure (ZSET with timestamp score and limit) is specified, and Cassandra partition key design is described. Tradeoffs are named and reasoned about, but non-obvious edge cases (e.g., hot key) are covered in the separate failure analysis section, not within the deep-dive itself.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The response includes a tradeoffs table with three choices (consistency, storage, database) tied to specific decisions, and it lists three failure modes with mitigations. However, the tradeoffs are not quantified (e.g., no SLA numbers for eventual consistency or memory cost), and the design does not explicitly state its own limits or non-goals.\",\n    \"score\": 3\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

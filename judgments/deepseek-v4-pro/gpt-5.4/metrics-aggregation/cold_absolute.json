@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-5.4/metrics-aggregation_cold.json",
+  "question_id": "metrics-aggregation",
+  "variant": "cold",
+  "model_under_test": "gpt-5.4",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T08:43:34.681587+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response clearly states both functional (ingest, aggregate multiple time buckets and metric types, query, replay) and non-functional requirements (100B/day scale, freshness 10-15s, finalization within 2 min, durability, retention). It makes explicit assumptions about high cardinality and skew being critical, and justifies them. Non-functionals are quantified with specific targets, but explicit non-goals are absent, making score 4 appropriate.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Full estimation chain: 100B/day -> 1.157M avg eps -> 5.8M peak -> 6M eps; event size 180B -> 18TB/day -> peak bandwidth 1.04GB/s; request rate with 500-event batching -> 2314 avg/11600 peak RPS. These numbers directly drive Kafka partition count (2048), ingestion node count (32-48), Flink slot count (80->160->192), and OLAP storage. It flags the fragile rollup reduction assumption and sanity-checks that a 10x drop would multiply storage cost, making score 5.",
+        "score": 5
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against specific requirements or capacity numbers: Kafka for durability/burst, Flink for event-time windowing and large state, OLAP for fast queries, object storage for replay. The mermaid diagram and textual description make data flow traceable end-to-end. It explicitly avoids anti-patterns, such as not writing directly into OLAP and not aggregating solely in a database, meeting the criteria for score 5.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives, including Flink's two-stage aggregation with local combine and keyed event-time windows, hot-key fanout via salting, and state sizing with RocksDB, and OLAP storage math with retention. Each includes concrete mechanisms and tradeoffs (e.g., Druid vs. Pinot vs. ClickHouse). Non-obvious edge cases like cardinality explosion—which could blow up state and storage—are specifically addressed with salting and governance, elevating to score 5.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Tradeoffs are explicitly tied to decisions: 'Why not write directly into OLAP?' and OLAP store choice with pros/cons. A failure modes table lists specific risks (Kafka broker loss, Flink restart, hot key, cardinality explosion) with mitigations. The design acknowledges limits—e.g., strict deduplication is needed for billing but not provided, and cardinality governance is mandatory—and surfaces non-obvious failures like schema registry down and bad aggregation code deploy, meeting score 5.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response clearly states both functional (ingest, aggregate multiple time buckets and metric types, query, replay) and non-functional requirements (100B/day scale, freshness 10-15s, finalization within 2 min, durability, retention). It makes explicit assumptions about high cardinality and skew being critical, and justifies them. Non-functionals are quantified with specific targets, but explicit non-goals are absent, making score 4 appropriate.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Full estimation chain: 100B/day -> 1.157M avg eps -> 5.8M peak -> 6M eps; event size 180B -> 18TB/day -> peak bandwidth 1.04GB/s; request rate with 500-event batching -> 2314 avg/11600 peak RPS. These numbers directly drive Kafka partition count (2048), ingestion node count (32-48), Flink slot count (80->160->192), and OLAP storage. It flags the fragile rollup reduction assumption and sanity-checks that a 10x drop would multiply storage cost, making score 5.\",\n    \"score\": 5\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component is justified against specific requirements or capacity numbers: Kafka for durability/burst, Flink for event-time windowing and large state, OLAP for fast queries, object storage for replay. The mermaid diagram and textual description make data flow traceable end-to-end. It explicitly avoids anti-patterns, such as not writing directly into OLAP and not aggregating solely in a database, meeting the criteria for score 5.\",\n    \"score\": 5\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives, including Flink's two-stage aggregation with local combine and keyed event-time windows, hot-key fanout via salting, and state sizing with RocksDB, and OLAP storage math with retention. Each includes concrete mechanisms and tradeoffs (e.g., Druid vs. Pinot vs. ClickHouse). Non-obvious edge cases like cardinality explosion—which could blow up state and storage—are specifically addressed with salting and governance, elevating to score 5.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Tradeoffs are explicitly tied to decisions: 'Why not write directly into OLAP?' and OLAP store choice with pros/cons. A failure modes table lists specific risks (Kafka broker loss, Flink restart, hot key, cardinality explosion) with mitigations. The design acknowledges limits—e.g., strict deduplication is needed for billing but not provided, and cardinality governance is mandatory—and surfaces non-obvious failures like schema registry down and bad aggregation code deploy, meeting score 5.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

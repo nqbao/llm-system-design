@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-5.4/job-scheduler_cold.json",
+  "question_id": "job-scheduler",
+  "variant": "cold",
+  "model_under_test": "gpt-5.4",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T08:15:17.457844+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response clarifies the ambiguity in the prompt by explicitly scoping to a durable temporal scheduler, lists both functional and non-functional requirements, quantifies non-functionals (P99 enqueue lag <2s, 1s precision), states assumptions, and includes explicit non-goals (exactly-once, DAG, sub-100ms). This matches the 5-level criteria.",
+        "score": 5
+      },
+      "capacity_estimation": {
+        "reasoning": "Provides a full estimation chain: assumptions → QPS (avg 11.6K/s, peak 120K/s) → storage/bandwidth → component sizing (shard count, node loads, DB write rates, queue throughput). Numbers drive later design choices, but the response does not explicitly flag fragile assumptions or perform a sanity-check statement, keeping it at level 4.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (transactional DB, time index, outbox, queue, lease sweeper) is justified against specific requirements or capacity numbers. Data flow is traceable end-to-end, and the architecture description explicitly avoids anti-patterns (e.g., not using a global min-heap or relying solely on a queue). This meets the 5-level criteria.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep dives with concrete mechanisms: transactional job insertion, recurrence expansion with deterministic run_id, lease-acquire CAS, outbox pattern for dual-write safety, sharding by hash, and queue partitioning. A non-obvious failure mode (stale worker overwriting results) is addressed with lease-token fencing, and a thundering herd from cron spikes is mitigated with spread windows and hash sharding, qualifying for level 5.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response includes a dedicated tradeoffs table with multiple decisions (at-least-once vs exactly-once, lazy cancel, approximate priority) and a detailed failure-modes table with mitigations. It acknowledges limits (exactly-once not possible, active-active scheduling is hard) and surfaces non-obvious failures like lease-token fencing and thundering herd, clearly meeting level 5.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response clarifies the ambiguity in the prompt by explicitly scoping to a durable temporal scheduler, lists both functional and non-functional requirements, quantifies non-functionals (P99 enqueue lag <2s, 1s precision), states assumptions, and includes explicit non-goals (exactly-once, DAG, sub-100ms). This matches the 5-level criteria.\",\n    \"score\": 5\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Provides a full estimation chain: assumptions → QPS (avg 11.6K/s, peak 120K/s) → storage/bandwidth → component sizing (shard count, node loads, DB write rates, queue throughput). Numbers drive later design choices, but the response does not explicitly flag fragile assumptions or perform a sanity-check statement, keeping it at level 4.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (transactional DB, time index, outbox, queue, lease sweeper) is justified against specific requirements or capacity numbers. Data flow is traceable end-to-end, and the architecture description explicitly avoids anti-patterns (e.g., not using a global min-heap or relying solely on a queue). This meets the 5-level criteria.\",\n    \"score\": 5\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep dives with concrete mechanisms: transactional job insertion, recurrence expansion with deterministic run_id, lease-acquire CAS, outbox pattern for dual-write safety, sharding by hash, and queue partitioning. A non-obvious failure mode (stale worker overwriting results) is addressed with lease-token fencing, and a thundering herd from cron spikes is mitigated with spread windows and hash sharding, qualifying for level 5.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The response includes a dedicated tradeoffs table with multiple decisions (at-least-once vs exactly-once, lazy cancel, approximate priority) and a detailed failure-modes table with mitigations. It acknowledges limits (exactly-once not possible, active-active scheduling is hard) and surfaces non-obvious failures like lease-token fencing and thundering herd, clearly meeting level 5.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

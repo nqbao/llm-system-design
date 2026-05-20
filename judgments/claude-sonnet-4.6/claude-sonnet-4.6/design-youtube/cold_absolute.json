@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/claude-sonnet-4.6/design-youtube_cold.json",
+  "question_id": "design-youtube",
+  "variant": "cold",
+  "model_under_test": "claude-sonnet-4.6",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T15:01:48.691786+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Functional requirements are comprehensive and non-functionals are quantified with specific targets: 99.99%/99.9% availability differentiated by path, P99 video start < 200 ms, upload ACK < 500 ms, zero durability loss. Consistency is differentiated by domain (eventual vs. strong on billing). Scale assumptions are stated (2B MAU, 500 hr/min uploads). However, no explicit non-goals are listed and the response does not resolve any explicit prompt ambiguity with a stated rationale, which is the threshold for a 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Full derivation chain is present: 500 hr/min x 60 x 180 MB = 5.4 TB/min raw, x3 renditions = 16 TB/min, x1440 = 23 PB/day, x365 = 8.4 EB/year, x3 replication = 25 EB/year. Streaming: 12M concurrent x 5 Mbps = 60 Tbps. GPU fleet is derived arithmetically (~300+ A10Gs). Numbers explicitly drive design choices like GPU fleet sizing and origin shield necessity. However, no fragile assumption is flagged and no sanity check is performed (e.g., '25 EB/year — does that match known YouTube estimates?'), which prevents a 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against a stated requirement or capacity number: Cassandra for video metadata is tied to LSM design at 500M videos, PostgreSQL for social graph is justified by relational integrity needs, Redis for counters is tied to the 500K/s like write rate, origin shield is justified by the 60 Tbps egress calculation. Data flow is traceable end-to-end from upload through transcoding to CDN delivery. The AV1 vs H.264 choice explains a non-obvious decision (encode H.264 first for immediate availability, AV1 in background). No hallucinated services detected.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives with concrete mechanisms: upload pipeline specifies TUS-inspired chunked protocol with exact chunk size (5 MB), Kafka offset-based idempotency, and GPU sizing math. Storage deep-dive specifies Cassandra partition key (video_id UUID v4), clustering keys for comments (created_at DESC, comment_id), and the push/pull hybrid subscription model with specific thresholds (1M subs). The thundering herd on viral content is explicitly surfaced and addressed (Redis INCR + 30s flush + origin shield + CDN pre-warm on velocity detection). Recommendation latency budget is broken down by component (ANN 10ms, feature fetch 15ms, ranker 30ms, re-rank 10ms). This is genuinely deep across multiple subsystems.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Tradeoffs are concretely scoped and tied to specific decisions: push vs pull feed with the hybrid threshold at 1M subs explained by write amplification vs read cost; AV1 encodes deferred post-publish because 10x slower encoding outweighs compression gains for time-to-publish; eventual consistency for view counts with explicit 30s lag acknowledgment; HLS+DASH both generated from same segments. Failure modes table covers 10 scenarios with specific mitigations including the non-obvious thundering herd on viral content addressed via CDN pre-warm on velocity spike detection. The design does not explicitly acknowledge its own limits ('this design cannot handle X'), which would be required for a 5.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"Functional requirements are comprehensive and non-functionals are quantified with specific targets: 99.99%/99.9% availability differentiated by path, P99 video start < 200 ms, upload ACK < 500 ms, zero durability loss. Consistency is differentiated by domain (eventual vs. strong on billing). Scale assumptions are stated (2B MAU, 500 hr/min uploads). However, no explicit non-goals are listed and the response does not resolve any explicit prompt ambiguity with a stated rationale, which is the threshold for a 5.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"Full derivation chain is present: 500 hr/min x 60 x 180 MB = 5.4 TB/min raw, x3 renditions = 16 TB/min, x1440 = 23 PB/day, x365 = 8.4 EB/year, x3 replication = 25 EB/year. Streaming: 12M concurrent x 5 Mbps = 60 Tbps. GPU fleet is derived arithmetically (~300+ A10Gs). Numbers explicitly drive design choices like GPU fleet sizing and origin shield necessity. However, no fragile assumption is flagged and no sanity check is performed (e.g., '25 EB/year — does that match known YouTube estimates?'), which prevents a 5.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified against a stated requirement or capacity number: Cassandra for video metadata is tied to LSM design at 500M videos, PostgreSQL for social graph is justified by relational integrity needs, Redis for counters is tied to the 500K/s like write rate, origin shield is justified by the 60 Tbps egress calculation. Data flow is traceable end-to-end from upload through transcoding to CDN delivery. The AV1 vs H.264 choice explains a non-obvious decision (encode H.264 first for immediate availability, AV1 in background). No hallucinated services detected.\", \"score\": 5}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives with concrete mechanisms: upload pipeline specifies TUS-inspired chunked protocol with exact chunk size (5 MB), Kafka offset-based idempotency, and GPU sizing math. Storage deep-dive specifies Cassandra partition key (video_id UUID v4), clustering keys for comments (created_at DESC, comment_id), and the push/pull hybrid subscription model with specific thresholds (1M subs). The thundering herd on viral content is explicitly surfaced and addressed (Redis INCR + 30s flush + origin shield + CDN pre-warm on velocity detection). Recommendation latency budget is broken down by component (ANN 10ms, feature fetch 15ms, ranker 30ms, re-rank 10ms). This is genuinely deep across multiple subsystems.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Tradeoffs are concretely scoped and tied to specific decisions: push vs pull feed with the hybrid threshold at 1M subs explained by write amplification vs read cost; AV1 encodes deferred post-publish because 10x slower encoding outweighs compression gains for time-to-publish; eventual consistency for view counts with explicit 30s lag acknowledgment; HLS+DASH both generated from same segments. Failure modes table covers 10 scenarios with specific mitigations including the non-obvious thundering herd on viral content addressed via CDN pre-warm on velocity spike detection. The design does not explicitly acknowledge its own limits ('this design cannot handle X'), which would be required for a 5.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

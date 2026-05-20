@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/claude-sonnet-4.6/distributed-rate-limiter_cold.json",
+  "question_id": "distributed-rate-limiter",
+  "variant": "cold",
+  "model_under_test": "claude-sonnet-4.6",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T08:51:24.007104+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response clearly states functional (multiple limit dimensions, algorithms, rule management, response contract, burst handling, soft/hard limits) and non-functional requirements (latency <2ms p99, 99.99% availability, 500K RPS, rule propagation <5s, false positive rate <0.01%). It explicitly lists out-of-scope items as non-goals and implicitly assumes a specific scale (500K RPS) in capacity planning, though it doesn't note where the design would change at different scales.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The capacity planning section derives traffic assumptions (500K RPS, 50 pods, 3 dimensions → 1.5M Redis ops/s), memory estimates (2M keys, 400MB total, 3.6GB with headroom), Redis RPS capacity with batching optimization, and RL Service pod sizing. These numbers directly inform decisions (e.g., 3 shards sufficient due to 10x batching reduction). However, it does not flag which assumptions are fragile or provide an explicit sanity check of results.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (CDN edge, Gateway fleet, sidecar, RL Service, Redis, etcd, observability) is tied to a specific requirement or capacity number. Data flow is clearly traceable via sequence diagrams and text, from request classification to local decision or remote gRPC call, with batched sync. No hallucinated services; all choices are justified with reasoning (e.g., sidecar for low-latency local checks, Redis Lua for atomic counters).",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives: the sidecar's local token bucket mechanism (pre-allocation and sync), the token bucket Lua script with atomicity and O(1) guarantee, and the sliding window approximation with tradeoffs. Each includes concrete mechanisms and named tradeoffs (accuracy vs. latency, O(1) vs. O(log n)). Additionally, it surfaces the non-obvious hot-key edge case and addresses it with sub-sharding across 8 keys, meeting the criteria for an exceptional deep-dive.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design includes an explicit tradeoffs table covering 7 decisions (algorithm, store, sidecar vs. in-process, pre-allocation accuracy, rule store, fail-open policy, sliding window approach) with alternatives and reasons. Failure modes are extensively covered with a table of 9 scenarios and mitigations (Redis crash, partition, RL Service crash, etcd unavailable, clock skew, hot key, etc.), plus a fail-open vs. fail-closed policy. However, it does not explicitly state the design's own limits or unresolvable scenarios (e.g., 'this design cannot handle multi-region'), which would be required for a top score.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response clearly states functional (multiple limit dimensions, algorithms, rule management, response contract, burst handling, soft/hard limits) and non-functional requirements (latency <2ms p99, 99.99% availability, 500K RPS, rule propagation <5s, false positive rate <0.01%). It explicitly lists out-of-scope items as non-goals and implicitly assumes a specific scale (500K RPS) in capacity planning, though it doesn't note where the design would change at different scales.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The capacity planning section derives traffic assumptions (500K RPS, 50 pods, 3 dimensions → 1.5M Redis ops/s), memory estimates (2M keys, 400MB total, 3.6GB with headroom), Redis RPS capacity with batching optimization, and RL Service pod sizing. These numbers directly inform decisions (e.g., 3 shards sufficient due to 10x batching reduction). However, it does not flag which assumptions are fragile or provide an explicit sanity check of results.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (CDN edge, Gateway fleet, sidecar, RL Service, Redis, etcd, observability) is tied to a specific requirement or capacity number. Data flow is clearly traceable via sequence diagrams and text, from request classification to local decision or remote gRPC call, with batched sync. No hallucinated services; all choices are justified with reasoning (e.g., sidecar for low-latency local checks, Redis Lua for atomic counters).\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives: the sidecar's local token bucket mechanism (pre-allocation and sync), the token bucket Lua script with atomicity and O(1) guarantee, and the sliding window approximation with tradeoffs. Each includes concrete mechanisms and named tradeoffs (accuracy vs. latency, O(1) vs. O(log n)). Additionally, it surfaces the non-obvious hot-key edge case and addresses it with sub-sharding across 8 keys, meeting the criteria for an exceptional deep-dive.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The design includes an explicit tradeoffs table covering 7 decisions (algorithm, store, sidecar vs. in-process, pre-allocation accuracy, rule store, fail-open policy, sliding window approach) with alternatives and reasons. Failure modes are extensively covered with a table of 9 scenarios and mitigations (Redis crash, partition, RL Service crash, etcd unavailable, clock skew, hot key, etc.), plus a fail-open vs. fail-closed policy. However, it does not explicitly state the design's own limits or unresolvable scenarios (e.g., 'this design cannot handle multi-region'), which would be required for a top score.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

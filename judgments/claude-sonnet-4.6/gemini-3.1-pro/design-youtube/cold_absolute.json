@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-03/gemini-3.1-pro/design-youtube_cold.json",
+  "question_id": "design-youtube",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-03T22:10:27.650922+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists both functional requirements (upload, streaming, metadata, interactions, search, view tracking) and non-functional requirements (availability, latency, scalability, reliability). However, the non-functionals are qualitative rather than quantified — no specific p99 latency targets, availability percentages, or durability guarantees are stated. There are no explicit non-goals and no resolution of prompt ambiguities. The assumptions are stated but not justified.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives a full estimation chain: DAU → views/day → uploads/day → raw storage → processed storage → replicated storage → ingress bandwidth → concurrent viewers → egress bandwidth. The egress calculation (17.2 Tbps) directly drives the CDN decision, which is a clear example of numbers propagating into design choices. The response does not flag fragile assumptions or sanity-check results, which would be required for a 5. The math is correct and well-structured.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every major component is justified against a stated requirement or capacity number: CDN is mandated by the 17.2 Tbps egress calculation, Kafka decouples the upload pipeline from transcoding, Redis handles view count aggregation to avoid DB lock contention, Cassandra handles high-throughput writes, and Elasticsearch handles full-text search. The data flow is traceable end-to-end and the diagram reinforces the textual description. No hallucinated services are present.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives with concrete mechanisms: upload pipeline covers pre-signed URLs, multipart upload, HLS/DASH chunking with manifest files, and ABR switching; view count system covers Redis INCR/HyperLogLog for deduplication and periodic flush with explicit tradeoff; metadata/search covers CDC via Debezium tailing PostgreSQL WAL. Each deep-dive names a specific tradeoff. The thundering herd failure mode with CDN request coalescing is a non-obvious edge case addressed with a concrete mechanism.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Four concrete failure scenarios with specific mitigations are covered: transcoding worker failure (Kafka ACK + incremental S3 checkpointing), thundering herd on viral video (CDN request coalescing), CDN provider outage (dynamic routing engine), and DB primary failure (synchronous replica failover with read continuity). Tradeoffs are tied to specific decisions. However, the design does not explicitly acknowledge its own limits, which would be required for a 5.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response lists both functional requirements (upload, streaming, metadata, interactions, search, view tracking) and non-functional requirements (availability, latency, scalability, reliability). However, the non-functionals are qualitative rather than quantified — no specific p99 latency targets, availability percentages, or durability guarantees are stated. There are no explicit non-goals and no resolution of prompt ambiguities. The assumptions are stated but not justified.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The response derives a full estimation chain: DAU → views/day → uploads/day → raw storage → processed storage → replicated storage → ingress bandwidth → concurrent viewers → egress bandwidth. The egress calculation (17.2 Tbps) directly drives the CDN decision, which is a clear example of numbers propagating into design choices. The response does not flag fragile assumptions or sanity-check results, which would be required for a 5. The math is correct and well-structured.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every major component is justified against a stated requirement or capacity number: CDN is mandated by the 17.2 Tbps egress calculation, Kafka decouples the upload pipeline from transcoding, Redis handles view count aggregation to avoid DB lock contention, Cassandra handles high-throughput writes, and Elasticsearch handles full-text search. The data flow is traceable end-to-end and the diagram reinforces the textual description. No hallucinated services are present.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives with concrete mechanisms: upload pipeline covers pre-signed URLs, multipart upload, HLS/DASH chunking with manifest files, and ABR switching; view count system covers Redis INCR/HyperLogLog for deduplication and periodic flush with explicit tradeoff; metadata/search covers CDC via Debezium tailing PostgreSQL WAL. Each deep-dive names a specific tradeoff. The thundering herd failure mode with CDN request coalescing is a non-obvious edge case addressed with a concrete mechanism.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Four concrete failure scenarios with specific mitigations are covered: transcoding worker failure (Kafka ACK + incremental S3 checkpointing), thundering herd on viral video (CDN request coalescing), CDN provider outage (dynamic routing engine), and DB primary failure (synchronous replica failover with read continuity). Tradeoffs are tied to specific decisions. However, the design does not explicitly acknowledge its own limits, which would be required for a 5.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

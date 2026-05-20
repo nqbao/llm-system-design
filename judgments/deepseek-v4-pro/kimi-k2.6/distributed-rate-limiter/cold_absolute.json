@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/kimi-k2.6/distributed-rate-limiter_cold.json",
+  "question_id": "distributed-rate-limiter",
+  "variant": "cold",
+  "model_under_test": "kimi-k2.6",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T09:08:22.010434+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response states both functional (per-identity quotas, global endpoint budgets) and non-functional requirements (500K RPS, 10M entities, <1ms p99 added latency, availability). It quantifies non-functionals with specific targets and justifies assumptions (scale, read/write ratio, etc.). However, it does not set explicit non-goals or resolve an ambiguity (e.g., noting how design changes with different scale), so it falls short of a 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The capacity math section derives a complete chain: 500K RPS → 1.25M L1 evals → 50K raw L2 evals → 2.5K actual Redis ops, sizing Redis shards to 160 ops/s each with headroom analysis. It sanity-checks the worst-case lease collapse (all size 1) showing only 3% utilization, and flags the fragility of the L1 hit rate by exploring worst case. Meets all criteria for 5.",
+        "score": 5
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (L1 local cache, L2 Redis cluster, L3 fallback) serves a stated requirement, justified against latency and throughput targets. The adaptive leasing choice is justified over a naive per-request check, and the design avoids clock skew by using Redis TIME. The data flow is clearly traceable in diagrams and sequences. This picks a less obvious but correct choice and avoids an anti-pattern, satisfying level 5.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response provides deep-dives into the token bucket algorithm with concrete Lua script, local lease logic, negative caching, and sharding/hot key strategy. It discusses tradeoffs within the deep-dives (e.g., strict mode max_lease=1 for accuracy). It also surfaces non-obvious edge cases like over-admission from multi-node leasing and clock skew avoidance. These meet the criteria for a score of 5.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The Explicit Tradeoffs section lists four tradeoffs tied to specific decisions, some with quantified scoping (e.g., worst-case burst 1000 requests, 50× Redis load increase). The Failure Modes table covers multiple failure scenarios with specific mitigations, including non-obvious ones like clock skew (using Redis TIME), thundering herd during cold start, and config propagation delay. The design acknowledges limits (e.g., not suitable for perfectly smooth traffic without swapping algorithm) and surfaces these non-obvious failures, fitting level 5.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response states both functional (per-identity quotas, global endpoint budgets) and non-functional requirements (500K RPS, 10M entities, <1ms p99 added latency, availability). It quantifies non-functionals with specific targets and justifies assumptions (scale, read/write ratio, etc.). However, it does not set explicit non-goals or resolve an ambiguity (e.g., noting how design changes with different scale), so it falls short of a 5.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The capacity math section derives a complete chain: 500K RPS → 1.25M L1 evals → 50K raw L2 evals → 2.5K actual Redis ops, sizing Redis shards to 160 ops/s each with headroom analysis. It sanity-checks the worst-case lease collapse (all size 1) showing only 3% utilization, and flags the fragility of the L1 hit rate by exploring worst case. Meets all criteria for 5.\",\n    \"score\": 5\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (L1 local cache, L2 Redis cluster, L3 fallback) serves a stated requirement, justified against latency and throughput targets. The adaptive leasing choice is justified over a naive per-request check, and the design avoids clock skew by using Redis TIME. The data flow is clearly traceable in diagrams and sequences. This picks a less obvious but correct choice and avoids an anti-pattern, satisfying level 5.\",\n    \"score\": 5\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response provides deep-dives into the token bucket algorithm with concrete Lua script, local lease logic, negative caching, and sharding/hot key strategy. It discusses tradeoffs within the deep-dives (e.g., strict mode max_lease=1 for accuracy). It also surfaces non-obvious edge cases like over-admission from multi-node leasing and clock skew avoidance. These meet the criteria for a score of 5.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The Explicit Tradeoffs section lists four tradeoffs tied to specific decisions, some with quantified scoping (e.g., worst-case burst 1000 requests, 50× Redis load increase). The Failure Modes table covers multiple failure scenarios with specific mitigations, including non-obvious ones like clock skew (using Redis TIME), thundering herd during cold start, and config propagation delay. The design acknowledges limits (e.g., not suitable for perfectly smooth traffic without swapping algorithm) and surfaces these non-obvious failures, fitting level 5.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

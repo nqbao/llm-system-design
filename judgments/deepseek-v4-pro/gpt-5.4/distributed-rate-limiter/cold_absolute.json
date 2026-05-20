@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-5.4/distributed-rate-limiter_cold.json",
+  "question_id": "distributed-rate-limiter",
+  "variant": "cold",
+  "model_under_test": "gpt-5.4",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T08:06:39.520249+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response starts with a clear 'Goals and assumptions' section listing functional and non-functional requirements, with quantified SLAs (p99 < 5ms, 99.99% availability, 1M req/s peak). Assumptions are explicitly stated (gateway instances, latency budget, etc.) and justified. It does not explicitly set non-goals, but the scoping is concrete and quantified.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "A dedicated 'Capacity math' section derives QPS, Redis ops, and cluster sizing from assumptions. Numbers drive design choices (number of Redis primaries, memory provisioning). It includes a sanity-check caveat about high-cardinality attacks, but does not explicitly flag which assumptions are fragile or do a 'does that make sense?' check.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "The architecture diagram and component descriptions clearly map to requirements: local lease for low latency, quota service for batching, Redis for authoritative state, policy service for dynamic updates. Every component is justified, data flow is traceable, and design choices (e.g., not hitting Redis directly from gateways) are explained. No hallucinations or contradictions.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives with concrete mechanisms: token leasing with lease sizing formula, authoritative token bucket algorithm with integer microtokens, strict vs leased mode tradeoffs, multiple limits ordering, and mitigation of non-obvious edge cases like hot keys (singleflight coalescing), high-cardinality attacks, and policy update races. Each includes specific reasoning and tradeoffs.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "A dedicated 'Failure modes and mitigations' section covers quota service unavailability, Redis shard failure (with subtle point on replication consistency), network partition, hot keys, high-cardinality abuse, and policy update race. Tradeoffs are quantified (overshoot bound, latency addition) and tied to decisions. The design explicitly acknowledges its limits (e.g., CAP tradeoff, under-admission for multi-key checks) and surfaces non-obvious failure modes.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response starts with a clear 'Goals and assumptions' section listing functional and non-functional requirements, with quantified SLAs (p99 < 5ms, 99.99% availability, 1M req/s peak). Assumptions are explicitly stated (gateway instances, latency budget, etc.) and justified. It does not explicitly set non-goals, but the scoping is concrete and quantified.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"A dedicated 'Capacity math' section derives QPS, Redis ops, and cluster sizing from assumptions. Numbers drive design choices (number of Redis primaries, memory provisioning). It includes a sanity-check caveat about high-cardinality attacks, but does not explicitly flag which assumptions are fragile or do a 'does that make sense?' check.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"The architecture diagram and component descriptions clearly map to requirements: local lease for low latency, quota service for batching, Redis for authoritative state, policy service for dynamic updates. Every component is justified, data flow is traceable, and design choices (e.g., not hitting Redis directly from gateways) are explained. No hallucinations or contradictions.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives with concrete mechanisms: token leasing with lease sizing formula, authoritative token bucket algorithm with integer microtokens, strict vs leased mode tradeoffs, multiple limits ordering, and mitigation of non-obvious edge cases like hot keys (singleflight coalescing), high-cardinality attacks, and policy update races. Each includes specific reasoning and tradeoffs.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"A dedicated 'Failure modes and mitigations' section covers quota service unavailability, Redis shard failure (with subtle point on replication consistency), network partition, hot keys, high-cardinality abuse, and policy update race. Tradeoffs are quantified (overshoot bound, latency addition) and tied to decisions. The design explicitly acknowledges its limits (e.g., CAP tradeoff, under-admission for multi-key checks) and surfaces non-obvious failure modes.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

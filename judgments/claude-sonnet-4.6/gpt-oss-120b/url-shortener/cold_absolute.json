@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-120b/url-shortener_cold.json",
+  "question_id": "url-shortener",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-06T05:31:12.724109+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response provides both functional requirements (6 items) and non-functional requirements quantified with specific targets: ≤50ms p99 redirect latency, ≥99.99% uptime, >10⁸ stored URLs, 10⁵ QPS typical / 10⁶ QPS peak, ≥99.999% durability. Assumptions about scale are stated explicitly. However, there are no explicit non-goals and no explicit acknowledgment of prompt ambiguities with a chosen resolution.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "A full estimation chain is present: 200M URLs × 200B/row → 40GB raw → 120GB with replication; 120k QPS × 150B × 86400s → 1.55TB/day → 45TB for 30 days. Numbers demonstrably drive component sizing: 8 Redis nodes to cover 100k QPS, 12 KV shards each handling 10k QPS. The latency budget breaks down each hop. However, the 8x peak ratio is asserted without justification, no assumption is flagged as fragile, and no result is sanity-checked against real-world benchmarks.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is tied to a functional or non-functional requirement. CDN is tied to the 50ms SLA, Kafka/ClickHouse to analytics requirements, ID generator to the write-path. Both write and read paths are traced end-to-end via detailed sequence diagrams with explicit justification for two caching layers. No hallucinated services are present. The design picks the less-obvious CDN-caches-302 approach and justifies it against edge-worker alternatives.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple concrete deep-dives are present: ID generation with three methods compared and a reasoned hybrid choice; sharding via hash(key) mod 1024 with named hotspot risk for sequential IDs; three-layer caching with specific TTLs and hit-rate targets; analytics pipeline mechanics including Kafka protobuf to ClickHouse batch insert to materialized views to S3 archival. A non-obvious edge case is addressed: even with hashing, a small set of keys can still land on the same shard, mitigated by consistent-hash virtual nodes plus a dedicated hot-key cache tier. GC tail latency and write amplification are not discussed.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 11 lists seven decisions with specific alternatives and switching criteria. Section 8 provides a failure-mode table with eight scenarios each having detection and mitigation. CDN purge failure leading to a background re-purge job is a non-obvious failure mode with a specific fix. However, tradeoffs are not quantified numerically and the design never explicitly acknowledges its own limits in the form of stating what it cannot handle and what would be needed if that became a requirement.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response provides both functional requirements (6 items) and non-functional requirements quantified with specific targets: ≤50ms p99 redirect latency, ≥99.99% uptime, >10⁸ stored URLs, 10⁵ QPS typical / 10⁶ QPS peak, ≥99.999% durability. Assumptions about scale are stated explicitly. However, there are no explicit non-goals and no explicit acknowledgment of prompt ambiguities with a chosen resolution.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"A full estimation chain is present: 200M URLs × 200B/row → 40GB raw → 120GB with replication; 120k QPS × 150B × 86400s → 1.55TB/day → 45TB for 30 days. Numbers demonstrably drive component sizing: 8 Redis nodes to cover 100k QPS, 12 KV shards each handling 10k QPS. The latency budget breaks down each hop. However, the 8x peak ratio is asserted without justification, no assumption is flagged as fragile, and no result is sanity-checked against real-world benchmarks.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is tied to a functional or non-functional requirement. CDN is tied to the 50ms SLA, Kafka/ClickHouse to analytics requirements, ID generator to the write-path. Both write and read paths are traced end-to-end via detailed sequence diagrams with explicit justification for two caching layers. No hallucinated services are present. The design picks the less-obvious CDN-caches-302 approach and justifies it against edge-worker alternatives.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple concrete deep-dives are present: ID generation with three methods compared and a reasoned hybrid choice; sharding via hash(key) mod 1024 with named hotspot risk for sequential IDs; three-layer caching with specific TTLs and hit-rate targets; analytics pipeline mechanics including Kafka protobuf to ClickHouse batch insert to materialized views to S3 archival. A non-obvious edge case is addressed: even with hashing, a small set of keys can still land on the same shard, mitigated by consistent-hash virtual nodes plus a dedicated hot-key cache tier. GC tail latency and write amplification are not discussed.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 11 lists seven decisions with specific alternatives and switching criteria. Section 8 provides a failure-mode table with eight scenarios each having detection and mitigation. CDN purge failure leading to a background re-purge job is a non-obvious failure mode with a specific fix. However, tradeoffs are not quantified numerically and the design never explicitly acknowledges its own limits in the form of stating what it cannot handle and what would be needed if that became a requirement.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

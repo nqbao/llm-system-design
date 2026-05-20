@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/deepseek-v4-pro/distributed-rate-limiter_cold.json",
+  "question_id": "distributed-rate-limiter",
+  "variant": "cold",
+  "model_under_test": "deepseek-v4-pro",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T07:22:08.373789+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists both functional and non-functional requirements. Non-functionals are quantified with specific targets (1M req/s, p99 <5ms, accuracy <1%). Assumptions like scale and Redis capacity are stated and briefly justified. However, it does not set explicit non-goals or resolve prompt ambiguities.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Full estimation chain is present: from 1M req/s assumption, it derives per-node Lua script throughput (~80k ops/s) to compute needed shards (13 nodes), memory per key, and latency breakdown. These numbers directly determine the shard count and validate the latency target. No explicit sanity-check flagging fragile assumptions, but the derivation is coherent.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (gateway, Redis Cluster, admin) serves a stated requirement. The data flow from client to gateway to Redis is clearly described. The token bucket choice is justified against sliding window (memory scalability). A textual diagram supplements the description. No hallucinations or contradictions.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Two deep-dives: the token bucket Lua algorithm and Redis Cluster deployment. The Lua deep-dive includes the full script, data model with hash tags, and flow; it explains how atomicity and co-location are ensured. The Redis deep-dive details sharding, capacity numbers, and failover. Tradeoffs (O(1) vs O(n) memory) are discussed. However, non-obvious edge cases (e.g., hot keys, thundering herd) are not surfaced within the deep-dive itself.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Multiple tradeoffs are tied to decisions (token bucket vs sliding window, fail-open vs fail-closed). The design quantifies the combined burst error due to independent gateway refills and acknowledges its limit, suggesting a central coordinator for stricter enforcement. It addresses non-obvious failure modes like clock drift and script bugs with mitigations (NTP, error caching). The table compares approaches with concrete criteria.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response lists both functional and non-functional requirements. Non-functionals are quantified with specific targets (1M req/s, p99 <5ms, accuracy <1%). Assumptions like scale and Redis capacity are stated and briefly justified. However, it does not set explicit non-goals or resolve prompt ambiguities.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Full estimation chain is present: from 1M req/s assumption, it derives per-node Lua script throughput (~80k ops/s) to compute needed shards (13 nodes), memory per key, and latency breakdown. These numbers directly determine the shard count and validate the latency target. No explicit sanity-check flagging fragile assumptions, but the derivation is coherent.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (gateway, Redis Cluster, admin) serves a stated requirement. The data flow from client to gateway to Redis is clearly described. The token bucket choice is justified against sliding window (memory scalability). A textual diagram supplements the description. No hallucinations or contradictions.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Two deep-dives: the token bucket Lua algorithm and Redis Cluster deployment. The Lua deep-dive includes the full script, data model with hash tags, and flow; it explains how atomicity and co-location are ensured. The Redis deep-dive details sharding, capacity numbers, and failover. Tradeoffs (O(1) vs O(n) memory) are discussed. However, non-obvious edge cases (e.g., hot keys, thundering herd) are not surfaced within the deep-dive itself.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Multiple tradeoffs are tied to decisions (token bucket vs sliding window, fail-open vs fail-closed). The design quantifies the combined burst error due to independent gateway refills and acknowledges its limit, suggesting a central coordinator for stricter enforcement. It addresses non-obvious failure modes like clock drift and script bugs with mitigations (NTP, error caching). The table compares approaches with concrete criteria.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

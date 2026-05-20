@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/deepseek-v4-pro/url-shortener_cold.json",
+  "question_id": "url-shortener",
+  "variant": "cold",
+  "model_under_test": "deepseek-v4-pro",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-05T06:23:40.514241+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists clear functional and non-functional requirements, including quantified targets (99.99% uptime, <100ms latency, 1B URLs/month). Assumptions are stated in the capacity estimation section but not explicitly justified, and durability is vaguely defined as 'URLs must not be lost', lacking a concrete durability guarantee. No non-goals are set.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Full estimation chain: assumptions (1B URLs/month, 100:1 read ratio) derive QPS (400 writes/sec, 40K reads/sec), storage (1 TB/month), bandwidth, and cache size. Numbers drive later design choices (e.g., 16–32 shards for 40K reads/sec, 15 GB Redis cluster). No explicit sanity checks or flagging of fragile assumptions.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (API, Redirect, KGS, Redis, Postgres, Kafka, ClickHouse, Cleanup) serves a specific requirement with traceable data flows. The Mermaid diagram and descriptions provide a coherent end-to-end view. No hallucinations; components are well-justified by the earlier capacity numbers and requirements.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives with concrete mechanisms: key generation via atomic DB pool claim, redirection flow with cache-aside pattern, analytics pipeline with Kafka and ClickHouse SummingMergeTree. Discusses tradeoffs (7-char length, 302 vs 301) and surfaces non-obvious edge cases like cleanup race conditions with active reads and pool exhaustion monitoring.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Explicit tradeoffs table compares choices (pool vs hash, SQL vs NoSQL, Redis vs Memcached, 302 vs 301) with concrete reasons. Failure modes table covers key scenarios (DB failure, Redis down, pool exhaustion, DDoS) with specific mitigations. Surfaces a non-obvious failure mode: cleanup race condition with stale redirects and proposes a grace period. Acknowledges operational complexity of key pool as a design limit.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response lists clear functional and non-functional requirements, including quantified targets (99.99% uptime, <100ms latency, 1B URLs/month). Assumptions are stated in the capacity estimation section but not explicitly justified, and durability is vaguely defined as 'URLs must not be lost', lacking a concrete durability guarantee. No non-goals are set.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Full estimation chain: assumptions (1B URLs/month, 100:1 read ratio) derive QPS (400 writes/sec, 40K reads/sec), storage (1 TB/month), bandwidth, and cache size. Numbers drive later design choices (e.g., 16–32 shards for 40K reads/sec, 15 GB Redis cluster). No explicit sanity checks or flagging of fragile assumptions.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (API, Redirect, KGS, Redis, Postgres, Kafka, ClickHouse, Cleanup) serves a specific requirement with traceable data flows. The Mermaid diagram and descriptions provide a coherent end-to-end view. No hallucinations; components are well-justified by the earlier capacity numbers and requirements.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives with concrete mechanisms: key generation via atomic DB pool claim, redirection flow with cache-aside pattern, analytics pipeline with Kafka and ClickHouse SummingMergeTree. Discusses tradeoffs (7-char length, 302 vs 301) and surfaces non-obvious edge cases like cleanup race conditions with active reads and pool exhaustion monitoring.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Explicit tradeoffs table compares choices (pool vs hash, SQL vs NoSQL, Redis vs Memcached, 302 vs 301) with concrete reasons. Failure modes table covers key scenarios (DB failure, Redis down, pool exhaustion, DDoS) with specific mitigations. Surfaces a non-obvious failure mode: cleanup race condition with stale redirects and proposes a grace period. Acknowledges operational complexity of key pool as a design limit.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 3
+  }
+}

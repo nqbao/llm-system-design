@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/gpt-oss-20b/chat-system_cold.json",
+  "question_id": "chat-system",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-20b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-05-08T07:29:10.409674+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response briefly mentions functional needs (chat channels, attachments, history, search) and a non-functional target (sub-300 ms latency) in the intro, and states scale assumptions (10M users, 1M DAU) in the capacity section. However, requirements are not structured as a clear list, assumptions are not explicitly justified, and there are no quantified SLAs beyond the vague latency target.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The capacity section derives QPS, storage, bandwidth, partition counts, and node counts from explicit assumptions (DAU, messages/day, attachment size). Numbers propagate into component sizing (Kafka partitions, WebSocket nodes, Redis memory). The derivation chain is complete and drives design decisions, though it does not flag fragile assumptions or include sanity checks.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (API Gateway, Kafka, Cassandra, WebSocket servers, ElasticSearch, S3) serves a stated requirement, and data flow is traceable end-to-end. The diagram and descriptions are coherent, with no hallucinations or decorative components. Component choices are justified against requirements (e.g., Kafka for ordered delivery, S3 for cheap attachments).",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response provides concrete mechanisms for message ordering (composite ID scheme with channel-scoped sequence) and the real-time push flow (Kafka consumer → Presence lookup → WebSocket servers). However, these deep-dives lack explicit tradeoff discussions (e.g., hotspots from per-channel ordering, or failure modes of the push path) and simply describe the mechanisms without naming why alternatives were rejected.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The tradeoffs table ties decisions (CAP, complexity, storage) to explicit rationales, and several entries compare alternatives (e.g., AP over CP, ElasticSearch eventual consistency over instant search). The failure modes section is thorough, listing component-level failures with specific mitigations and chaos testing strategies. However, no tradeoff is quantified (e.g., latency cost of consistency) and the design does not explicitly acknowledge its own limits or non-obvious failure modes like thundering herd.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response briefly mentions functional needs (chat channels, attachments, history, search) and a non-functional target (sub-300 ms latency) in the intro, and states scale assumptions (10M users, 1M DAU) in the capacity section. However, requirements are not structured as a clear list, assumptions are not explicitly justified, and there are no quantified SLAs beyond the vague latency target.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The capacity section derives QPS, storage, bandwidth, partition counts, and node counts from explicit assumptions (DAU, messages/day, attachment size). Numbers propagate into component sizing (Kafka partitions, WebSocket nodes, Redis memory). The derivation chain is complete and drives design decisions, though it does not flag fragile assumptions or include sanity checks.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (API Gateway, Kafka, Cassandra, WebSocket servers, ElasticSearch, S3) serves a stated requirement, and data flow is traceable end-to-end. The diagram and descriptions are coherent, with no hallucinations or decorative components. Component choices are justified against requirements (e.g., Kafka for ordered delivery, S3 for cheap attachments).\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response provides concrete mechanisms for message ordering (composite ID scheme with channel-scoped sequence) and the real-time push flow (Kafka consumer → Presence lookup → WebSocket servers). However, these deep-dives lack explicit tradeoff discussions (e.g., hotspots from per-channel ordering, or failure modes of the push path) and simply describe the mechanisms without naming why alternatives were rejected.\",\n    \"score\": 3\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The tradeoffs table ties decisions (CAP, complexity, storage) to explicit rationales, and several entries compare alternatives (e.g., AP over CP, ElasticSearch eventual consistency over instant search). The failure modes section is thorough, listing component-level failures with specific mitigations and chaos testing strategies. However, no tradeoff is quantified (e.g., latency cost of consistency) and the design does not explicitly acknowledge its own limits or non-obvious failure modes like thundering herd.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

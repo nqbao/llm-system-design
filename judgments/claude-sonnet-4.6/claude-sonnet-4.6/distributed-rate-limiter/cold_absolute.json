@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/claude-sonnet-4.6/distributed-rate-limiter_cold.json",
+  "question_id": "distributed-rate-limiter",
+  "variant": "cold",
+  "model_under_test": "claude-sonnet-4.6",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T15:02:16.188082+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Both functional requirements (per-API-key/IP/endpoint/tenant limits, multiple plans, sliding-window semantics, headers, rule engine) and non-functional requirements are fully quantified (P99 < 2ms, 500K RPS, ≤0.1% over-admission, 99.99% Redis availability, <5s config propagation). Assumptions surface explicitly in the capacity section and justify component sizing. What is absent is any explicit non-goals ('we are NOT building X') and no explicit disambiguation of prompt ambiguity ('I'll assume 500K RPS and note where the design changes at 5M RPS').",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "A full derivation chain is present: 500K RPS → 10K RPS/node → 1.5M Redis ops → 300K effective ops at 80% L1 hit → 100K ops/primary vs. 200K Redis limit, directly driving the 3-primary choice. Memory is derived from key count (60M keys × 170B = 10.2 GB). The latency budget propagates to a P99 of ~1.5ms, explicitly validating the 2ms SLA. What is absent is sensitivity analysis on fragile assumptions (e.g., 'if L1 hit rate drops to 60%, Redis load triples — here is what breaks') or an explicit sanity check calling out whether any derived number seems surprising.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is tied to a specific requirement or capacity number: L1 cache to the 80% Redis load reduction goal; Lua EVALSHA to atomic correctness with no race conditions; hash tags to enable cross-key pipelining within a single Redis slot; etcd to the <5s config propagation SLA; Kafka as async fire-and-forget to avoid adding hot-path latency. Data flow is traceable end-to-end via both the Mermaid architecture diagram and the request decision flowchart. The design actively avoids a specific anti-pattern: token bucket is rejected because distributed state requires CRDT or Lua CAS loops, and server-side timestamps via redis.call('TIME') are used to eliminate clock-skew inconsistency across gateway nodes.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple concrete deep-dives are present: the sliding-window counter formula with a worked numeric example and an error-bound derivation; the Redis key schema with hash-tag design to colocate keys for single-slot pipelining with explicit epoch-based naming; a complete and correct Lua script with mechanism explained; the two-layer L1/L2 design with token allocation formula and LRU eviction policy. Each names a specific tradeoff with mechanism. Non-obvious edge cases are surfaced and addressed: clock skew eliminated by using redis.call('TIME') server-side; thundering herd on reconnect handled with jitter plus per-shard circuit breaker plus pre-loaded EVALSHA; split-brain in Redis Cluster addressed via majority-quorum write rejection.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 16 lists six concrete decisions each with chosen approach, alternative, and specific reason. Several tradeoffs are quantified: L1 sync at 100ms yields '5-10x Redis load reduction with <0.5% accuracy loss'; L1 cache loss on node restart is bounded arithmetically to '100ms × 10K RPS = 1K requests max per node'. Failure modes cover Redis single-primary down, full cluster failure, network partition, gateway pod restart, config service failure, clock skew, and thundering herd on reconnect, each with a specific mitigation. The design also acknowledges its own limit explicitly: worst-case over-admission in multi-region mode is 'global_limit × (1 + skew_factor) for one reconcile cycle', naming a non-obvious failure mode the design cannot fully eliminate.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"Both functional requirements (per-API-key/IP/endpoint/tenant limits, multiple plans, sliding-window semantics, headers, rule engine) and non-functional requirements are fully quantified (P99 < 2ms, 500K RPS, ≤0.1% over-admission, 99.99% Redis availability, <5s config propagation). Assumptions surface explicitly in the capacity section and justify component sizing. What is absent is any explicit non-goals ('we are NOT building X') and no explicit disambiguation of prompt ambiguity ('I'll assume 500K RPS and note where the design changes at 5M RPS').\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"A full derivation chain is present: 500K RPS → 10K RPS/node → 1.5M Redis ops → 300K effective ops at 80% L1 hit → 100K ops/primary vs. 200K Redis limit, directly driving the 3-primary choice. Memory is derived from key count (60M keys × 170B = 10.2 GB). The latency budget propagates to a P99 of ~1.5ms, explicitly validating the 2ms SLA. What is absent is sensitivity analysis on fragile assumptions (e.g., 'if L1 hit rate drops to 60%, Redis load triples — here is what breaks') or an explicit sanity check calling out whether any derived number seems surprising.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is tied to a specific requirement or capacity number: L1 cache to the 80% Redis load reduction goal; Lua EVALSHA to atomic correctness with no race conditions; hash tags to enable cross-key pipelining within a single Redis slot; etcd to the <5s config propagation SLA; Kafka as async fire-and-forget to avoid adding hot-path latency. Data flow is traceable end-to-end via both the Mermaid architecture diagram and the request decision flowchart. The design actively avoids a specific anti-pattern: token bucket is rejected because distributed state requires CRDT or Lua CAS loops, and server-side timestamps via redis.call('TIME') are used to eliminate clock-skew inconsistency across gateway nodes.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple concrete deep-dives are present: the sliding-window counter formula with a worked numeric example and an error-bound derivation; the Redis key schema with hash-tag design to colocate keys for single-slot pipelining with explicit epoch-based naming; a complete and correct Lua script with mechanism explained; the two-layer L1/L2 design with token allocation formula and LRU eviction policy. Each names a specific tradeoff with mechanism. Non-obvious edge cases are surfaced and addressed: clock skew eliminated by using redis.call('TIME') server-side; thundering herd on reconnect handled with jitter plus per-shard circuit breaker plus pre-loaded EVALSHA; split-brain in Redis Cluster addressed via majority-quorum write rejection.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 16 lists six concrete decisions each with chosen approach, alternative, and specific reason. Several tradeoffs are quantified: L1 sync at 100ms yields '5-10x Redis load reduction with <0.5% accuracy loss'; L1 cache loss on node restart is bounded arithmetically to '100ms × 10K RPS = 1K requests max per node'. Failure modes cover Redis single-primary down, full cluster failure, network partition, gateway pod restart, config service failure, clock skew, and thundering herd on reconnect, each with a specific mitigation. The design also acknowledges its own limit explicitly: worst-case over-admission in multi-region mode is 'global_limit × (1 + skew_factor) for one reconcile cycle', naming a non-obvious failure mode the design cannot fully eliminate.\", \"score\": 5}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

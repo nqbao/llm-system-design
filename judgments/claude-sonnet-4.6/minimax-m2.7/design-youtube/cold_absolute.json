@@ -1,0 +1,39 @@
+{
+  "transcript_path": "runs/2026-05-04/minimax-m2.7/design-youtube_cold.json",
+  "question_id": "design-youtube",
+  "variant": "cold",
+  "model_under_test": "minimax-m2.7",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-05-04T00:20:21.242432+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response jumps directly into architecture without a dedicated requirements section. Scale assumptions (100M DAU, 500K uploads/day, 50M concurrent streams) appear scattered throughout the document rather than upfront. There are no explicit non-functional SLAs stated at the start (the 99.9% uptime appears only at the very end), no read/write ratio assumptions, no explicit non-goals, and no resolution of prompt ambiguities. The functional requirements are implied by the components built rather than stated explicitly.",
+        "score": 2
+      },
+      "capacity_estimation": {
+        "reasoning": "There is genuine capacity math present: daily upload volume (500K * 500MB = 250TB), peak upload rate (2.5 GB/s), transcoding worker pool sizing (5000 slots), storage growth (100TB/day encoded), and streaming bandwidth (50M * 4Mbps = 200Tbps with CDN edge sizing). However, the numbers don't consistently propagate into design decisions — for example, the 5000 concurrent encoding slots figure isn't tied back to Kubernetes node counts or cost, and the CDN '20% cache hit' figure seems backwards (should be a high cache hit rate, not 20%). The chain is partially complete but has a notable error and doesn't fully drive component sizing.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "The architecture is comprehensive with clear diagrams and most components serve identifiable purposes. The data flow is traceable through multiple sequence and flow diagrams. However, there are some decorative technology choices — both RabbitMQ and Redis Streams are listed as alternatives without justification, and the tech stack table lists both Cassandra and DynamoDB without explaining when each is used. The Cassandra choice for video metadata is mentioned but not justified against PostgreSQL. No hallucinated services, but some redundancy and unjustified alternatives reduce coherence.",
+        "score": 3
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response covers multiple areas (upload pipeline, caching strategy, sharding, streaming) but most deep-dives are shallow. The caching table shows TTLs and patterns but doesn't explain the reasoning. The sharding section mentions consistent hashing but the diagram shows simple modulo sharding — a contradiction. The recommendation scoring function is a concrete artifact but is explicitly labeled 'simplified.' No deep-dive reaches the level of explaining a specific sharding key choice with hotspot analysis, or a replication strategy with failure semantics. The comment system flow is present but doesn't explain the Cassandra data model.",
+        "score": 2
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 10 lists tradeoffs in a table format (HLS vs DASH, SQL vs NoSQL, etc.) and Section 11 covers failure scenarios. However, the tradeoffs are not quantified or concretely scoped — 'HLS (broader support)' is not a rigorous tradeoff analysis. The failure modes table mentions mitigations but they're generic (e.g., 'read replicas, degraded mode'). The 'hot video' scenario is a non-obvious failure mode that gets a brief mention. No tradeoff acknowledges the design's own limits or surfaces non-obvious failure modes like thundering herd on cache population or write amplification in the view count update path.",
+        "score": 2
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response jumps directly into architecture without a dedicated requirements section. Scale assumptions (100M DAU, 500K uploads/day, 50M concurrent streams) appear scattered throughout the document rather than upfront. There are no explicit non-functional SLAs stated at the start (the 99.9% uptime appears only at the very end), no read/write ratio assumptions, no explicit non-goals, and no resolution of prompt ambiguities. The functional requirements are implied by the components built rather than stated explicitly.\", \"score\": 2}, \"capacity_estimation\": {\"reasoning\": \"There is genuine capacity math present: daily upload volume (500K * 500MB = 250TB), peak upload rate (2.5 GB/s), transcoding worker pool sizing (5000 slots), storage growth (100TB/day encoded), and streaming bandwidth (50M * 4Mbps = 200Tbps with CDN edge sizing). However, the numbers don't consistently propagate into design decisions — for example, the 5000 concurrent encoding slots figure isn't tied back to Kubernetes node counts or cost, and the CDN '20% cache hit' figure seems backwards (should be a high cache hit rate, not 20%). The chain is partially complete but has a notable error and doesn't fully drive component sizing.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"The architecture is comprehensive with clear diagrams and most components serve identifiable purposes. The data flow is traceable through multiple sequence and flow diagrams. However, there are some decorative technology choices — both RabbitMQ and Redis Streams are listed as alternatives without justification, and the tech stack table lists both Cassandra and DynamoDB without explaining when each is used. The Cassandra choice for video metadata is mentioned but not justified against PostgreSQL. No hallucinated services, but some redundancy and unjustified alternatives reduce coherence.\", \"score\": 3}, \"deep_dive_depth\": {\"reasoning\": \"The response covers multiple areas (upload pipeline, caching strategy, sharding, streaming) but most deep-dives are shallow. The caching table shows TTLs and patterns but doesn't explain the reasoning. The sharding section mentions consistent hashing but the diagram shows simple modulo sharding — a contradiction. The recommendation scoring function is a concrete artifact but is explicitly labeled 'simplified.' No deep-dive reaches the level of explaining a specific sharding key choice with hotspot analysis, or a replication strategy with failure semantics. The comment system flow is present but doesn't explain the Cassandra data model.\", \"score\": 2}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 10 lists tradeoffs in a table format (HLS vs DASH, SQL vs NoSQL, etc.) and Section 11 covers failure scenarios. However, the tradeoffs are not quantified or concretely scoped — 'HLS (broader support)' is not a rigorous tradeoff analysis. The failure modes table mentions mitigations but they're generic (e.g., 'read replicas, degraded mode'). The 'hot video' scenario is a non-obvious failure mode that gets a brief mention. No tradeoff acknowledges the design's own limits or surfaces non-obvious failure modes like thundering herd on cache population or write amplification in the view count update path.\", \"score\": 2}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}
