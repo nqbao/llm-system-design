@@ -9,6 +9,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import sys
+from os import environ
 
 import yaml
 
@@ -28,6 +29,7 @@ SITE = HERE / "starlight" / "src" / "content" / "docs"
 RUNS = HERE.parent / "runs"
 JUDGMENTS = HERE.parent / "judgments"
 TEMPLATES = HERE / "templates"
+BASE = environ.get("BASE_PATH", "")
 
 DIMENSIONS = [
     "requirements_scoping",
@@ -190,15 +192,34 @@ def load_leaderboard_data() -> list[dict]:
 # ── Page builders ─────────────────────────────────────────────────────────────
 
 
+def _has_all_transcripts(model: str, questions: list[dict]) -> bool:
+    return all((RUNS / model / f"{q['id']}_cold.md").exists() for q in questions)
+
+
+def _has_all_judgments(model: str, questions: list[dict], judges: list[str]) -> bool:
+    return all(
+        (JUDGMENTS / judge / model / q["id"] / "cold_absolute.json").exists()
+        for q in questions
+        for judge in judges
+    )
+
+
 def build_index(models, questions, leaderboard):
     """Generate docs/index.md — the homepage."""
-    models_count = len(models)
+    judges = get_judges()
+    qualified_models = {
+        m for m in models
+        if _has_all_transcripts(m, questions) and _has_all_judgments(m, questions, judges)
+    }
+    models_count = len(qualified_models)
     questions_count = len(questions)
-    judge_count = len(get_judges())
+    judge_count = len(judges)
+    total_transcripts = models_count * questions_count
 
     lb_rows = "\n".join(
         f"| {_rank_badge(i + 1)} | [{row['model']}](models/{_sl(row['model'])}/) | {_badge(row['mean'])} | ±{row['ci']} | {row['n']} |"
         for i, row in enumerate(leaderboard)
+        if row["model"] in qualified_models
     )
 
     template = (TEMPLATES / "index.md").read_text()
@@ -207,7 +228,7 @@ def build_index(models, questions, leaderboard):
         .replace("{{ MODELS_COUNT }}", str(models_count))
         .replace("{{ QUESTIONS_COUNT }}", str(questions_count))
         .replace("{{ JUDGE_COUNT }}", str(judge_count))
-        .replace("{{ TOTAL_TRANSCRIPTS }}", str(models_count * questions_count))
+        .replace("{{ TOTAL_TRANSCRIPTS }}", str(total_transcripts))
         .replace("{{ LEADERBOARD_ROWS }}", lb_rows)
     )
 
@@ -348,7 +369,7 @@ Overall: {_badge(avg_all)}
     for m in models:
         has_md = (RUNS / m / f"{question_id}_cold.md").exists()
         if has_md:
-            slug = f"/models/{_sl(m)}/{question_id}/"
+            slug = f"{BASE}/models/{_sl(m)}/{question_id}/"
             selected = " selected" if m == model else ""
             m_opts.append(f'<option value="{slug}"{selected}>{m}</option>')
     if len(m_opts) > 1:
@@ -396,7 +417,7 @@ def build_problems_md(questions, models, leaderboard):
         for model in sorted(models, key=lambda m: model_rank.get(m, 999)):
             has_md = (RUNS / model / f"{qid}_cold.md").exists()
             if has_md:
-                slug = f"/models/{_sl(model)}/{qid}/"
+                slug = f"{BASE}/models/{_sl(model)}/{qid}/"
                 model_options.append(f'<option value="{slug}">{model}</option>')
                 if top_slug is None:
                     top_slug = slug

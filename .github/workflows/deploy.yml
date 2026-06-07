@@ -29,10 +29,16 @@ jobs:
           cache: 'npm'
           cache-dependency-path: leaderboard/starlight/package-lock.json
       - run: pip install pyyaml
-      - run: rm -rf leaderboard/starlight/src/content/docs
-      - run: python leaderboard/build_site.py
       - run: npm ci
         working-directory: leaderboard/starlight
+      - name: Test site (no prefix)
+        run: python3 leaderboard/test_site.py
+      - name: Test site (with prefix)
+        run: python3 leaderboard/test_site.py
+        env:
+          BASE_PATH: /llm-system-design
+      - run: rm -rf leaderboard/starlight/src/content/docs
+      - run: python leaderboard/build_site.py
       - run: npm run build
         working-directory: leaderboard/starlight
         env:
