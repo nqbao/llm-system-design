@@ -39,6 +39,8 @@ jobs:
           BASE_PATH: /llm-system-design
       - run: rm -rf leaderboard/starlight/src/content/docs
       - run: python leaderboard/build_site.py
+        env:
+          BASE_PATH: /llm-system-design
       - run: npm run build
         working-directory: leaderboard/starlight
         env:
