@@ -216,13 +216,18 @@ def build_about(results_html: str = ""):
     """Generate about.md — methodology page with Results section."""
     content = (TEMPLATES / "about.md").read_text()
     if results_html:
-        content += "\n\n---\n\n## Results\n\n"
-        content += (
+        results_block = (
+            "---\n\n## Results\n\n"
             '<p><em>Model scores and rankings are on the <a href="/">leaderboard</a>. '
             "Below are some additional observations about the judges themselves.</em></p>\n\n"
+            f"{results_html}\n\n"
         )
-        content += results_html
-        content += "\n"
+        # Insert before the first Caveats/Contribution heading
+        for heading in ("## Caveats", "## Contribution"):
+            idx = content.find(f"\n{heading}")
+            if idx != -1:
+                content = content[: idx + 1] + results_block + content[idx + 1 :]
+                break
     return content
 
 
@@ -277,7 +282,7 @@ title: {model}
 """
 
 
-def build_transcript_md(model, question_id, questions):
+def build_transcript_md(model, question_id, questions, models):
     """Generate models/<model>/<qid>.md — transcript + judgment scores."""
     q_info = next((q for q in questions if q["id"] == question_id), None)
     title = q_info["title"] if q_info else question_id
@@ -338,6 +343,23 @@ Overall: {_badge(avg_all)}
 {score_section}
 """
 
+    # Build model-switcher dropdown (replaces static model label)
+    m_opts = []
+    for m in models:
+        has_md = (RUNS / m / f"{question_id}_cold.md").exists()
+        if has_md:
+            slug = f"/models/{_sl(m)}/{question_id}/"
+            selected = " selected" if m == model else ""
+            m_opts.append(f'<option value="{slug}"{selected}>{m}</option>')
+    if len(m_opts) > 1:
+        model_dropdown = (
+            'Model: <select class="m-switcher" onchange="if(this.value) window.location.href=this.value">'
+            + "".join(m_opts)
+            + "</select>"
+        )
+    else:
+        model_dropdown = f"Model: **{model}**"
+
     transcript_section = ""
     if transcript_body:
         transcript_section = f"""
@@ -352,9 +374,57 @@ title: {title}
 
 {badge} **{tier.upper()}** — *{q_info.get('prompt_cold', '') if q_info else ''}*
 
-Model: **{model}**
+{model_dropdown}
 {judgments_section}
 {transcript_section}
+"""
+
+
+def build_problems_md(questions, models, leaderboard):
+    """Generate problems/index.md — browse by problem with model dropdown."""
+    model_rank = {r["model"]: i for i, r in enumerate(leaderboard)}
+
+    rows = ""
+    for i, q in enumerate(questions, 1):
+        qid = q["id"]
+        title = q["title"]
+        tier = q["tier"]
+        badge = TIER_BADGE.get(tier, "")
+
+        model_options = []
+        top_slug = None
+        for model in sorted(models, key=lambda m: model_rank.get(m, 999)):
+            has_md = (RUNS / model / f"{qid}_cold.md").exists()
+            if has_md:
+                slug = f"/models/{_sl(model)}/{qid}/"
+                model_options.append(f'<option value="{slug}">{model}</option>')
+                if top_slug is None:
+                    top_slug = slug
+
+        if model_options:
+            opts = "".join(model_options)
+            selector = (
+                f'<select class="problem-model-select" onchange="if(this.value) window.location.href=this.value">'
+                f'<option value="">Select model…</option>{opts}</select>'
+            )
+            title_link = f"<a href=\"{top_slug}\">{title}</a>"
+        else:
+            selector = '<span class="badge-score score-missing">No data</span>'
+            title_link = f"**{title}**"
+
+        rows += f"| {i} | {badge} | {title_link} | {selector} |\n"
+
+    return f"""---
+title: Questions
+---
+
+# Questions
+
+Browse all system design questions and see how each model performed.
+
+| # | Tier | Question | View Model |
+|---|------|----------|------------|
+{rows}
 """
 
 
@@ -397,9 +467,15 @@ def main():
                 continue
             mdir = models_dir / model
             mdir.mkdir(exist_ok=True)
-            _write_md(mdir / f"{qid}.md", build_transcript_md(model, qid, questions))
+            _write_md(mdir / f"{qid}.md", build_transcript_md(model, qid, questions, models))
         count = sum(1 for q in questions if (RUNS / model / (q["id"] + "_cold.md")).exists())
         print(f"    {count} transcripts")
+
+    # Problems index page
+    problems_dir = SITE / "problems"
+    problems_dir.mkdir(exist_ok=True)
+    _write_md(problems_dir / "index.md", build_problems_md(questions, models, leaderboard))
+    print("✓ problems/index.md")
 
     # Generate sidebar config
     sidebar_path = HERE / "starlight" / "src" / "sidebar.gen.js"
@@ -417,6 +493,7 @@ export const sidebar = [
 {model_links},
 \t\t],
 \t}},
+\t{{ label: 'Questions', slug: 'problems' }},
 \t{{ label: 'Methodology', slug: 'about' }},
 ];
 """
