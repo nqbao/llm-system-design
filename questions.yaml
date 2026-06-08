@@ -4,6 +4,12 @@
   prompt_cold: |
     Design a URL shortener like bit.ly.
 
+- id: rag-search-assistant
+  tier: easy
+  title: Design a RAG Search Assistant
+  prompt_cold: |
+    Design a retrieval-augmented generation (RAG) assistant that answers user questions based on a company's internal documents.
+
 - id: chat-system
   tier: medium
   title: Design a Real-time Chat System

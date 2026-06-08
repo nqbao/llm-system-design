@@ -207,19 +207,25 @@ def _has_all_judgments(model: str, questions: list[dict], judges: list[str]) -> 
 def build_index(models, questions, leaderboard):
     """Generate docs/index.md — the homepage."""
     judges = get_judges()
-    qualified_models = {
-        m for m in models
-        if _has_all_transcripts(m, questions) and _has_all_judgments(m, questions, judges)
+    leaderboard_models = {r["model"] for r in leaderboard}
+    models_count = len(leaderboard_models)
+    scored_questions = {
+        q["id"] for q in questions
+        for m in leaderboard_models
+        if get_judgments(m, q["id"])
     }
-    models_count = len(qualified_models)
-    questions_count = len(questions)
+    questions_count = len(scored_questions)
     judge_count = len(judges)
-    total_transcripts = models_count * questions_count
+
+    scored_problems = 0
+    if leaderboard:
+        total_by_model = sum(r["n"] for r in leaderboard)
+        scored_problems = total_by_model // len(leaderboard)
+    total_transcripts = models_count * scored_problems if leaderboard else 0
 
     lb_rows = "\n".join(
         f"| {_rank_badge(i + 1)} | [{row['model']}](models/{_sl(row['model'])}/) | {_badge(row['mean'])} | ±{row['ci']} | {row['n']} |"
         for i, row in enumerate(leaderboard)
-        if row["model"] in qualified_models
     )
 
     template = (TEMPLATES / "index.md").read_text()
@@ -280,11 +286,12 @@ def build_model_md(model, questions, leaderboard):
                     avg = statistics.mean(dim_scores)
                     all_scores.append(avg)
                     dim_parts.append(f"{DIM_LABELS.get(dim, dim)}: {_badge(avg, f'{avg:.1f}')}")
-            overall = statistics.mean(all_scores) if all_scores else 0
-            score_text = _badge(overall, f"{overall:.1f}")
+            if all_scores:
+                overall = statistics.mean(all_scores)
+                score_text = _badge(overall, f"{overall:.1f}")
+            else:
+                score_text = '<span class="badge-score score-missing">—</span>'
         else:
-            overall = 0
-            dim_parts = []
             score_text = '<span class="badge-score score-missing">—</span>'
 
         has_md = (RUNS / model / f"{qid}_cold.md").exists()
@@ -329,7 +336,9 @@ def build_transcript_md(model, question_id, questions, models):
                     judge_rows += (
                         f"| {DIM_LABELS.get(dim, dim)} | {_badge(s)} | {reasoning} |\n"
                     )
-            overall = statistics.mean(judge_scores) if judge_scores else 0
+            if not judge_scores:
+                continue
+            overall = statistics.mean(judge_scores)
             judge_overalls.append(overall)
             all_scores.extend(judge_scores)
 
@@ -345,9 +354,9 @@ def build_transcript_md(model, question_id, questions, models):
 
         avg_all = statistics.mean(all_scores) if all_scores else 0
         avg_judge = statistics.mean(judge_overalls) if judge_overalls else 0
-    else:
-        avg_all = 0
-        avg_judge = 0
+    if not all_scores:
+        avg_all = None
+        avg_judge = None
         score_section = "\n*No judgments yet.*\n"
 
     # Read transcript markdown
@@ -357,10 +366,18 @@ def build_transcript_md(model, question_id, questions, models):
         raw = md_path.read_text()
         transcript_body = raw.strip()
 
-    judgments_section = f"""
+    judgments_section = ""
+    if avg_all is not None:
+        judgments_section = f"""
 ## Scores
 
 Overall: {_badge(avg_all)}
+{score_section}
+"""
+    else:
+        judgments_section = f"""
+## Scores
+
 {score_section}
 """
 
