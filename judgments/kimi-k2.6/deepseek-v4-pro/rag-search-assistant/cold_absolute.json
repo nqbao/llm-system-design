@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/deepseek-v4-pro/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "deepseek-v4-pro",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-08T00:06:23.854797+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response outlines functional requirements (ingestion, retrieval, generation via web chat/Slack) and non-functional requirements (document-level access control, data sovereignty). It explicitly assumes a mid-size company scale (10,000 employees) but lacks quantified SLAs such as availability percentage or explicit p99 targets. No non-goals are stated and ambiguities in the prompt are not resolved.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "Derives storage from text volume (100 GB → 40M chunks → 80 GB raw vectors → 240 GB with replication), compute (A100 throughput yields 5.5 hour backfill), and concurrency (100 concurrent users). The latency budget drives horizontal scaling decisions (2-4 GPU replicas for LLM/reranker). It omits network bandwidth and does not flag fragile assumptions or perform a sanity cross-check.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component maps to a stated requirement: hybrid dense+sparse retrieval for exact and semantic match, ACL sync for access control, and cross-encoder for precision. The mermaid diagram and textual description make data flow traceable end-to-end from ingestion to generation. Technology choices are purposeful, but the design does not explicitly identify and avoid a specific anti-pattern.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Provides two concrete deep-dives with mechanisms and tradeoffs: chunking (recursive character split with 500-token/50-token overlap, sentence-aware boundaries) and retrieval (RRF fusion, BM25, dense vectors, cross-encoder top-50 cap). The LLM hosting tradeoff is also concrete. No deep-dive surfaces a non-obvious edge case such as hot-key contention or index fragmentation.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Lists multiple tradeoffs tied to specific decisions (chunking strategy, sparse+dense retrieval, self-hosted vs managed LLM, coarse-grained ACL). The failure modes table includes specific mitigations (dead-letter queue, ACL audit logs, prompt-injection sanitization). However, tradeoffs remain qualitative rather than quantified, and the design does not explicitly acknowledge its own hard limits or surface a non-obvious failure mode like thundering herd.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response outlines functional requirements (ingestion, retrieval, generation via web chat/Slack) and non-functional requirements (document-level access control, data sovereignty). It explicitly assumes a mid-size company scale (10,000 employees) but lacks quantified SLAs such as availability percentage or explicit p99 targets. No non-goals are stated and ambiguities in the prompt are not resolved.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"Derives storage from text volume (100 GB → 40M chunks → 80 GB raw vectors → 240 GB with replication), compute (A100 throughput yields 5.5 hour backfill), and concurrency (100 concurrent users). The latency budget drives horizontal scaling decisions (2-4 GPU replicas for LLM/reranker). It omits network bandwidth and does not flag fragile assumptions or perform a sanity cross-check.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component maps to a stated requirement: hybrid dense+sparse retrieval for exact and semantic match, ACL sync for access control, and cross-encoder for precision. The mermaid diagram and textual description make data flow traceable end-to-end from ingestion to generation. Technology choices are purposeful, but the design does not explicitly identify and avoid a specific anti-pattern.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Provides two concrete deep-dives with mechanisms and tradeoffs: chunking (recursive character split with 500-token/50-token overlap, sentence-aware boundaries) and retrieval (RRF fusion, BM25, dense vectors, cross-encoder top-50 cap). The LLM hosting tradeoff is also concrete. No deep-dive surfaces a non-obvious edge case such as hot-key contention or index fragmentation.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Lists multiple tradeoffs tied to specific decisions (chunking strategy, sparse+dense retrieval, self-hosted vs managed LLM, coarse-grained ACL). The failure modes table includes specific mitigations (dead-letter queue, ACL audit logs, prompt-injection sanitization). However, tradeoffs remain qualitative rather than quantified, and the design does not explicitly acknowledge its own hard limits or surface a non-obvious failure mode like thundering herd.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

@@ -9,10 +9,12 @@ import sys
 import time
 from pathlib import Path
 
+import yaml
 from openai import OpenAI
 
 from bank import Bank
 from lib import (
+    HERE,
     TIERS,
     chat,
     get_client,
@@ -136,15 +138,31 @@ def _output_dir(model: str) -> Path:
     return HERE / "runs" / safe_model
 
 
+def load_models() -> dict:
+    path = HERE / "models.yaml"
+    if not path.exists():
+        raise SystemExit(f"models.yaml not found at {path}")
+    return yaml.safe_load(path.read_text())
+
+
 def main():
     parser = argparse.ArgumentParser(description="Run system designs")
     parser.add_argument("--model", default=model_name())
+    parser.add_argument("--all-models", action="store_true", help="run all candidate models from models.yaml")
     parser.add_argument("--question", default=None, help="question_id or 'all'")
     parser.add_argument("--variant", default="cold", choices=["cold"])
     parser.add_argument("--tier", default=None, choices=list(TIERS))
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--dry-run", action="store_true", help="list what would run")
     args = parser.parse_args()
+
+    if args.all_models:
+        models_cfg = load_models()
+        models = models_cfg.get("candidates", [])
+        if not models:
+            raise SystemExit("No candidates found in models.yaml")
+    else:
+        models = [args.model]
 
     bank = Bank()
     errors = bank.validate()
@@ -161,18 +179,18 @@ def main():
         if args.tier:
             questions = [q for q in questions if q.tier == args.tier]
 
-    tasks = [(q, args.variant) for q in questions]
+    tasks = [(m, q, args.variant) for m in models for q in questions]
 
     if args.dry_run:
-        print(f"Would run {len(tasks)} designs:")
-        for q, v in tasks:
-            print(f"  {q.id}/{v}")
+        print(f"Would run {len(tasks)} designs across {len(models)} model(s):")
+        for m, q, v in tasks:
+            print(f"  [{q.tier}] {m} :: {q.id}/{v}")
         return
 
     client = get_client()
-    for q, v in tasks:
-        print(f"[{q.tier}] {q.id}/{v}")
-        run_interview(client, args.model, q.id, v, force=args.force)
+    for m, q, v in tasks:
+        print(f"[{q.tier}] {m} :: {q.id}/{v}")
+        run_interview(client, m, q.id, v, force=args.force)
 
 
 if __name__ == "__main__":

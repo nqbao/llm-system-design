@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/claude-sonnet-4.6/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "claude-sonnet-4.6",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-19T18:33:01.485309+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response provides 7 explicitly numbered functional requirements and 7 non-functional requirements, many quantified (P95 < 8s, 99.9% uptime, Recall@5 >= 0.85, <30 min freshness). An explicit non-goals section lists three items. What prevents a 5 is that the design never calls out ambiguities in the prompt and resolves them explicitly, and the scale assumptions (500K docs, 1000 concurrent users) are stated but not justified as deliberate choices with 'here is where the design would change at 5M docs'.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "A full derivation chain exists: 500K docs x 10 pages x 2 chunks/page = 10M chunks, 60 GB vectors, 3-node Qdrant cluster sized to fit index in memory. QPS is derived (1000 users x 10/hr / 3600 = 2.8 QPS, 5x peak = 14 QPS) and a per-step latency budget is broken down. Cost estimates are present with the observation that LLM API cost dominates and caching saves $15-25K/month. Numbers do not always explicitly drive component sizing with statements like 'at 14 QPS we need N pods because each handles X', and no assumption is flagged as fragile with an explicit note about what breaks if it changes.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against a specific requirement or capacity number: Qdrant chosen over Pinecone explicitly for data residency, native payload filtering, and no per-vector pricing; OpenSearch chosen for BM25 sparse retrieval with company synonym expansion. Data flow is traceable end-to-end via both a high-level flowchart and a detailed sequence diagram. An explicit anti-pattern is identified and avoided: running cross-encoder on all 15M chunks is called out as infeasible due to quadratic cost, justifying the two-stage retrieval funnel. No decorative or hallucinated components detected.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple substantive deep dives are present: chunking covers hierarchical H1/H2 splitting, 512-token with 64-token overlap, section-title prepending, and special-case handling for tables and code with specific reasoning. The hybrid retriever covers the RRF formula with k=60, the 40 to 20 to 5 candidate funnel, and a quantified benefit of +8-12 pp Recall@5. ACL enforcement covers three distinct layers with specific mechanisms. A genuinely non-obvious failure mode is addressed in the failure table: embedding model version change causing dimension and vector-space mismatch, with a concrete atomic cutover mitigation.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 11 provides a 10-row tradeoff table with choices, alternatives, and rationale tied to specific decisions rather than generic CAP theorem invocations. Some tradeoffs carry quantification such as hybrid retrieval adding 8-12 pp and caching saving $15-25K/month. Section 9 gives a 9-row failure mode table with impact, detection, and mitigation. Non-obvious failure modes are surfaced including embedding model version change causing dimension mismatch and Redis cache poisoning via stale document references. The design does not fully reach level 5 because it lacks explicit statements of the form 'this design cannot handle X; if that became a requirement we would need Y', and latency impacts of consistency choices are not concretely quantified.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response provides 7 explicitly numbered functional requirements and 7 non-functional requirements, many quantified (P95 < 8s, 99.9% uptime, Recall@5 >= 0.85, <30 min freshness). An explicit non-goals section lists three items. What prevents a 5 is that the design never calls out ambiguities in the prompt and resolves them explicitly, and the scale assumptions (500K docs, 1000 concurrent users) are stated but not justified as deliberate choices with 'here is where the design would change at 5M docs'.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"A full derivation chain exists: 500K docs x 10 pages x 2 chunks/page = 10M chunks, 60 GB vectors, 3-node Qdrant cluster sized to fit index in memory. QPS is derived (1000 users x 10/hr / 3600 = 2.8 QPS, 5x peak = 14 QPS) and a per-step latency budget is broken down. Cost estimates are present with the observation that LLM API cost dominates and caching saves $15-25K/month. Numbers do not always explicitly drive component sizing with statements like 'at 14 QPS we need N pods because each handles X', and no assumption is flagged as fragile with an explicit note about what breaks if it changes.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified against a specific requirement or capacity number: Qdrant chosen over Pinecone explicitly for data residency, native payload filtering, and no per-vector pricing; OpenSearch chosen for BM25 sparse retrieval with company synonym expansion. Data flow is traceable end-to-end via both a high-level flowchart and a detailed sequence diagram. An explicit anti-pattern is identified and avoided: running cross-encoder on all 15M chunks is called out as infeasible due to quadratic cost, justifying the two-stage retrieval funnel. No decorative or hallucinated components detected.\", \"score\": 5}, \"deep_dive_depth\": {\"reasoning\": \"Multiple substantive deep dives are present: chunking covers hierarchical H1/H2 splitting, 512-token with 64-token overlap, section-title prepending, and special-case handling for tables and code with specific reasoning. The hybrid retriever covers the RRF formula with k=60, the 40 to 20 to 5 candidate funnel, and a quantified benefit of +8-12 pp Recall@5. ACL enforcement covers three distinct layers with specific mechanisms. A genuinely non-obvious failure mode is addressed in the failure table: embedding model version change causing dimension and vector-space mismatch, with a concrete atomic cutover mitigation.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 11 provides a 10-row tradeoff table with choices, alternatives, and rationale tied to specific decisions rather than generic CAP theorem invocations. Some tradeoffs carry quantification such as hybrid retrieval adding 8-12 pp and caching saving $15-25K/month. Section 9 gives a 9-row failure mode table with impact, detection, and mitigation. Non-obvious failure modes are surfaced including embedding model version change causing dimension mismatch and Redis cache poisoning via stale document references. The design does not fully reach level 5 because it lacks explicit statements of the form 'this design cannot handle X; if that became a requirement we would need Y', and latency impacts of consistency choices are not concretely quantified.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 3
+  }
+}

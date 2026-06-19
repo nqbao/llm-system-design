@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gemini-3.1-pro/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-19T18:42:25.994633+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design states clear functional requirements and explicit assumptions including 10K employees and 1M documents. It quantifies two non-functional targets (TTFT under 2s and data freshness within 15 minutes), but omits availability percentage, durability guarantee, and explicit p99 latency. It also lacks explicit non-goals or justification for the chosen scale.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives QPS, chunk count, vector storage (~42 GB), metadata overhead, and daily LLM token volume. However, it omits bandwidth estimation, does not size the LLM inference cluster or cache layer, and does not flag fragile assumptions or sanity-check results. The storage numbers only loosely inform the vector DB instance count.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is real and maps to a specific requirement: Qdrant for RBAC payload filtering, BM25 for exact acronyms, cross-encoder for relevance, and SSE streaming for latency. The Mermaid diagram makes data flow traceable end-to-end with no hallucinated services or dead weight.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Three deep dives provide concrete mechanisms and named tradeoffs: hybrid header-then-fixed chunking, Qdrant selection over pgvector and Pinecone with payload filtering, and hybrid retrieval fused via a cross-encoder reranker that quantifies latency cost. No non-obvious edge case like write amplification or hot keys is surfaced within the deep dives themselves.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Specific tradeoffs appear in chunking, vector DB selection, and retrieval latency versus accuracy. Failure modes are concrete and non-obvious: lost in the middle mitigated by chunk placement, ACL leakage mitigated by webhook-driven fast-path updates, and poisoned context mitigated by time-decay scoring. However, the design does not explicitly acknowledge its own hard limits.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The design states clear functional requirements and explicit assumptions including 10K employees and 1M documents. It quantifies two non-functional targets (TTFT under 2s and data freshness within 15 minutes), but omits availability percentage, durability guarantee, and explicit p99 latency. It also lacks explicit non-goals or justification for the chosen scale.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"The response derives QPS, chunk count, vector storage (~42 GB), metadata overhead, and daily LLM token volume. However, it omits bandwidth estimation, does not size the LLM inference cluster or cache layer, and does not flag fragile assumptions or sanity-check results. The storage numbers only loosely inform the vector DB instance count.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component is real and maps to a specific requirement: Qdrant for RBAC payload filtering, BM25 for exact acronyms, cross-encoder for relevance, and SSE streaming for latency. The Mermaid diagram makes data flow traceable end-to-end with no hallucinated services or dead weight.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Three deep dives provide concrete mechanisms and named tradeoffs: hybrid header-then-fixed chunking, Qdrant selection over pgvector and Pinecone with payload filtering, and hybrid retrieval fused via a cross-encoder reranker that quantifies latency cost. No non-obvious edge case like write amplification or hot keys is surfaced within the deep dives themselves.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Specific tradeoffs appear in chunking, vector DB selection, and retrieval latency versus accuracy. Failure modes are concrete and non-obvious: lost in the middle mitigated by chunk placement, ACL leakage mitigated by webhook-driven fast-path updates, and poisoned context mitigated by time-decay scoring. However, the design does not explicitly acknowledge its own hard limits.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 3
+  }
+}

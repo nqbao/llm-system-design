@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/minimax-m2.7/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "minimax-m2.7",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-08T06:39:45.348240+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response provides both functional requirements (5 items) and explicitly quantified non-functional requirements (P95 < 3s latency, retrieval precision > 85%, 10M+ chunks, 99.5% availability). Scale assumptions are presented in a table with a Rationale column justifying each figure. However, there are no explicit non-goals and no ambiguity resolution from the prompt, which are the distinguishing criteria for a score of 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The response builds a full estimation chain from document count and size through total tokens, chunk count, and daily query volume to peak QPS (~12 QPS), then propagates into storage math (3M x 1536 x 4 bytes = 18.4 GB, x2.5 overhead = 46 GB, provisioned at 60 GB) and component sizing. Per-query latency budget items (50ms embed, 30ms vector, 200ms rerank, 1.5s LLM) map directly to the P95 target. Bandwidth estimation is absent, no assumption is flagged as fragile, and no sanity check is performed on any result, which prevents a score of 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Both pipelines are rendered with Mermaid diagrams and a sequence diagram making data flow traceable end-to-end. Every component is justified against a specific requirement or failure mode: the reranker addresses ANN noise, hybrid search is introduced because pure vector search fails on proper nouns and negation queries, and PostgreSQL holds chunk text and ACLs separately from the vector DB. The hybrid search justification is a case of picking the less obvious but more correct choice with explicit reasoning, meeting the score-4 bar.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "There are multiple concrete deep-dives: chunking with hierarchical paragraph-to-sentence splitting and explicit token parameters; hybrid search with full RRF code, alpha parameter, and specific failure modes of pure vector search; reranking with code implementation and a three-model comparison table including latency and accuracy-gain figures; storage with SQL schema including a generated tsvector column and capacity math. Each includes a named tradeoff with reasoning. The negation-query failure for vector search is a non-obvious insight. However, no deep-dive surfaces a canonical infrastructure failure mode such as thundering herd on the vector DB during hot-query spikes or index rebuild impact during live traffic, keeping the score at 4.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Tradeoffs are tied to specific decisions with quantified figures: reranker model latency vs. accuracy gain (tabulated), embedding model cost vs. MTEB performance (tabulated), hybrid vs. pure vector (+10-15% recall), and LLM cost-quality tiers with per-token prices. A failure mode table covers 7 distinct modes with mitigations and detection strategies. A graceful degradation code block shows concrete fallback paths. However, the design does not explicitly acknowledge its own limits (e.g., what it cannot handle at 1B users or with real-time document updates), and no single failure mode rises to the level of a truly non-obvious infrastructure pathology like thundering herd or write amplification, keeping this at 4 rather than 5.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response provides both functional requirements (5 items) and explicitly quantified non-functional requirements (P95 < 3s latency, retrieval precision > 85%, 10M+ chunks, 99.5% availability). Scale assumptions are presented in a table with a Rationale column justifying each figure. However, there are no explicit non-goals and no ambiguity resolution from the prompt, which are the distinguishing criteria for a score of 5.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The response builds a full estimation chain from document count and size through total tokens, chunk count, and daily query volume to peak QPS (~12 QPS), then propagates into storage math (3M x 1536 x 4 bytes = 18.4 GB, x2.5 overhead = 46 GB, provisioned at 60 GB) and component sizing. Per-query latency budget items (50ms embed, 30ms vector, 200ms rerank, 1.5s LLM) map directly to the P95 target. Bandwidth estimation is absent, no assumption is flagged as fragile, and no sanity check is performed on any result, which prevents a score of 5.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Both pipelines are rendered with Mermaid diagrams and a sequence diagram making data flow traceable end-to-end. Every component is justified against a specific requirement or failure mode: the reranker addresses ANN noise, hybrid search is introduced because pure vector search fails on proper nouns and negation queries, and PostgreSQL holds chunk text and ACLs separately from the vector DB. The hybrid search justification is a case of picking the less obvious but more correct choice with explicit reasoning, meeting the score-4 bar.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"There are multiple concrete deep-dives: chunking with hierarchical paragraph-to-sentence splitting and explicit token parameters; hybrid search with full RRF code, alpha parameter, and specific failure modes of pure vector search; reranking with code implementation and a three-model comparison table including latency and accuracy-gain figures; storage with SQL schema including a generated tsvector column and capacity math. Each includes a named tradeoff with reasoning. The negation-query failure for vector search is a non-obvious insight. However, no deep-dive surfaces a canonical infrastructure failure mode such as thundering herd on the vector DB during hot-query spikes or index rebuild impact during live traffic, keeping the score at 4.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Tradeoffs are tied to specific decisions with quantified figures: reranker model latency vs. accuracy gain (tabulated), embedding model cost vs. MTEB performance (tabulated), hybrid vs. pure vector (+10-15% recall), and LLM cost-quality tiers with per-token prices. A failure mode table covers 7 distinct modes with mitigations and detection strategies. A graceful degradation code block shows concrete fallback paths. However, the design does not explicitly acknowledge its own limits (e.g., what it cannot handle at 1B users or with real-time document updates), and no single failure mode rises to the level of a truly non-obvious infrastructure pathology like thundering herd or write amplification, keeping this at 4 rather than 5.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 3
+  }
+}

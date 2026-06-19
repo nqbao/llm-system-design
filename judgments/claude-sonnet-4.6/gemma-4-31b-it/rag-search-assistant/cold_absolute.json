@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gemma-4-31b-it/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-19T18:48:48.639797+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "There is no explicit requirements section. Functional requirements are only implied (answer employee queries from internal knowledge base). Non-functional requirements are absent as a category — no availability %, no durability guarantee, no explicit p99 latency SLA. Section 3.1 provides capacity assumptions (1M docs, 10K employees, 5 QPS peak) but these are justified only minimally and not tied to business constraints. No non-goals are stated (e.g., 'we are NOT building a general-purpose internet search tool').",
+        "score": 2
+      },
+      "capacity_estimation": {
+        "reasoning": "A coherent estimation chain exists: doc count x avg size -> chunk count -> embedding dimensions x bytes -> total vector storage (~18.4 GB) -> 'fits in RAM of a high-memory instance -> sub-10ms retrieval.' The numbers demonstrably drive the storage architecture decision. The latency budget table is a reasonable addition. However, QPS (5 QPS peak) is stated without derivation from daily volume (10K/day divided by business hours -> ~1.5 avg QPS, ~5 peak is plausible but unexplained). Bandwidth and LLM API throughput/cost are not estimated. No fragile-assumption flags or sanity checks.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "A Mermaid diagram traces the data flow clearly across both pipelines and the feedback loop. Every major component (loaders, chunker, embedding model, vector DB, metadata index, reranker, guardrails) is linked to a stated purpose. Hybrid search is not decorative — it is explicitly justified because dense search fails on exact IDs like 'Error Code XJ-99.' ACL filtering before LLM context construction is a correct and non-trivial connection. No hallucinated or dead-weight components detected.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple components get concrete treatment: chunking specifies 512 tokens and 50-token overlap with justification; re-ranking specifies the mechanism (cross-encoder, 20 to 5 candidates) with a concrete reason and acknowledges its latency cost vs vector search; prompt construction shows the actual template structure; ACL integration details storing doc-level ACLs in metadata and filtering before context injection. However, no deep-dive surfaces a non-obvious failure mode such as chunk overlap causing duplicate top-5 chunks from the same source, or embedding model version mismatch between index-time and query-time.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Three tradeoffs are tied to specific decisions: dense vs. hybrid (with a concrete failure example), fixed vs. semantic chunking (speed vs. meaning), proprietary vs. open-source LLM (capability vs. privacy/cost). Five distinct failure modes are listed with specific mitigations (ACL filtering for leakage, windowed memory for query drift, TTL and rerank boosting for staleness, multi-AZ replicas for DB downtime). However, tradeoffs are not quantified (e.g., hybrid search latency cost vs. recall gain) and no truly non-obvious failure modes appear such as embedding model version drift causing search degradation after a model upgrade. The design does not acknowledge its own architectural limits.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"There is no explicit requirements section. Functional requirements are only implied (answer employee queries from internal knowledge base). Non-functional requirements are absent as a category — no availability %, no durability guarantee, no explicit p99 latency SLA. Section 3.1 provides capacity assumptions (1M docs, 10K employees, 5 QPS peak) but these are justified only minimally and not tied to business constraints. No non-goals are stated (e.g., 'we are NOT building a general-purpose internet search tool').\", \"score\": 2}, \"capacity_estimation\": {\"reasoning\": \"A coherent estimation chain exists: doc count x avg size -> chunk count -> embedding dimensions x bytes -> total vector storage (~18.4 GB) -> 'fits in RAM of a high-memory instance -> sub-10ms retrieval.' The numbers demonstrably drive the storage architecture decision. The latency budget table is a reasonable addition. However, QPS (5 QPS peak) is stated without derivation from daily volume (10K/day divided by business hours -> ~1.5 avg QPS, ~5 peak is plausible but unexplained). Bandwidth and LLM API throughput/cost are not estimated. No fragile-assumption flags or sanity checks.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"A Mermaid diagram traces the data flow clearly across both pipelines and the feedback loop. Every major component (loaders, chunker, embedding model, vector DB, metadata index, reranker, guardrails) is linked to a stated purpose. Hybrid search is not decorative — it is explicitly justified because dense search fails on exact IDs like 'Error Code XJ-99.' ACL filtering before LLM context construction is a correct and non-trivial connection. No hallucinated or dead-weight components detected.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple components get concrete treatment: chunking specifies 512 tokens and 50-token overlap with justification; re-ranking specifies the mechanism (cross-encoder, 20 to 5 candidates) with a concrete reason and acknowledges its latency cost vs vector search; prompt construction shows the actual template structure; ACL integration details storing doc-level ACLs in metadata and filtering before context injection. However, no deep-dive surfaces a non-obvious failure mode such as chunk overlap causing duplicate top-5 chunks from the same source, or embedding model version mismatch between index-time and query-time.\", \"score\": 3}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Three tradeoffs are tied to specific decisions: dense vs. hybrid (with a concrete failure example), fixed vs. semantic chunking (speed vs. meaning), proprietary vs. open-source LLM (capability vs. privacy/cost). Five distinct failure modes are listed with specific mitigations (ACL filtering for leakage, windowed memory for query drift, TTL and rerank boosting for staleness, multi-AZ replicas for DB downtime). However, tradeoffs are not quantified (e.g., hybrid search latency cost vs. recall gain) and no truly non-obvious failure modes appear such as embedding model version drift causing search degradation after a model upgrade. The design does not acknowledge its own architectural limits.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

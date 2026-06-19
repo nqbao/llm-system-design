@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/kimi-k2.6/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "kimi-k2.6",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-08T07:09:02.046217+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design opens with a requirements table that quantifies both functional requirements (1M documents, 200K queries/day, 70 QPS peak) and non-functional targets (P95 < 3.0s, hallucination rate < 2%, freshness < 15 min). However, no explicit non-goals are stated and the response does not acknowledge prompt ambiguities or justify why these particular scale numbers were chosen rather than treating them as stated assumptions. This keeps it from reaching a 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The estimation chain is genuinely rigorous: corpus words to tokens to chunks accounting for 128-token overlap to 18M vectors to 72 GB raw to 180 GB with HNSW overhead to 3-node cluster sizing. Numbers propagate into design choices explicitly ('4 chunks/sec GPU capacity vs 2.1 needed sustained, one worker sufficient'). Cost estimation is detailed and broken down per component. What prevents a 5 is the absence of sanity-checking and no flagging of fragile assumptions such as the 1% daily churn rate being critical and unstated as uncertain.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component in the Mermaid diagram serves a traced requirement: PII redaction maps to security, dual pre/post ACL filtering maps to the cross-tenant leakage requirement, the LLM router maps to cost targets. Most impressively, the design explicitly rejects semantic caching in favor of exact hash caching because 'semantic cache risks ACL leakage', a concrete anti-pattern avoidance with security reasoning. Data flow is traceable end-to-end through both ingestion and query pipelines with no decorative or unjustified components.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep dives are present with concrete mechanisms and named tradeoffs: HNSW parameters with recall@10 > 95% justification; two-phase retrieval with measured latency ranges (30-60 ms bi-encoder, 150-250 ms cross-encoder) and a quantified MRR gain of 20%; token budget breakdown for the 8K context window; AST-based chunking for code files. Non-obvious edge cases are explicitly surfaced: table serialization as Markdown to prevent row-splitting, prompt injection via malicious document content, and embedding model drift handled via versioned collection namespaces with blue/green reindexing.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The tradeoffs table is quantified and specific: 200 ms latency accepted for 20% MRR gain; 5x cost savings on GPT-3.5 routing; full rebuild would require 48 hours justifying incremental updates. Failure modes include several non-obvious ones: prompt injection via document content with output filtering mitigation, embedding model drift with versioned collections, and table chunking artifacts causing hallucinated totals. The one gap preventing a 5 is the absence of explicit design limit acknowledgments stating what the architecture cannot handle and what would be needed to address those gaps.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The design opens with a requirements table that quantifies both functional requirements (1M documents, 200K queries/day, 70 QPS peak) and non-functional targets (P95 < 3.0s, hallucination rate < 2%, freshness < 15 min). However, no explicit non-goals are stated and the response does not acknowledge prompt ambiguities or justify why these particular scale numbers were chosen rather than treating them as stated assumptions. This keeps it from reaching a 5.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The estimation chain is genuinely rigorous: corpus words to tokens to chunks accounting for 128-token overlap to 18M vectors to 72 GB raw to 180 GB with HNSW overhead to 3-node cluster sizing. Numbers propagate into design choices explicitly ('4 chunks/sec GPU capacity vs 2.1 needed sustained, one worker sufficient'). Cost estimation is detailed and broken down per component. What prevents a 5 is the absence of sanity-checking and no flagging of fragile assumptions such as the 1% daily churn rate being critical and unstated as uncertain.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component in the Mermaid diagram serves a traced requirement: PII redaction maps to security, dual pre/post ACL filtering maps to the cross-tenant leakage requirement, the LLM router maps to cost targets. Most impressively, the design explicitly rejects semantic caching in favor of exact hash caching because 'semantic cache risks ACL leakage', a concrete anti-pattern avoidance with security reasoning. Data flow is traceable end-to-end through both ingestion and query pipelines with no decorative or unjustified components.\", \"score\": 5}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep dives are present with concrete mechanisms and named tradeoffs: HNSW parameters with recall@10 > 95% justification; two-phase retrieval with measured latency ranges (30-60 ms bi-encoder, 150-250 ms cross-encoder) and a quantified MRR gain of 20%; token budget breakdown for the 8K context window; AST-based chunking for code files. Non-obvious edge cases are explicitly surfaced: table serialization as Markdown to prevent row-splitting, prompt injection via malicious document content, and embedding model drift handled via versioned collection namespaces with blue/green reindexing.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The tradeoffs table is quantified and specific: 200 ms latency accepted for 20% MRR gain; 5x cost savings on GPT-3.5 routing; full rebuild would require 48 hours justifying incremental updates. Failure modes include several non-obvious ones: prompt injection via document content with output filtering mitigation, embedding model drift with versioned collections, and table chunking artifacts causing hallucinated totals. The one gap preventing a 5 is the absence of explicit design limit acknowledgments stating what the architecture cannot handle and what would be needed to address those gaps.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gpt-oss-120b/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-06-19T18:56:09.340813+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design includes a clear table of functional requirements, non-functional targets (latency p95, throughput, availability), quantified SLAs, and explicit assumptions (1k QPS, 10k docs, $5k budget). It resolves an ambiguity in the prompt by setting specific scale and cost constraints, but does not state explicit non-goals.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The response provides a full estimation chain: from assumptions to QPS, token counts, LLM cost per query, monthly cost, embedding service load, vector DB throughput, and storage sizing. It sanity-checks the cost (86M queries → $568k, far above budget) and uses numbers to drive design decisions like capping usage and choosing cheaper LLM.",
+        "score": 5
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against a requirement or capacity number. The Mermaid diagram and data flow description make the architecture coherent and traceable end-to-end. No hallucinations or dead weight components. The design justifies hybrid retrieval and reranker, showing purpose.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives (ingestion, embedding service, vector DB, lexical store, reranker, prompt builder, LLM inference) with concrete mechanisms (chunk overlap, IVF-PQ index, BM25, cross-encoder reranking, MMR). Tradeoff reasoning is provided for each, e.g., managed vs self-hosted embeddings. Edge cases are not deeply explored, but the depth is above average.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design includes a dedicated trade-off table with pros/cons and re-evaluation triggers for key decisions. Failure modes are listed with detection, impact, and mitigations, including non-obvious ones like prompt injection. The design acknowledges cost limitations and scaling triggers, but does not explicitly state a non-goal or absolute limit.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The design includes a clear table of functional requirements, non-functional targets (latency p95, throughput, availability), quantified SLAs, and explicit assumptions (1k QPS, 10k docs, $5k budget). It resolves an ambiguity in the prompt by setting specific scale and cost constraints, but does not state explicit non-goals.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The response provides a full estimation chain: from assumptions to QPS, token counts, LLM cost per query, monthly cost, embedding service load, vector DB throughput, and storage sizing. It sanity-checks the cost (86M queries → $568k, far above budget) and uses numbers to drive design decisions like capping usage and choosing cheaper LLM.\",\n    \"score\": 5\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component is justified against a requirement or capacity number. The Mermaid diagram and data flow description make the architecture coherent and traceable end-to-end. No hallucinations or dead weight components. The design justifies hybrid retrieval and reranker, showing purpose.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives (ingestion, embedding service, vector DB, lexical store, reranker, prompt builder, LLM inference) with concrete mechanisms (chunk overlap, IVF-PQ index, BM25, cross-encoder reranking, MMR). Tradeoff reasoning is provided for each, e.g., managed vs self-hosted embeddings. Edge cases are not deeply explored, but the depth is above average.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The design includes a dedicated trade-off table with pros/cons and re-evaluation triggers for key decisions. Failure modes are listed with detection, impact, and mitigations, including non-obvious ones like prompt injection. The design acknowledges cost limitations and scaling triggers, but does not explicitly state a non-goal or absolute limit.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

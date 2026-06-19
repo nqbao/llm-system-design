@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 import statistics
+import subprocess
 from collections import defaultdict
 from pathlib import Path
 
@@ -56,6 +57,9 @@ TIER_BADGE = {
     "chaos": '<span class="tier-badge">🔴</span>',
 }
 
+MERMAID_FENCE_RE = re.compile(r"```mermaid\s*\n(.*?)```", re.DOTALL)
+_MERMAID_VALIDATION_CACHE: dict[Path, list[bool] | None] = {}
+
 
 # ── Utilities ─────────────────────────────────────────────────────────────────
 
@@ -100,6 +104,93 @@ def _rank_badge(rank: int) -> str:
 def _write_md(path: Path, content: str):
     path.parent.mkdir(exist_ok=True, parents=True)
     path.write_text(content.strip() + "\n")
+
+
+def _is_invalid_mermaid_block(block: str) -> bool:
+    """Conservatively detect malformed Mermaid fences and fall back to code view."""
+    stack: list[str] = []
+    pairs = {")": "(",
+             "]": "[",
+             "}": "{",
+    }
+    in_double_quote = False
+    escaped = False
+
+    for raw_line in block.splitlines():
+        line = raw_line.strip()
+        if line.startswith("%%"):
+            continue
+        for opener, closer in (('["', '"]'), ('("', '")'), ('{"', '"}')):
+            has_opener = opener in raw_line
+            has_closer = closer in raw_line
+            if has_opener != has_closer:
+                return True
+        for ch in raw_line:
+            if escaped:
+                escaped = False
+                continue
+            if ch == "\\":
+                escaped = True
+                continue
+            if ch == '"':
+                in_double_quote = not in_double_quote
+                continue
+            if in_double_quote:
+                continue
+            if ch in "([{":
+                stack.append(ch)
+            elif ch in pairs:
+                if not stack or stack[-1] != pairs[ch]:
+                    return True
+                stack.pop()
+
+    return in_double_quote or bool(stack)
+
+
+def _load_mermaid_validation(source: Path) -> list[bool] | None:
+    cached = _MERMAID_VALIDATION_CACHE.get(source)
+    if cached is not None or source in _MERMAID_VALIDATION_CACHE:
+        return cached
+
+    helper = HERE / "validate_mermaid.mjs"
+    try:
+        result = subprocess.run(
+            ["node", str(helper), str(source)],
+            capture_output=True,
+            check=True,
+            text=True,
+        )
+        parsed = json.loads(result.stdout)
+        if isinstance(parsed, list) and all(isinstance(v, bool) for v in parsed):
+            _MERMAID_VALIDATION_CACHE[source] = parsed
+            return parsed
+    except (OSError, subprocess.CalledProcessError, json.JSONDecodeError):
+        pass
+
+    _MERMAID_VALIDATION_CACHE[source] = None
+    return None
+
+
+def _prepare_transcript_markdown(raw: str, source: Path) -> str:
+    """Rewrite malformed Mermaid blocks to plain code fences during site build."""
+    validation = _load_mermaid_validation(source)
+    block_index = 0
+
+    def replace(match: re.Match[str]) -> str:
+        nonlocal block_index
+        block = match.group(1)
+        invalid = (
+            validation[block_index]
+            if validation is not None and block_index < len(validation)
+            else _is_invalid_mermaid_block(block)
+        )
+        block_index += 1
+        if invalid:
+            print(f"! invalid mermaid fallback: {source}")
+            return f"```text\n{block}```"
+        return match.group(0)
+
+    return MERMAID_FENCE_RE.sub(replace, raw).strip()
 
 
 # ── Data loading ──────────────────────────────────────────────────────────────
@@ -364,7 +455,7 @@ def build_transcript_md(model, question_id, questions, models):
     transcript_body = ""
     if md_path.exists():
         raw = md_path.read_text()
-        transcript_body = raw.strip()
+        transcript_body = _prepare_transcript_markdown(raw, md_path)
 
     judgments_section = ""
     if avg_all is not None:

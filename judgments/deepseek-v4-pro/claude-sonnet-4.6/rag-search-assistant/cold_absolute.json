@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/claude-sonnet-4.6/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "claude-sonnet-4.6",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-06-19T18:33:01.485309+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response includes both functional (F1-F7) and non-functional requirements (N1-N7) with quantified targets such as p95 latency <8s, 99.9% uptime, and specific recall targets. Assumptions about document corpus size and usage patterns are stated and justified. Explicit non-goals are listed (no internet search, no training, not replacing DMS). However, there is no explicit resolution of an ambiguity in the prompt (e.g., choosing a scale and noting where the design changes), so it does not reach the highest level.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The capacity math section derives total chunks (10M) from document corpus assumptions, then calculates vector store size (83 GB raw, 166 GB with replication), OpenSearch index size, query throughput (avg 2.8 QPS, peak 14), and per-step latency budget. These numbers drive component sizing (e.g., 3-node Qdrant cluster with 128 GB each). The estimation chain is complete and numbers are used in decisions. It does not flag fragile assumptions or include a sanity-check, so it falls short of a 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component in the mermaid diagram and description is tied to a requirement (ingestion for F1, retrieval for F2, ACL for F3, etc.) or to non-functional targets like latency. Data flow is traceable end-to-end. The architecture avoids an anti-pattern by explaining why a full cross-encoder on all chunks is infeasible and opting for two-stage retrieval instead, demonstrating deliberate anti-pattern avoidance.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are provided, including chunking strategy with concrete algorithm (hierarchical, 512 tokens, 64-token overlap, section title prepending), hybrid retriever with RRF fusion, cross-encoder re-ranker with reasoning about why it is used only on top-20, and ACL filter with defense-in-depth. Each includes mechanism and tradeoff rationale. However, no deep-dive explicitly surfaces a non-obvious edge case (like thundering herd or hot key) beyond typical design considerations.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response includes a detailed table of tradeoffs tied to specific decisions (chunking granularity, embedding model, vector DB, re-ranking, ACL enforcement, etc.) with quantified benefits like '+8–12 pp Recall@5' for hybrid retrieval. Failure modes are enumerated with detection and mitigation (LLM outage failover, Qdrant replication, stale ACL multi-layer check, cache invalidation). It acknowledges the 30-minute freshness tradeoff versus real-time, but does not explicitly state a hard limit like 'this design cannot handle X; if required we'd need Y' or flag a non-obvious failure mode, keeping it at a 4.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response includes both functional (F1-F7) and non-functional requirements (N1-N7) with quantified targets such as p95 latency <8s, 99.9% uptime, and specific recall targets. Assumptions about document corpus size and usage patterns are stated and justified. Explicit non-goals are listed (no internet search, no training, not replacing DMS). However, there is no explicit resolution of an ambiguity in the prompt (e.g., choosing a scale and noting where the design changes), so it does not reach the highest level.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The capacity math section derives total chunks (10M) from document corpus assumptions, then calculates vector store size (83 GB raw, 166 GB with replication), OpenSearch index size, query throughput (avg 2.8 QPS, peak 14), and per-step latency budget. These numbers drive component sizing (e.g., 3-node Qdrant cluster with 128 GB each). The estimation chain is complete and numbers are used in decisions. It does not flag fragile assumptions or include a sanity-check, so it falls short of a 5.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component in the mermaid diagram and description is tied to a requirement (ingestion for F1, retrieval for F2, ACL for F3, etc.) or to non-functional targets like latency. Data flow is traceable end-to-end. The architecture avoids an anti-pattern by explaining why a full cross-encoder on all chunks is infeasible and opting for two-stage retrieval instead, demonstrating deliberate anti-pattern avoidance.\", \"score\": 5}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives are provided, including chunking strategy with concrete algorithm (hierarchical, 512 tokens, 64-token overlap, section title prepending), hybrid retriever with RRF fusion, cross-encoder re-ranker with reasoning about why it is used only on top-20, and ACL filter with defense-in-depth. Each includes mechanism and tradeoff rationale. However, no deep-dive explicitly surfaces a non-obvious edge case (like thundering herd or hot key) beyond typical design considerations.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The response includes a detailed table of tradeoffs tied to specific decisions (chunking granularity, embedding model, vector DB, re-ranking, ACL enforcement, etc.) with quantified benefits like '+8–12 pp Recall@5' for hybrid retrieval. Failure modes are enumerated with detection and mitigation (LLM outage failover, Qdrant replication, stale ACL multi-layer check, cache invalidation). It acknowledges the 30-minute freshness tradeoff versus real-time, but does not explicitly state a hard limit like 'this design cannot handle X; if required we'd need Y' or flag a non-obvious failure mode, keeping it at a 4.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

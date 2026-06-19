@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gpt-5.4/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "gpt-5.4",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-19T18:21:04.833219+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists 8 functional requirements and 6 non-functional requirements, and quantifies several SLAs (p95 first token < 1.5s, p95 full answer < 6s, retrieval < 300ms, 95% freshness within 5 min, ACL tightening within 1 min, 99.9% availability). Assumptions are stated and scale is chosen explicitly (500K docs, 10K DAU). However, there are no explicit non-goals ('we are NOT building X') and no acknowledgment of prompt ambiguities being resolved ('the prompt doesn't say how many users; I'll pick 10K DAU and note what changes at 100K'). These two elements are required for a 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The estimation chain is solid: 500K docs x 3K tokens -> 1.5B tokens -> 4.7M chunks (with stride math shown); 200K queries/day -> 2.3 QPS average -> 15/50 peak design points; per-chunk and total storage computed (9.4GB embeddings + 47GB total index -> 6 data nodes specified); LLM token throughput -> $580/day cost. Numbers demonstrably drive design choices: '4.7M chunks, one search cluster is reasonable.' However, the response does not flag which assumptions are fragile (e.g., 3K tokens/doc is a big lever) nor sanity-check results (e.g., 'is 47GB plausible for this many docs?'), which are the requirements for a 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "The Mermaid diagram and sequence diagram together make data flow traceable end-to-end. Every component (queue, parser, reranker, ACL resolver, etc.) is connected to a stated requirement or capacity decision. The choice of OpenSearch over a separate vector DB + lexical engine is explicitly justified with pros/cons. Hybrid retrieval over vector-only is argued against enterprise-specific patterns (acronyms, policy codes). The double-ACL enforcement pattern (pre-filter + live re-check) is the less obvious but more correct choice and is explained. No hallucinated services detected.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives with concrete mechanisms: (1) chunking with specific token targets, overlap/stride values, forbidden splits on tables/code, and rich metadata schema; (2) retrieval with top-100 BM25 + top-100 vector -> RRF -> cross-encoder reranker -> 6-10 chunks with a specific context token budget of 1,500-2,000; (3) ACL enforcement where the 30-second race condition scenario is named explicitly and the fail-closed strategy is the concrete mitigation; (4) versioning with atomic pointer flip to prevent half-indexed doc answers. A non-obvious edge case (prompt injection from within documents) is identified and specifically addressed. Missing a score-5 criterion: the cross-encoder reranker mechanism is not explained beyond naming it, and there is no discussion of write amplification or hot-key failure in the search cluster.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Eight failure modes are enumerated with specific causes and mitigations (unauthorized leakage, stale deletes, retrieval misses, hallucination, prompt injection, OCR errors, LLM outage, hot spots). Tradeoffs are tied to specific decisions: reranker adds 100-250ms latency vs. precision gain; one search cluster vs. separate vector DB has explicit pros/cons; answer caching is flagged as risky for ACL correctness reasons with short TTL as the mitigation. The prompt injection failure mode is non-obvious. However, tradeoffs are not strongly quantified in SLA terms, and the design does not explicitly acknowledge its own limits ('this design cannot handle X; to support it you would need Y'), which is required for a 5.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response lists 8 functional requirements and 6 non-functional requirements, and quantifies several SLAs (p95 first token < 1.5s, p95 full answer < 6s, retrieval < 300ms, 95% freshness within 5 min, ACL tightening within 1 min, 99.9% availability). Assumptions are stated and scale is chosen explicitly (500K docs, 10K DAU). However, there are no explicit non-goals ('we are NOT building X') and no acknowledgment of prompt ambiguities being resolved ('the prompt doesn't say how many users; I'll pick 10K DAU and note what changes at 100K'). These two elements are required for a 5.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The estimation chain is solid: 500K docs x 3K tokens -> 1.5B tokens -> 4.7M chunks (with stride math shown); 200K queries/day -> 2.3 QPS average -> 15/50 peak design points; per-chunk and total storage computed (9.4GB embeddings + 47GB total index -> 6 data nodes specified); LLM token throughput -> $580/day cost. Numbers demonstrably drive design choices: '4.7M chunks, one search cluster is reasonable.' However, the response does not flag which assumptions are fragile (e.g., 3K tokens/doc is a big lever) nor sanity-check results (e.g., 'is 47GB plausible for this many docs?'), which are the requirements for a 5.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"The Mermaid diagram and sequence diagram together make data flow traceable end-to-end. Every component (queue, parser, reranker, ACL resolver, etc.) is connected to a stated requirement or capacity decision. The choice of OpenSearch over a separate vector DB + lexical engine is explicitly justified with pros/cons. Hybrid retrieval over vector-only is argued against enterprise-specific patterns (acronyms, policy codes). The double-ACL enforcement pattern (pre-filter + live re-check) is the less obvious but more correct choice and is explained. No hallucinated services detected.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives with concrete mechanisms: (1) chunking with specific token targets, overlap/stride values, forbidden splits on tables/code, and rich metadata schema; (2) retrieval with top-100 BM25 + top-100 vector -> RRF -> cross-encoder reranker -> 6-10 chunks with a specific context token budget of 1,500-2,000; (3) ACL enforcement where the 30-second race condition scenario is named explicitly and the fail-closed strategy is the concrete mitigation; (4) versioning with atomic pointer flip to prevent half-indexed doc answers. A non-obvious edge case (prompt injection from within documents) is identified and specifically addressed. Missing a score-5 criterion: the cross-encoder reranker mechanism is not explained beyond naming it, and there is no discussion of write amplification or hot-key failure in the search cluster.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Eight failure modes are enumerated with specific causes and mitigations (unauthorized leakage, stale deletes, retrieval misses, hallucination, prompt injection, OCR errors, LLM outage, hot spots). Tradeoffs are tied to specific decisions: reranker adds 100-250ms latency vs. precision gain; one search cluster vs. separate vector DB has explicit pros/cons; answer caching is flagged as risky for ACL correctness reasons with short TTL as the mitigation. The prompt injection failure mode is non-obvious. However, tradeoffs are not strongly quantified in SLA terms, and the design does not explicitly acknowledge its own limits ('this design cannot handle X; to support it you would need Y'), which is required for a 5.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

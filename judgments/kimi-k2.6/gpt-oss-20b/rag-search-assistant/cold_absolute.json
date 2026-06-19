@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gpt-oss-20b/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-20b",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-08T07:00:32.022713+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design lists five functional requirements and quantified non-functional requirements including latency targets (<700ms avg, 90th percentile), 10k QPS, 99.9% availability, and a $10k/month cost cap. Assumptions such as 200k documents and 3,000 tokens per document are stated in a table with explicit rationale. However, it lacks explicit non-goals or resolution of prompt ambiguities.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives total chunks (1M), vector storage (6GB), raw text (2GB), index overhead (12GB), and total RAM (~20GB) from document assumptions. Storage numbers drive the sharding decision (single 64GB server or 4 nodes), and the per-request LLM cost extrapolation ($4.3M/month) forces a pivot toward caching or cheaper models. However, bandwidth figures are asserted rather than derived, the 10k QPS is treated as sustained 24/7 without flagging that assumption, and there is no explicit fragile-assumption sanity check.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Major components sensibly map to requirements: ingestion handles batch processing, HNSW vector search handles retrieval, Redis handles sessions, and the LLM service handles augmentation. Data flow is traceable end-to-end in the mermaid diagram. However, the HA section contains suspect references such as \"kedro/pod auto-restart\" (Kedro is a Python pipeline framework, not a container orchestrator) and \"POC (persistence-remote-control)\" which is unclear or hallucinated. The backend deployment diagram introduces a RabbitMQ queue that is not discussed in the ingestion deep-dive, creating a minor inconsistency.",
+        "score": 3
+      },
+      "deep_dive_depth": {
+        "reasoning": "The ingestion deep-dive specifies concrete mechanisms including tiktoken chunking, 50-token overlap, SHA-256 deduplication, HNSW indexing, and 20GB RAM per replica. The retrieval deep-dive details the Ada embedder, 10-15 nearest neighbors, a cosine score threshold of ~0.70, and metadata filtering for multi-tenant isolation. The LLM deep-dive contrasts cloud versus self-hosted (Llama-3-8B + QLoRA) and includes a concrete prompt template. However, only the LLM deep-dive includes an internal named tradeoff; ingestion and retrieval deep-dives lack tradeoff reasoning within the section, and no deep-dive surfaces a non-obvious edge case such as hot-key contention or thundering herd.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 7 presents concrete trade-offs tied to specific decisions, including chunk size (500 vs 600), exact vs. approximate ANN (quantified as ~200ms for exact on 1M vectors), GPU-hosted vs. cloud LLM, and Redis vs. PostgreSQL. Section 6 lists specific failure modes with mitigations, such as vector store unavailability (circuit breaker to bypass search), LLM quota exhaustion (queue with back-off and alternate provider), and embedding drift (periodic re-embedding). The $4.3M monthly cost calculation forces a design pivot to caching and cheaper models, demonstrating awareness of economic limits, though it does not explicitly state an absolute architectural non-starter.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The design lists five functional requirements and quantified non-functional requirements including latency targets (<700ms avg, 90th percentile), 10k QPS, 99.9% availability, and a $10k/month cost cap. Assumptions such as 200k documents and 3,000 tokens per document are stated in a table with explicit rationale. However, it lacks explicit non-goals or resolution of prompt ambiguities.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The response derives total chunks (1M), vector storage (6GB), raw text (2GB), index overhead (12GB), and total RAM (~20GB) from document assumptions. Storage numbers drive the sharding decision (single 64GB server or 4 nodes), and the per-request LLM cost extrapolation ($4.3M/month) forces a pivot toward caching or cheaper models. However, bandwidth figures are asserted rather than derived, the 10k QPS is treated as sustained 24/7 without flagging that assumption, and there is no explicit fragile-assumption sanity check.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Major components sensibly map to requirements: ingestion handles batch processing, HNSW vector search handles retrieval, Redis handles sessions, and the LLM service handles augmentation. Data flow is traceable end-to-end in the mermaid diagram. However, the HA section contains suspect references such as \\\"kedro/pod auto-restart\\\" (Kedro is a Python pipeline framework, not a container orchestrator) and \\\"POC (persistence-remote-control)\\\" which is unclear or hallucinated. The backend deployment diagram introduces a RabbitMQ queue that is not discussed in the ingestion deep-dive, creating a minor inconsistency.\", \"score\": 3}, \"deep_dive_depth\": {\"reasoning\": \"The ingestion deep-dive specifies concrete mechanisms including tiktoken chunking, 50-token overlap, SHA-256 deduplication, HNSW indexing, and 20GB RAM per replica. The retrieval deep-dive details the Ada embedder, 10-15 nearest neighbors, a cosine score threshold of ~0.70, and metadata filtering for multi-tenant isolation. The LLM deep-dive contrasts cloud versus self-hosted (Llama-3-8B + QLoRA) and includes a concrete prompt template. However, only the LLM deep-dive includes an internal named tradeoff; ingestion and retrieval deep-dives lack tradeoff reasoning within the section, and no deep-dive surfaces a non-obvious edge case such as hot-key contention or thundering herd.\", \"score\": 3}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 7 presents concrete trade-offs tied to specific decisions, including chunk size (500 vs 600), exact vs. approximate ANN (quantified as ~200ms for exact on 1M vectors), GPU-hosted vs. cloud LLM, and Redis vs. PostgreSQL. Section 6 lists specific failure modes with mitigations, such as vector store unavailability (circuit breaker to bypass search), LLM quota exhaustion (queue with back-off and alternate provider), and embedding drift (periodic re-embedding). The $4.3M monthly cost calculation forces a design pivot to caching and cheaper models, demonstrating awareness of economic limits, though it does not explicitly state an absolute architectural non-starter.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 3
+  }
+}

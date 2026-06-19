@@ -7,6 +7,7 @@ import json
 import sys
 from pathlib import Path
 
+import yaml
 from openai import OpenAI
 
 from lib import (
@@ -249,9 +250,18 @@ def find_transcripts_for_question(question_id: str) -> dict[str, list[Path]]:
     return by_model
 
 
+def load_judge_models() -> list[str]:
+    path = HERE / "models.yaml"
+    if not path.exists():
+        raise SystemExit(f"models.yaml not found at {path}")
+    cfg = yaml.safe_load(path.read_text())
+    return cfg.get("judges", [])
+
+
 def main():
     parser = argparse.ArgumentParser(description="Run judges on transcripts")
     parser.add_argument("--model", default=model_name())
+    parser.add_argument("--all-models", action="store_true", help="run all judge models from models.yaml")
     parser.add_argument("--mode", default="absolute", choices=["absolute", "pairwise", "all"])
     parser.add_argument("--transcript", default=None, help="path to a specific transcript")
     parser.add_argument("--question", default=None, help="run all transcripts for a question_id")
@@ -259,32 +269,41 @@ def main():
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
+    if args.all_models:
+        judge_models = load_judge_models()
+        if not judge_models:
+            raise SystemExit("No judges found in models.yaml")
+    else:
+        judge_models = [args.model]
+
     client = get_client()
 
     if args.transcript:
-        result = run_absolute(client, args.model, args.transcript, force=args.force)
-        if result:
-            print(json.dumps(result["scores"], indent=2))
+        for jm in judge_models:
+            result = run_absolute(client, jm, args.transcript, force=args.force)
+            if result:
+                print(json.dumps(result["scores"], indent=2))
         return
 
     if args.question:
         by_model = find_transcripts_for_question(args.question)
         print(f"Found transcripts for {args.question}: {dict((k, len(v)) for k, v in by_model.items())}")
 
-        if args.mode in ("absolute", "all"):
-            for model_name_str, paths in by_model.items():
-                for p in paths:
-                    print(f"[absolute] {p}")
-                    run_absolute(client, args.model, p, force=args.force)
+        for jm in judge_models:
+            if args.mode in ("absolute", "all"):
+                for model_name_str, paths in by_model.items():
+                    for p in paths:
+                        print(f"[absolute] judge={jm} {p}")
+                        run_absolute(client, jm, p, force=args.force)
 
-        if args.mode in ("pairwise", "all"):
-            models = list(by_model.keys())
-            for i in range(len(models)):
-                for j in range(i + 1, len(models)):
-                    for ta in by_model[models[i]]:
-                        for tb in by_model[models[j]]:
-                            print(f"[pairwise] {models[i]} vs {models[j]} ({ta.name} vs {tb.name})")
-                            run_pairwise(client, args.model, ta, tb, force=args.force)
+            if args.mode in ("pairwise", "all"):
+                models = list(by_model.keys())
+                for i in range(len(models)):
+                    for j in range(i + 1, len(models)):
+                        for ta in by_model[models[i]]:
+                            for tb in by_model[models[j]]:
+                                print(f"[pairwise] judge={jm} {models[i]} vs {models[j]} ({ta.name} vs {tb.name})")
+                                run_pairwise(client, jm, ta, tb, force=args.force)
     else:
         print("Specify --transcript or --question", file=sys.stderr)
         raise SystemExit(1)
