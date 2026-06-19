@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/minimax-m2.7/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "minimax-m2.7",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-08T06:39:45.348240+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Lists both functional and non-functional requirements. Non-functionals are quantified with specific targets (P95 < 3s, >85% retrieval precision, 99.5% availability). Scale assumptions are explicitly stated in a table with rationale. Missing explicit non-goals and prompt ambiguity resolution that would warrant a 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Derives QPS (~12 peak), storage (~46 GB vector index, 60 GB provisioned), and ingestion throughput from stated assumptions. Numbers demonstrably drive later infrastructure decisions (vector DB sizing, 1x T4 GPU for reranker, API server auto-scaling). Lacks explicit fragility flagging or sanity-checking on results.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Components are clearly connected to requirements (parser for diverse formats, hybrid search for precision, metadata store for ACLs). Data flow is traceable end-to-end via Mermaid diagrams. Explicitly identifies and avoids the naive pure-vector-search anti-pattern, justifying hybrid RRF as the highest-impact improvement over naive RAG.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Provides multiple deep dives with concrete mechanisms and named tradeoffs: chunking (fixed vs semantic with hierarchical resolution), hybrid search (RRF algorithm with code), and reranking (cross-encoder latency vs accuracy). Surfaces long-document edge cases (>8K tokens) and multi-hop retrieval, though not truly non-obvious distributed systems edge cases.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Tradeoffs are quantified or concretely scoped across multiple decisions (e.g., hybrid search improves recall by 10-15%, reranker adds ~100ms latency for +12% accuracy). Failure modes table includes specific mitigations and detection methods rather than generic statements. Falls short of 5 because it does not explicitly acknowledge design limits or surface non-obvious modes like write amplification.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"Lists both functional and non-functional requirements. Non-functionals are quantified with specific targets (P95 < 3s, >85% retrieval precision, 99.5% availability). Scale assumptions are explicitly stated in a table with rationale. Missing explicit non-goals and prompt ambiguity resolution that would warrant a 5.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"Derives QPS (~12 peak), storage (~46 GB vector index, 60 GB provisioned), and ingestion throughput from stated assumptions. Numbers demonstrably drive later infrastructure decisions (vector DB sizing, 1x T4 GPU for reranker, API server auto-scaling). Lacks explicit fragility flagging or sanity-checking on results.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Components are clearly connected to requirements (parser for diverse formats, hybrid search for precision, metadata store for ACLs). Data flow is traceable end-to-end via Mermaid diagrams. Explicitly identifies and avoids the naive pure-vector-search anti-pattern, justifying hybrid RRF as the highest-impact improvement over naive RAG.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Provides multiple deep dives with concrete mechanisms and named tradeoffs: chunking (fixed vs semantic with hierarchical resolution), hybrid search (RRF algorithm with code), and reranking (cross-encoder latency vs accuracy). Surfaces long-document edge cases (>8K tokens) and multi-hop retrieval, though not truly non-obvious distributed systems edge cases.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Tradeoffs are quantified or concretely scoped across multiple decisions (e.g., hybrid search improves recall by 10-15%, reranker adds ~100ms latency for +12% accuracy). Failure modes table includes specific mitigations and detection methods rather than generic statements. Falls short of 5 because it does not explicitly acknowledge design limits or surface non-obvious modes like write amplification.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 3
+  }
+}

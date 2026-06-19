@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gpt-5.4/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "gpt-5.4",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-19T18:21:04.833219+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "States explicit functional requirements (8 items) and non-functional requirements (6 items including 99.9% availability, p95 latency targets, and freshness SLAs). Makes explicit assumptions about scale (500K documents, 10K DAU). Missing explicit non-goals and self-aware ambiguity resolution, keeping it from a 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Derives chunk count from corpus assumptions (1.5B tokens → 4.7M chunks), QPS from user load (200K queries/day), and propagates numbers into storage sizing (47GB primary, 122GB with headroom) and LLM cost ($17K/month). Numbers demonstrably drive component choices (6-node OpenSearch cluster). Does not flag fragile assumptions or perform explicit sanity checks.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component maps to a requirement (e.g., double ACL enforcement for security, hybrid retrieval for enterprise jargon, versioning for freshness). Data flow is traceable end-to-end via diagrams. Makes informed less-obvious choices (OpenSearch over separate vector+lexical DB, avoiding giant/tiny chunks) and justifies them with pros/cons. No hallucinated services.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Provides multiple concrete deep-dives: structure-aware chunking with enumerated metadata schema; ACL enforcement with group/principal math; hybrid retrieval with RRF and cross-encoder reranking; and storage sizing with node-level specifications. Tradeoffs are named (e.g., chunk size extremes, reranker latency). Surfaces the stale-ACL edge case (SharePoint permission changed 30 seconds ago) and webhook gaps.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Identifies tradeoffs tied to specific decisions: reranker adds 100-250ms latency; one search system vs separate DB; hybrid complexity vs recall; answer caching risks. Failure modes are specific with mitigations (prompt injection from docs, tombstones for deleted docs, circuit breaker for LLM outage, search hotspots). Does not explicitly acknowledge fundamental design limits beyond noting OpenSearch may falter at very large scale.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"States explicit functional requirements (8 items) and non-functional requirements (6 items including 99.9% availability, p95 latency targets, and freshness SLAs). Makes explicit assumptions about scale (500K documents, 10K DAU). Missing explicit non-goals and self-aware ambiguity resolution, keeping it from a 5.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"Derives chunk count from corpus assumptions (1.5B tokens → 4.7M chunks), QPS from user load (200K queries/day), and propagates numbers into storage sizing (47GB primary, 122GB with headroom) and LLM cost ($17K/month). Numbers demonstrably drive component choices (6-node OpenSearch cluster). Does not flag fragile assumptions or perform explicit sanity checks.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component maps to a requirement (e.g., double ACL enforcement for security, hybrid retrieval for enterprise jargon, versioning for freshness). Data flow is traceable end-to-end via diagrams. Makes informed less-obvious choices (OpenSearch over separate vector+lexical DB, avoiding giant/tiny chunks) and justifies them with pros/cons. No hallucinated services.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Provides multiple concrete deep-dives: structure-aware chunking with enumerated metadata schema; ACL enforcement with group/principal math; hybrid retrieval with RRF and cross-encoder reranking; and storage sizing with node-level specifications. Tradeoffs are named (e.g., chunk size extremes, reranker latency). Surfaces the stale-ACL edge case (SharePoint permission changed 30 seconds ago) and webhook gaps.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Identifies tradeoffs tied to specific decisions: reranker adds 100-250ms latency; one search system vs separate DB; hybrid complexity vs recall; answer caching risks. Failure modes are specific with mitigations (prompt injection from docs, tombstones for deleted docs, circuit breaker for LLM outage, search hotspots). Does not explicitly acknowledge fundamental design limits beyond noting OpenSearch may falter at very large scale.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

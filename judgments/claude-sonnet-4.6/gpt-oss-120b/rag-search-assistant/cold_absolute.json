@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gpt-oss-120b/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-19T18:56:09.340813+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response provides a fully enumerated functional requirements table (14 items) and a separate non-functional requirements table with quantified targets: p95 latency 1.5s, p99 2s, 99.9% availability, 1k QPS, and a $5k/month cost ceiling. Scale assumptions (10k docs, 1k QPS) are stated explicitly and used throughout. However, the response never declares non-goals (e.g., we are NOT building real-time streaming ingestion) and does not explicitly resolve any ambiguity in the prompt or note where the design would change at different scales. These two items are the distinguishing marks of a 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The response runs a genuine full estimation chain: query assumptions to tokens per query to LLM cost per query to monthly cost at full 1k QPS ($568k), with an explicit recognition of the budget violation driving the decision to cap at 100k queries/month. Hardware sizing is derived: 30ms x 1k QPS = 30 cores, leading to 4x c5.2xlarge; vector DB memory 10M chunks x 7KB = 70GB leading to r5.4xlarge. The $568k sanity check is a real finding that changes the design. A score of 5 would require flagging which assumptions are most fragile and a second-order sanity check on at least one result.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component maps to a stated requirement: FAISS plus ElasticSearch serve hybrid retrieval, Celery plus Redis decouple ingestion from the user-facing path, Kong handles auth and rate-limiting, PostgreSQL plus S3 provides durable chunk storage. A Mermaid flowchart is present and Section 5 traces the happy path end-to-end with per-step latencies summing to 1.3s. No hallucinated or decorative services are present. The response stops short of a 5 because it does not explain why Celery plus Redis was chosen over Kafka for the async queue, nor does it explicitly call out an anti-pattern deliberately avoided.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple concrete deep-dives are present. The vector DB section specifies IVF-SQ8 index type with a measured 0.4ms per query, derives full storage sizing with overhead, and specifies replication strategy. The prompt builder section explains MMR for context assembly and the citation placeholder injection mechanism. The reranker section names the specific model and quantifies the latency addition at 10ms. The embedding section provides a side-by-side managed vs self-hosted comparison with cost, latency, and privacy tradeoffs. What prevents a 5 is the absence of a non-obvious failure mode surfaced inside a deep-dive, such as index hot-key behavior under skewed query distributions or embedding model version drift causing index staleness.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 7 provides a structured tradeoffs table with at least six decisions each listing pro, con, and a re-evaluation trigger, all tied to specific components. Section 8 covers eight failure modes with impact, detection mechanism, and concrete mitigation per failure, including graceful degradation to BM25-only when the embedding service is down and prompt injection defense. The response explicitly acknowledges the cost ceiling constraint forces a usage cap. A score of 5 would require quantified tradeoff impacts (e.g., strong consistency adds Xms) and at least one non-obvious failure mode such as embedding model version drift causing semantic mismatch between old index vectors and new query vectors, or thundering herd on cold-start index warm-up.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response provides a fully enumerated functional requirements table (14 items) and a separate non-functional requirements table with quantified targets: p95 latency 1.5s, p99 2s, 99.9% availability, 1k QPS, and a $5k/month cost ceiling. Scale assumptions (10k docs, 1k QPS) are stated explicitly and used throughout. However, the response never declares non-goals (e.g., we are NOT building real-time streaming ingestion) and does not explicitly resolve any ambiguity in the prompt or note where the design would change at different scales. These two items are the distinguishing marks of a 5.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The response runs a genuine full estimation chain: query assumptions to tokens per query to LLM cost per query to monthly cost at full 1k QPS ($568k), with an explicit recognition of the budget violation driving the decision to cap at 100k queries/month. Hardware sizing is derived: 30ms x 1k QPS = 30 cores, leading to 4x c5.2xlarge; vector DB memory 10M chunks x 7KB = 70GB leading to r5.4xlarge. The $568k sanity check is a real finding that changes the design. A score of 5 would require flagging which assumptions are most fragile and a second-order sanity check on at least one result.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component maps to a stated requirement: FAISS plus ElasticSearch serve hybrid retrieval, Celery plus Redis decouple ingestion from the user-facing path, Kong handles auth and rate-limiting, PostgreSQL plus S3 provides durable chunk storage. A Mermaid flowchart is present and Section 5 traces the happy path end-to-end with per-step latencies summing to 1.3s. No hallucinated or decorative services are present. The response stops short of a 5 because it does not explain why Celery plus Redis was chosen over Kafka for the async queue, nor does it explicitly call out an anti-pattern deliberately avoided.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple concrete deep-dives are present. The vector DB section specifies IVF-SQ8 index type with a measured 0.4ms per query, derives full storage sizing with overhead, and specifies replication strategy. The prompt builder section explains MMR for context assembly and the citation placeholder injection mechanism. The reranker section names the specific model and quantifies the latency addition at 10ms. The embedding section provides a side-by-side managed vs self-hosted comparison with cost, latency, and privacy tradeoffs. What prevents a 5 is the absence of a non-obvious failure mode surfaced inside a deep-dive, such as index hot-key behavior under skewed query distributions or embedding model version drift causing index staleness.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 7 provides a structured tradeoffs table with at least six decisions each listing pro, con, and a re-evaluation trigger, all tied to specific components. Section 8 covers eight failure modes with impact, detection mechanism, and concrete mitigation per failure, including graceful degradation to BM25-only when the embedding service is down and prompt injection defense. The response explicitly acknowledges the cost ceiling constraint forces a usage cap. A score of 5 would require quantified tradeoff impacts (e.g., strong consistency adds Xms) and at least one non-obvious failure mode such as embedding model version drift causing semantic mismatch between old index vectors and new query vectors, or thundering herd on cold-start index warm-up.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

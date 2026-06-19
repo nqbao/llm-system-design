@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gemini-3.1-pro/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-06-19T18:42:25.994633+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response states both functional (accuracy, RBAC) and non-functional requirements (data freshness within 15 minutes, TTFT under 2 seconds). It provides explicit assumptions about user base and usage in the capacity planning section, justifying them as a medium-to-large enterprise. Quantified SLAs are present, but no explicit non-goals or ambiguity resolution are stated.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The capacity estimation derives QPS from user assumptions (10k employees, 30% DAU, 10 queries/DAU/day → 1.04 avg QPS, 5 peak). It computes vector storage (42 GB) and metadata (14 GB), leading to the decision that a single high-memory instance is sufficient. It also estimates LLM token usage (165M tokens/day). Bandwidth is not calculated, and no fragile assumptions are flagged or sanity-checked, but the chain is solid and drives design choices.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "The architecture diagram and description clearly connect each component to a requirement: query rewriting for accuracy, reranker for hallucination reduction, Qdrant with payload filtering for RBAC, semantic cache for latency, and streaming for TTFT. Capacity numbers inform instance sizing. The data flow is traceable end-to-end, and there are no buzzword-‐driven components or hallucinations.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response provides multiple deep-dives: the vector DB section discusses technology tradeoffs (pgvector vs. Qdrant) and details RBAC implementation via payload pre-filtering; the query orchestrator section explains query rewriting and hybrid search with a reranker, including the tradeoff of added latency (~100–150ms) for better relevance. These contain concrete mechanisms and named tradeoffs. The chunking deep-dive is shallower but overall depth is sufficient. No non-obvious edge cases are surfaced within the deep-dives themselves.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Tradeoffs are quantified: reranker adds 100–150ms latency but reduces hallucination, and streaming achieves ~500ms TTFT. The failure modes section identifies four specific issues (lost in the middle, ACL leakage, latency spikes, poisoned context) and each has a specific mitigation (strict cutoff and chunk ordering, webhook-triggered partial updates, semantic cache, time-decay and metadata enrichment). However, the design does not explicitly state its own limits or surface a non-obvious failure mode like thundering herd or network partition handling.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response states both functional (accuracy, RBAC) and non-functional requirements (data freshness within 15 minutes, TTFT under 2 seconds). It provides explicit assumptions about user base and usage in the capacity planning section, justifying them as a medium-to-large enterprise. Quantified SLAs are present, but no explicit non-goals or ambiguity resolution are stated.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The capacity estimation derives QPS from user assumptions (10k employees, 30% DAU, 10 queries/DAU/day → 1.04 avg QPS, 5 peak). It computes vector storage (42 GB) and metadata (14 GB), leading to the decision that a single high-memory instance is sufficient. It also estimates LLM token usage (165M tokens/day). Bandwidth is not calculated, and no fragile assumptions are flagged or sanity-checked, but the chain is solid and drives design choices.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"The architecture diagram and description clearly connect each component to a requirement: query rewriting for accuracy, reranker for hallucination reduction, Qdrant with payload filtering for RBAC, semantic cache for latency, and streaming for TTFT. Capacity numbers inform instance sizing. The data flow is traceable end-to-end, and there are no buzzword-‐driven components or hallucinations.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response provides multiple deep-dives: the vector DB section discusses technology tradeoffs (pgvector vs. Qdrant) and details RBAC implementation via payload pre-filtering; the query orchestrator section explains query rewriting and hybrid search with a reranker, including the tradeoff of added latency (~100–150ms) for better relevance. These contain concrete mechanisms and named tradeoffs. The chunking deep-dive is shallower but overall depth is sufficient. No non-obvious edge cases are surfaced within the deep-dives themselves.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Tradeoffs are quantified: reranker adds 100–150ms latency but reduces hallucination, and streaming achieves ~500ms TTFT. The failure modes section identifies four specific issues (lost in the middle, ACL leakage, latency spikes, poisoned context) and each has a specific mitigation (strict cutoff and chunk ordering, webhook-triggered partial updates, semantic cache, time-decay and metadata enrichment). However, the design does not explicitly state its own limits or surface a non-obvious failure mode like thundering herd or network partition handling.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

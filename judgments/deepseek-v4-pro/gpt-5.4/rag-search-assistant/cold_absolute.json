@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gpt-5.4/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "gpt-5.4",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-06-19T18:21:04.833219+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "States functional and non-functional requirements with quantified targets (p95 latency <1.5s, availability 99.9%, freshness <5min). Explicit assumptions about scale (500k docs, 10k DAU) are justified. Does not set explicit non-goals or resolve prompt ambiguity.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Derives QPS (2.3 average, design for 50 QPS bursts), storage (47GB primary, 122GB with replica/headroom), and LLM token costs ($580/day). Numbers directly inform component sizing (search cluster recommendation) and cost optimization levers. Does not explicitly flag fragile assumptions or perform sanity checks.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against requirements or capacity numbers. Data flow is traceable with a clear diagram and description. Explicitly avoids anti-pattern of treating retrieved docs as instructions by defending against prompt injection.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives: chunking strategy (size, metadata, tradeoffs), retrieval and reranking (RRF, cross-encoder tradeoff quantified ~100-250ms), ACL enforcement (pre-filter + live re-check with fail-closed). Surfaces non-obvious edge case of prompt injection from documents and addresses it.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Discusses tradeoffs throughout (hybrid retrieval complexity vs recall, reranker latency vs precision, cache risks). Failure modes section lists 8 specific failures with mitigations. Some tradeoffs quantified (reranker latency). Does not explicitly state an inherent design limitation with 'if that becomes a requirement we would need Y'.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"States functional and non-functional requirements with quantified targets (p95 latency <1.5s, availability 99.9%, freshness <5min). Explicit assumptions about scale (500k docs, 10k DAU) are justified. Does not set explicit non-goals or resolve prompt ambiguity.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Derives QPS (2.3 average, design for 50 QPS bursts), storage (47GB primary, 122GB with replica/headroom), and LLM token costs ($580/day). Numbers directly inform component sizing (search cluster recommendation) and cost optimization levers. Does not explicitly flag fragile assumptions or perform sanity checks.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component is justified against requirements or capacity numbers. Data flow is traceable with a clear diagram and description. Explicitly avoids anti-pattern of treating retrieved docs as instructions by defending against prompt injection.\",\n    \"score\": 5\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives: chunking strategy (size, metadata, tradeoffs), retrieval and reranking (RRF, cross-encoder tradeoff quantified ~100-250ms), ACL enforcement (pre-filter + live re-check with fail-closed). Surfaces non-obvious edge case of prompt injection from documents and addresses it.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Discusses tradeoffs throughout (hybrid retrieval complexity vs recall, reranker latency vs precision, cache risks). Failure modes section lists 8 specific failures with mitigations. Some tradeoffs quantified (reranker latency). Does not explicitly state an inherent design limitation with 'if that becomes a requirement we would need Y'.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

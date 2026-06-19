@@ -1,0 +1,15 @@
+judges:
+  - claude-sonnet-4.6
+  - deepseek-v4-pro
+  - kimi-k2.6
+
+candidates:
+  - claude-sonnet-4.6
+  - deepseek-v4-pro
+  - gemini-3.1-pro
+  - gemma-4-31b-it
+  - gpt-5.4
+  - gpt-oss-120b
+  - gpt-oss-20b
+  - kimi-k2.6
+  - minimax-m2.7

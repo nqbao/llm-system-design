@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gpt-oss-20b/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-20b",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-08T07:00:32.022713+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists both functional (5 items) and non-functional requirements with specific targets: < 700 ms latency, 10k QPS, 99.9% availability, and a $10k/month cost ceiling. Assumptions about scale (200k docs, 3k tokens/doc) are stated and justified in Section 2. However, no non-goals are declared and no explicit ambiguity from the prompt is resolved. The latency spec is internally inconsistent ('< 700 ms average (≤ 90th-percentile)' conflates average with p90). Both functional and non-functional are present with assumptions stated, but no non-goals or formal ambiguity resolution pushes this to a solid 3.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "A full estimation chain is present: 200k docs → 1M chunks → 6 GB vectors → ~20 GB RAM → sharding decisions, and a latency budget is broken down step by step. However, there is a significant arithmetic error: 864M requests/day × $0.005 = $4.32M per day, not the implied monthly figure, making the cost table misleading. The LLM token count assumption (200-token prompt) is unrealistically low for a RAG prompt carrying 10–15 chunks at 600 tokens each. Numbers partially propagate into design choices but fragile assumptions are not explicitly flagged and no sanity-check calls out the obvious magnitude errors.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every major component maps to a stated requirement and two Mermaid diagrams make the data flow traceable from document ingest to user response. Minor concerns: 'POC (persistence-remote-control) for failover' is not a recognized vector-store term and appears invented; 'kedro' is cited for pod restart management which is incorrect as kedro is a data pipeline framework. RabbitMQ appears only in the deployment diagram without being introduced in the main architecture section. These issues are small but prevent a higher score.",
+        "score": 3
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple component deep dives are present: ingestion covers SHA-256 deduplication, async batching, and concrete timing; retrieval specifies cosine threshold 0.70, HNSW 4–6 layer traversal (~1 ms), and metadata ACL filtering; conversation store details tenant-scoped key prefix and TTL; LLM section includes an actual prompt template and cloud vs. self-hosted tradeoff with reasoning. Each deep dive includes at least one concrete mechanism AND a named tradeoff with justification (e.g., exact ANN = 200 ms on 1M vectors vs. HNSW ~1 ms). The embedding drift failure mode is a genuine non-obvious concern. Qualifies for a 4.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 7 provides a tradeoff table with specific decisions tied to concrete reasoning (GPU vs. cloud, exact vs. ANN with '200 ms' quantification, chunk size 500 vs. 600). The failure mode table covers 10 scenarios with specific mitigations including circuit breaker on vector store outage and back-off queue for LLM quota exhaustion. Embedding drift is a non-obvious failure mode. However, the design never explicitly acknowledges its own limits, and the massive cost gap ($10k target vs. multi-million actual) is flagged but not resolved cleanly, falling short of a 4.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response lists both functional (5 items) and non-functional requirements with specific targets: < 700 ms latency, 10k QPS, 99.9% availability, and a $10k/month cost ceiling. Assumptions about scale (200k docs, 3k tokens/doc) are stated and justified in Section 2. However, no non-goals are declared and no explicit ambiguity from the prompt is resolved. The latency spec is internally inconsistent ('< 700 ms average (≤ 90th-percentile)' conflates average with p90). Both functional and non-functional are present with assumptions stated, but no non-goals or formal ambiguity resolution pushes this to a solid 3.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"A full estimation chain is present: 200k docs → 1M chunks → 6 GB vectors → ~20 GB RAM → sharding decisions, and a latency budget is broken down step by step. However, there is a significant arithmetic error: 864M requests/day × $0.005 = $4.32M per day, not the implied monthly figure, making the cost table misleading. The LLM token count assumption (200-token prompt) is unrealistically low for a RAG prompt carrying 10–15 chunks at 600 tokens each. Numbers partially propagate into design choices but fragile assumptions are not explicitly flagged and no sanity-check calls out the obvious magnitude errors.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every major component maps to a stated requirement and two Mermaid diagrams make the data flow traceable from document ingest to user response. Minor concerns: 'POC (persistence-remote-control) for failover' is not a recognized vector-store term and appears invented; 'kedro' is cited for pod restart management which is incorrect as kedro is a data pipeline framework. RabbitMQ appears only in the deployment diagram without being introduced in the main architecture section. These issues are small but prevent a higher score.\", \"score\": 3}, \"deep_dive_depth\": {\"reasoning\": \"Multiple component deep dives are present: ingestion covers SHA-256 deduplication, async batching, and concrete timing; retrieval specifies cosine threshold 0.70, HNSW 4–6 layer traversal (~1 ms), and metadata ACL filtering; conversation store details tenant-scoped key prefix and TTL; LLM section includes an actual prompt template and cloud vs. self-hosted tradeoff with reasoning. Each deep dive includes at least one concrete mechanism AND a named tradeoff with justification (e.g., exact ANN = 200 ms on 1M vectors vs. HNSW ~1 ms). The embedding drift failure mode is a genuine non-obvious concern. Qualifies for a 4.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 7 provides a tradeoff table with specific decisions tied to concrete reasoning (GPU vs. cloud, exact vs. ANN with '200 ms' quantification, chunk size 500 vs. 600). The failure mode table covers 10 scenarios with specific mitigations including circuit breaker on vector store outage and back-off queue for LLM quota exhaustion. Embedding drift is a non-obvious failure mode. However, the design never explicitly acknowledges its own limits, and the massive cost gap ($10k target vs. multi-million actual) is flagged but not resolved cleanly, falling short of a 4.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

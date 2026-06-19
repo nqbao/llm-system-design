@@ -129,6 +129,35 @@ def problems_page_lists_all_questions():
     print(f"  ✓ {len(QUESTIONS)} questions on problems page")
 
 
+def invalid_mermaid_falls_back_to_code_view():
+    minimax = (
+        HERE
+        / "starlight"
+        / "src"
+        / "content"
+        / "docs"
+        / "models"
+        / "minimax-m2.7"
+        / "rag-search-assistant.md"
+    ).read_text()
+    assert "```text\nflowchart TB" in minimax, "invalid Minimax Mermaid block should fall back to code"
+    assert minimax.count("```mermaid") == 2, "valid Minimax Mermaid blocks should remain diagrams"
+
+    gpt_oss = (
+        HERE
+        / "starlight"
+        / "src"
+        / "content"
+        / "docs"
+        / "models"
+        / "gpt-oss-20b"
+        / "rag-search-assistant.md"
+    ).read_text()
+    assert "```text\nflowchart TD" in gpt_oss, "invalid gpt-oss-20b Mermaid block should fall back to code"
+    assert gpt_oss.count("```mermaid") == 1, "valid gpt-oss-20b Mermaid blocks should remain diagrams"
+    print("  ✓ invalid Mermaid blocks fall back to code view")
+
+
 def urls_respect_base_prefix():
     prefix = os.environ.get("BASE_PATH", "")
     if not prefix:
@@ -154,6 +183,7 @@ def main():
         transcript_dropdowns_have_all_models,
         sidebar_is_generated,
         problems_page_lists_all_questions,
+        invalid_mermaid_falls_back_to_code_view,
         urls_respect_base_prefix,
     ]
 

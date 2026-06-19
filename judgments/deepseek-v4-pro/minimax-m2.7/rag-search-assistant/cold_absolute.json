@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/minimax-m2.7/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "minimax-m2.7",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-06-08T06:39:45.348240+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design explicitly lists functional and non-functional requirements. Non-functionals are quantified with specific targets (P95 < 3s, retrieval precision > 85%, 99.5% availability). Assumptions are stated and justified with a detailed scale table (e.g., total documents, chunk size, daily query volume). No explicit non-goals or ambiguity resolution.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The response derives QPS (40k daily queries, 12 peak QPS) and storage (3M chunks × 1536-dim × 4 bytes = 18.4 GB, with overhead 46 GB) from assumptions. These numbers directly drive component sizing (API servers, vector DB capacity, GPU requirements). No fragile assumptions are flagged, and no sanity-check on results (e.g., 'does this make sense?') is performed.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "The architecture is clearly presented with a Mermaid diagram and sequence diagrams. Every component is justified against requirements (hybrid search for precision, reranker for accuracy, hierarchical chunking for long documents). Data flow is traceable end-to-end. No hallucinations or decorative components. The hybrid search choice is justified but is a common best practice, not a less-obvious selection.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are provided: chunking strategy (hierarchical with paragraph boundaries and overlap), hybrid search (RRF algorithm with code and alpha weight), reranking (model comparison and implementation snippet). Each includes concrete mechanisms and tradeoff reasoning (e.g., chunk size balance, embedding cost vs performance, managed vs self-hosted vector DB). No non-obvious edge case (e.g., thundering herd, write amplification) is explicitly surfaced within a deep-dive.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design includes multiple quantified or concretely scoped tradeoffs tied to decisions: embedding model cost vs privacy, LLM selection cost/quality tradeoffs, vector store options with pros/cons. A full failure modes table lists mitigations and detection for common failures (vector DB down, LLM rate limit, stale docs). Graceful degradation fallback code is provided. The design does not explicitly acknowledge its own limits ('this design cannot handle X') and does not surface a non-obvious failure mode (e.g., thundering herd, GC tail latency).",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The design explicitly lists functional and non-functional requirements. Non-functionals are quantified with specific targets (P95 < 3s, retrieval precision > 85%, 99.5% availability). Assumptions are stated and justified with a detailed scale table (e.g., total documents, chunk size, daily query volume). No explicit non-goals or ambiguity resolution.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The response derives QPS (40k daily queries, 12 peak QPS) and storage (3M chunks × 1536-dim × 4 bytes = 18.4 GB, with overhead 46 GB) from assumptions. These numbers directly drive component sizing (API servers, vector DB capacity, GPU requirements). No fragile assumptions are flagged, and no sanity-check on results (e.g., 'does this make sense?') is performed.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"The architecture is clearly presented with a Mermaid diagram and sequence diagrams. Every component is justified against requirements (hybrid search for precision, reranker for accuracy, hierarchical chunking for long documents). Data flow is traceable end-to-end. No hallucinations or decorative components. The hybrid search choice is justified but is a common best practice, not a less-obvious selection.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives are provided: chunking strategy (hierarchical with paragraph boundaries and overlap), hybrid search (RRF algorithm with code and alpha weight), reranking (model comparison and implementation snippet). Each includes concrete mechanisms and tradeoff reasoning (e.g., chunk size balance, embedding cost vs performance, managed vs self-hosted vector DB). No non-obvious edge case (e.g., thundering herd, write amplification) is explicitly surfaced within a deep-dive.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The design includes multiple quantified or concretely scoped tradeoffs tied to decisions: embedding model cost vs privacy, LLM selection cost/quality tradeoffs, vector store options with pros/cons. A full failure modes table lists mitigations and detection for common failures (vector DB down, LLM rate limit, stale docs). Graceful degradation fallback code is provided. The design does not explicitly acknowledge its own limits ('this design cannot handle X') and does not surface a non-obvious failure mode (e.g., thundering herd, GC tail latency).\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

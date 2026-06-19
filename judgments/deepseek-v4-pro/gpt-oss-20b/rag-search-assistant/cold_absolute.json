@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gpt-oss-20b/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-20b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-06-08T07:00:32.022713+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Both functional and non-functional requirements are clearly listed, with quantified SLAs (latency <700ms, 10k QPS, 99.9% availability, cost ≤$10k). Explicit assumptions (scale~200k docs, sensitive data, multi-tenant) are stated and justified in the data model table. No explicit non-goals, but the scoping is thorough.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Full estimation chain present: derives chunk count, storage, RAM footprint, and throughput from assumptions. Numbers propagate into component sizing (e.g., 20GB RAM on single node or sharding). Sanity-checks LLM cost against budget and suggests optimizations. Could flag fragile assumptions more explicitly, but overall strong.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (ingestion, retrieval, LLM, session store, etc.) ties to a stated requirement. Mermaid diagram is clear and data flow is traceable. No hallucinations or unjustified technology insertions. Architecture description is informative.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives (ingestion pipeline, retrieval service, LLM service, conversation store) provide concrete mechanisms: chunking with overlap, HNSW ANN with score threshold, CARDS prompt design, Redis tenant-scoped keys. Some tradeoffs are named (e.g., cloud vs. self-hosted LLM), but no explicit non-obvious edge case like thundering herd in the deep-dive itself.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Dedicated sections for failure-mode analysis and tradeoffs. Tradeoffs are tied to specific decisions (recall vs. storage, GPU vs. cloud, exact vs. ANN) and some are quantified (exact search latency). Failure modes list specific mitigations. Design does not explicitly acknowledge its limits or a non-obvious failure like thundering herd, but coverage is solid.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"Both functional and non-functional requirements are clearly listed, with quantified SLAs (latency <700ms, 10k QPS, 99.9% availability, cost ≤$10k). Explicit assumptions (scale~200k docs, sensitive data, multi-tenant) are stated and justified in the data model table. No explicit non-goals, but the scoping is thorough.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Full estimation chain present: derives chunk count, storage, RAM footprint, and throughput from assumptions. Numbers propagate into component sizing (e.g., 20GB RAM on single node or sharding). Sanity-checks LLM cost against budget and suggests optimizations. Could flag fragile assumptions more explicitly, but overall strong.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component (ingestion, retrieval, LLM, session store, etc.) ties to a stated requirement. Mermaid diagram is clear and data flow is traceable. No hallucinations or unjustified technology insertions. Architecture description is informative.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives (ingestion pipeline, retrieval service, LLM service, conversation store) provide concrete mechanisms: chunking with overlap, HNSW ANN with score threshold, CARDS prompt design, Redis tenant-scoped keys. Some tradeoffs are named (e.g., cloud vs. self-hosted LLM), but no explicit non-obvious edge case like thundering herd in the deep-dive itself.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Dedicated sections for failure-mode analysis and tradeoffs. Tradeoffs are tied to specific decisions (recall vs. storage, GPU vs. cloud, exact vs. ANN) and some are quantified (exact search latency). Failure modes list specific mitigations. Design does not explicitly acknowledge its limits or a non-obvious failure like thundering herd, but coverage is solid.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

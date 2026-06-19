@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 import statistics
+import subprocess
 from collections import defaultdict
 from pathlib import Path
 
@@ -56,6 +57,9 @@ TIER_BADGE = {
     "chaos": '<span class="tier-badge">🔴</span>',
 }
 
+MERMAID_FENCE_RE = re.compile(r"```mermaid\s*\n(.*?)```", re.DOTALL)
+_MERMAID_VALIDATION_CACHE: dict[Path, list[bool] | None] = {}
+
 
 # ── Utilities ─────────────────────────────────────────────────────────────────
 
@@ -100,6 +104,93 @@ def _rank_badge(rank: int) -> str:
 def _write_md(path: Path, content: str):
     path.parent.mkdir(exist_ok=True, parents=True)
     path.write_text(content.strip() + "\n")
+
+
+def _is_invalid_mermaid_block(block: str) -> bool:
+    """Conservatively detect malformed Mermaid fences and fall back to code view."""
+    stack: list[str] = []
+    pairs = {")": "(",
+             "]": "[",
+             "}": "{",
+    }
+    in_double_quote = False
+    escaped = False
+
+    for raw_line in block.splitlines():
+        line = raw_line.strip()
+        if line.startswith("%%"):
+            continue
+        for opener, closer in (('["', '"]'), ('("', '")'), ('{"', '"}')):
+            has_opener = opener in raw_line
+            has_closer = closer in raw_line
+            if has_opener != has_closer:
+                return True
+        for ch in raw_line:
+            if escaped:
+                escaped = False
+                continue
+            if ch == "\\":
+                escaped = True
+                continue
+            if ch == '"':
+                in_double_quote = not in_double_quote
+                continue
+            if in_double_quote:
+                continue
+            if ch in "([{":
+                stack.append(ch)
+            elif ch in pairs:
+                if not stack or stack[-1] != pairs[ch]:
+                    return True
+                stack.pop()
+
+    return in_double_quote or bool(stack)
+
+
+def _load_mermaid_validation(source: Path) -> list[bool] | None:
+    cached = _MERMAID_VALIDATION_CACHE.get(source)
+    if cached is not None or source in _MERMAID_VALIDATION_CACHE:
+        return cached
+
+    helper = HERE / "validate_mermaid.mjs"
+    try:
+        result = subprocess.run(
+            ["node", str(helper), str(source)],
+            capture_output=True,
+            check=True,
+            text=True,
+        )
+        parsed = json.loads(result.stdout)
+        if isinstance(parsed, list) and all(isinstance(v, bool) for v in parsed):
+            _MERMAID_VALIDATION_CACHE[source] = parsed
+            return parsed
+    except (OSError, subprocess.CalledProcessError, json.JSONDecodeError):
+        pass
+
+    _MERMAID_VALIDATION_CACHE[source] = None
+    return None
+
+
+def _prepare_transcript_markdown(raw: str, source: Path) -> str:
+    """Rewrite malformed Mermaid blocks to plain code fences during site build."""
+    validation = _load_mermaid_validation(source)
+    block_index = 0
+
+    def replace(match: re.Match[str]) -> str:
+        nonlocal block_index
+        block = match.group(1)
+        invalid = (
+            validation[block_index]
+            if validation is not None and block_index < len(validation)
+            else _is_invalid_mermaid_block(block)
+        )
+        block_index += 1
+        if invalid:
+            print(f"! invalid mermaid fallback: {source}")
+            return f"```text\n{block}```"
+        return match.group(0)
+
+    return MERMAID_FENCE_RE.sub(replace, raw).strip()
 
 
 # ── Data loading ──────────────────────────────────────────────────────────────
@@ -207,19 +298,25 @@ def _has_all_judgments(model: str, questions: list[dict], judges: list[str]) -> 
 def build_index(models, questions, leaderboard):
     """Generate docs/index.md — the homepage."""
     judges = get_judges()
-    qualified_models = {
-        m for m in models
-        if _has_all_transcripts(m, questions) and _has_all_judgments(m, questions, judges)
+    leaderboard_models = {r["model"] for r in leaderboard}
+    models_count = len(leaderboard_models)
+    scored_questions = {
+        q["id"] for q in questions
+        for m in leaderboard_models
+        if get_judgments(m, q["id"])
     }
-    models_count = len(qualified_models)
-    questions_count = len(questions)
+    questions_count = len(scored_questions)
     judge_count = len(judges)
-    total_transcripts = models_count * questions_count
+
+    scored_problems = 0
+    if leaderboard:
+        total_by_model = sum(r["n"] for r in leaderboard)
+        scored_problems = total_by_model // len(leaderboard)
+    total_transcripts = models_count * scored_problems if leaderboard else 0
 
     lb_rows = "\n".join(
         f"| {_rank_badge(i + 1)} | [{row['model']}](models/{_sl(row['model'])}/) | {_badge(row['mean'])} | ±{row['ci']} | {row['n']} |"
         for i, row in enumerate(leaderboard)
-        if row["model"] in qualified_models
     )
 
     template = (TEMPLATES / "index.md").read_text()
@@ -280,11 +377,12 @@ def build_model_md(model, questions, leaderboard):
                     avg = statistics.mean(dim_scores)
                     all_scores.append(avg)
                     dim_parts.append(f"{DIM_LABELS.get(dim, dim)}: {_badge(avg, f'{avg:.1f}')}")
-            overall = statistics.mean(all_scores) if all_scores else 0
-            score_text = _badge(overall, f"{overall:.1f}")
+            if all_scores:
+                overall = statistics.mean(all_scores)
+                score_text = _badge(overall, f"{overall:.1f}")
+            else:
+                score_text = '<span class="badge-score score-missing">—</span>'
         else:
-            overall = 0
-            dim_parts = []
             score_text = '<span class="badge-score score-missing">—</span>'
 
         has_md = (RUNS / model / f"{qid}_cold.md").exists()
@@ -329,7 +427,9 @@ def build_transcript_md(model, question_id, questions, models):
                     judge_rows += (
                         f"| {DIM_LABELS.get(dim, dim)} | {_badge(s)} | {reasoning} |\n"
                     )
-            overall = statistics.mean(judge_scores) if judge_scores else 0
+            if not judge_scores:
+                continue
+            overall = statistics.mean(judge_scores)
             judge_overalls.append(overall)
             all_scores.extend(judge_scores)
 
@@ -345,9 +445,9 @@ def build_transcript_md(model, question_id, questions, models):
 
         avg_all = statistics.mean(all_scores) if all_scores else 0
         avg_judge = statistics.mean(judge_overalls) if judge_overalls else 0
-    else:
-        avg_all = 0
-        avg_judge = 0
+    if not all_scores:
+        avg_all = None
+        avg_judge = None
         score_section = "\n*No judgments yet.*\n"
 
     # Read transcript markdown
@@ -355,12 +455,20 @@ def build_transcript_md(model, question_id, questions, models):
     transcript_body = ""
     if md_path.exists():
         raw = md_path.read_text()
-        transcript_body = raw.strip()
+        transcript_body = _prepare_transcript_markdown(raw, md_path)
 
-    judgments_section = f"""
+    judgments_section = ""
+    if avg_all is not None:
+        judgments_section = f"""
 ## Scores
 
 Overall: {_badge(avg_all)}
+{score_section}
+"""
+    else:
+        judgments_section = f"""
+## Scores
+
 {score_section}
 """
 

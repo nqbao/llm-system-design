@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gemini-3.1-pro/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-19T18:42:25.994633+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response states both functional requirements (NL question answering over internal docs across multiple source types) and non-functional requirements with specific quantified targets: TTFT < 2s, data freshness < 15 minutes, plus RBAC and hallucination prevention. Assumptions are explicit: 10K employees, 30% DAU, 10 queries/DAU. However, the response never states explicit non-goals ('we are NOT building a general web search') and does not resolve any ambiguity in the prompt or justify the DAU and usage-rate assumptions. That gap prevents a 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The estimation chain covers: user base → DAU → QPS (avg 1.04, peak 5) → corpus chunks → vector size → total vector storage (42 GB) → metadata (14 GB) → RAM recommendation (~60 GB on a single high-memory instance). The 60 GB figure does drive one concrete design choice (single node is viable, so replicate for HA). However, network bandwidth is never estimated and the 5 QPS peak does not propagate into explicit component sizing (e.g., no 'at 5 QPS we need N replicas'). Fragile assumptions (30% DAU seems high for enterprise) are not flagged and no result is sanity-checked against a known reference.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "A Mermaid diagram is present showing both async ingestion and synchronous query pipelines with traceable data flow end-to-end. Every component is justified: Qdrant chosen over pgvector and Pinecone with explicit reasoning, BGE-M3 self-hosted to keep data in VPC, hybrid retriever justified by dense/sparse complementarity, reranker justified against hallucination reduction. No hallucinated or decorative services detected. The Qdrant payload-filtering RBAC mechanism is a non-obvious but more correct design choice compared to application-layer filtering and is explicitly justified.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple concrete deep-dives are present. RBAC: specific mechanism with ACL Group IDs stored in Qdrant payload, pre-filtering before similarity search, Okta resolution at query time, plus the non-obvious ACL staleness edge case with a specific fast-path webhook mitigation. Hybrid search and reranking: specific numbers (top-20 dense + top-20 sparse → cross-encoder → top-5), latency cost quantified (~100-150ms), tradeoff stated explicitly. Chunking: header-first then fixed-size fallback with semantic vs. fixed tradeoff named. Lost in the Middle is a genuinely non-obvious RAG-specific failure mode addressed with both a structural fix and a prompt ordering heuristic. The depth and specificity across multiple components each with mechanisms, tradeoffs, and non-obvious failure modes meets a 5.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Four distinct failure modes are identified with specific mitigations: Lost in the Middle with reranker cutoff and context ordering; ACL staleness with webhook fast-path partial payload update bypassing re-embedding; repeated-query latency with semantic cache at 0.95 cosine threshold; outdated document hallucination with time-decay scoring and injected last-modified date. Tradeoffs are tied to specific decisions and the reranking latency cost is numerically scoped. The ACL staleness failure mode is genuinely non-obvious. What prevents a 5 is that the design never explicitly acknowledges its own limits in the form of 'this architecture cannot handle X; if Y becomes a requirement we would need Z'.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response states both functional requirements (NL question answering over internal docs across multiple source types) and non-functional requirements with specific quantified targets: TTFT < 2s, data freshness < 15 minutes, plus RBAC and hallucination prevention. Assumptions are explicit: 10K employees, 30% DAU, 10 queries/DAU. However, the response never states explicit non-goals ('we are NOT building a general web search') and does not resolve any ambiguity in the prompt or justify the DAU and usage-rate assumptions. That gap prevents a 5.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The estimation chain covers: user base → DAU → QPS (avg 1.04, peak 5) → corpus chunks → vector size → total vector storage (42 GB) → metadata (14 GB) → RAM recommendation (~60 GB on a single high-memory instance). The 60 GB figure does drive one concrete design choice (single node is viable, so replicate for HA). However, network bandwidth is never estimated and the 5 QPS peak does not propagate into explicit component sizing (e.g., no 'at 5 QPS we need N replicas'). Fragile assumptions (30% DAU seems high for enterprise) are not flagged and no result is sanity-checked against a known reference.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"A Mermaid diagram is present showing both async ingestion and synchronous query pipelines with traceable data flow end-to-end. Every component is justified: Qdrant chosen over pgvector and Pinecone with explicit reasoning, BGE-M3 self-hosted to keep data in VPC, hybrid retriever justified by dense/sparse complementarity, reranker justified against hallucination reduction. No hallucinated or decorative services detected. The Qdrant payload-filtering RBAC mechanism is a non-obvious but more correct design choice compared to application-layer filtering and is explicitly justified.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple concrete deep-dives are present. RBAC: specific mechanism with ACL Group IDs stored in Qdrant payload, pre-filtering before similarity search, Okta resolution at query time, plus the non-obvious ACL staleness edge case with a specific fast-path webhook mitigation. Hybrid search and reranking: specific numbers (top-20 dense + top-20 sparse → cross-encoder → top-5), latency cost quantified (~100-150ms), tradeoff stated explicitly. Chunking: header-first then fixed-size fallback with semantic vs. fixed tradeoff named. Lost in the Middle is a genuinely non-obvious RAG-specific failure mode addressed with both a structural fix and a prompt ordering heuristic. The depth and specificity across multiple components each with mechanisms, tradeoffs, and non-obvious failure modes meets a 5.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Four distinct failure modes are identified with specific mitigations: Lost in the Middle with reranker cutoff and context ordering; ACL staleness with webhook fast-path partial payload update bypassing re-embedding; repeated-query latency with semantic cache at 0.95 cosine threshold; outdated document hallucination with time-decay scoring and injected last-modified date. Tradeoffs are tied to specific decisions and the reranking latency cost is numerically scoped. The ACL staleness failure mode is genuinely non-obvious. What prevents a 5 is that the design never explicitly acknowledges its own limits in the form of 'this architecture cannot handle X; if Y becomes a requirement we would need Z'.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

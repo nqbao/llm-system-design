@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gemma-4-31b-it/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-06-19T18:48:48.639797+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design opens with a brief description but lacks explicit functional and non-functional requirements. It states assumptions in the capacity section but does not outline SLAs or clear non-functional targets like latency or availability. No non-goals are mentioned.",
+        "score": 2
+      },
+      "capacity_estimation": {
+        "reasoning": "Storage calculations are derived from assumptions and used to conclude a single high-memory instance suffices. A latency budget is provided. However, QPS is stated but not used to size components, and bandwidth is omitted. Numbers are roughly correct and partially drive design choices.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "The architecture diagram and description show clear pipelines with components that are all justified: hybrid search for exact IDs, reranking to reduce noise, ACL filtering for security, among others. No hallucinations or dead weight; data flow is traceable.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The chunking deep-dive explains recursive splitting, chunk size, and overlap with reasoning, which is a concrete mechanism. The hybrid search and reranking are named but lack deep mechanism details (e.g., combination method, model specifics). Only one truly deep component exploration.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Three tradeoffs are explicitly tied to decisions with reasoning (hybrid search, chunking, LLM), but none are quantified. Five failure modes are listed with specific mitigations (ACL integration, TTL, read replicas), which is more than shallow. However, no limits of the design are acknowledged.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The design opens with a brief description but lacks explicit functional and non-functional requirements. It states assumptions in the capacity section but does not outline SLAs or clear non-functional targets like latency or availability. No non-goals are mentioned.\",\n    \"score\": 2\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Storage calculations are derived from assumptions and used to conclude a single high-memory instance suffices. A latency budget is provided. However, QPS is stated but not used to size components, and bandwidth is omitted. Numbers are roughly correct and partially drive design choices.\",\n    \"score\": 3\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"The architecture diagram and description show clear pipelines with components that are all justified: hybrid search for exact IDs, reranking to reduce noise, ACL filtering for security, among others. No hallucinations or dead weight; data flow is traceable.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The chunking deep-dive explains recursive splitting, chunk size, and overlap with reasoning, which is a concrete mechanism. The hybrid search and reranking are named but lack deep mechanism details (e.g., combination method, model specifics). Only one truly deep component exploration.\",\n    \"score\": 3\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Three tradeoffs are explicitly tied to decisions with reasoning (hybrid search, chunking, LLM), but none are quantified. Five failure modes are listed with specific mitigations (ACL integration, TTL, read replicas), which is more than shallow. However, no limits of the design are acknowledged.\",\n    \"score\": 3\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/kimi-k2.6/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "kimi-k2.6",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-06-08T07:09:02.046217+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response has a dedicated Requirements section with a table explicitly listing both functional and non-functional requirements. Non-functional targets are quantified with specific SLA numbers (P95 latency <3s, accuracy >90%, freshness <15 min). Assumptions about scale (10,000 employees, 1M docs, peak 70 QPS) are stated, but no explicit non-goals or resolution of prompt ambiguities are provided, keeping it at a strong 4.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The capacity estimation derives QPS from assumptions, then computes total vector count, storage footprint, ingestion throughput, and annual costs. The numbers drive design choices such as vector DB node sizing and GPU worker count. However, it lacks an explicit bandwidth calculation or a sanity-check question (e.g., 'does 10PB/year make sense?'), so it falls short of a 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "The architecture diagram and description show clear end-to-end data flow. Every component (API gateway, AuthZ, query rewriter, reranker, LLM router, etc.) is explicitly justified against requirements like security, latency, and accuracy. There are no hallucinations or unnecessary buzzwords. The design is genuinely informative and traceable, meriting a 4.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response provides multiple deep-dives (Ingestion, Vector Store, Retrieval, Prompt Assembly, Caching) with concrete mechanisms such as specific HNSW parameters, chunking strategy, and two-phase retrieval. Tradeoffs like chunk size vs. storage and semantic vs. exact cache are named and reasoned. Additionally, a non-obvious edge case (table chunking artifacts breaking financial data) is specifically addressed in the ingestion deep-dive, which pushes the score to 5.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design includes an explicit tradeoff table with quantified rationales (e.g., 200ms latency for 20% accuracy gain) and a comprehensive failure modes section with mitigations. Non-obvious failure modes like prompt injection, table artifacts, and embedding model drift are addressed. However, the design does not explicitly state its own limits or describe what it cannot handle, so it stays at a 4.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response has a dedicated Requirements section with a table explicitly listing both functional and non-functional requirements. Non-functional targets are quantified with specific SLA numbers (P95 latency <3s, accuracy >90%, freshness <15 min). Assumptions about scale (10,000 employees, 1M docs, peak 70 QPS) are stated, but no explicit non-goals or resolution of prompt ambiguities are provided, keeping it at a strong 4.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The capacity estimation derives QPS from assumptions, then computes total vector count, storage footprint, ingestion throughput, and annual costs. The numbers drive design choices such as vector DB node sizing and GPU worker count. However, it lacks an explicit bandwidth calculation or a sanity-check question (e.g., 'does 10PB/year make sense?'), so it falls short of a 5.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"The architecture diagram and description show clear end-to-end data flow. Every component (API gateway, AuthZ, query rewriter, reranker, LLM router, etc.) is explicitly justified against requirements like security, latency, and accuracy. There are no hallucinations or unnecessary buzzwords. The design is genuinely informative and traceable, meriting a 4.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"The response provides multiple deep-dives (Ingestion, Vector Store, Retrieval, Prompt Assembly, Caching) with concrete mechanisms such as specific HNSW parameters, chunking strategy, and two-phase retrieval. Tradeoffs like chunk size vs. storage and semantic vs. exact cache are named and reasoned. Additionally, a non-obvious edge case (table chunking artifacts breaking financial data) is specifically addressed in the ingestion deep-dive, which pushes the score to 5.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The design includes an explicit tradeoff table with quantified rationales (e.g., 200ms latency for 20% accuracy gain) and a comprehensive failure modes section with mitigations. Non-obvious failure modes like prompt injection, table artifacts, and embedding model drift are addressed. However, the design does not explicitly state its own limits or describe what it cannot handle, so it stays at a 4.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/deepseek-v4-pro/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "deepseek-v4-pro",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-08T00:06:23.854797+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response embeds functional requirements (natural language Q&A, access control, Slack/Teams integration) across the overview rather than in a dedicated upfront requirements block. Non-functional targets appear in Section 4 with specific numbers (p95 < 3s, 2s end-to-end target) and scale assumptions are stated (10,000 employees, 100 GB, 100 concurrent users) but not justified. There are no explicit non-goals and no disambiguation of prompt ambiguities, keeping this at adequate but not impressive.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "A solid derivation chain exists: company size -> corpus (100 GB) -> chunk count (40M) -> vector storage (60 GB) -> index overhead -> total disk with replication (240 GB) -> embedding compute on A100 (5.5 hours) -> per-component latency budget -> replica count recommendations. Numbers demonstrably drive later decisions (2-4 GPU replicas, NVMe serving). Missing are bandwidth estimates, no flagging of fragile assumptions, and no sanity-check on results, which prevents a score of 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is tied to a stated requirement: hybrid search addresses both semantic and exact-match needs, the reranker is justified by precision improvement, ACL sync addresses access control, the citation formatter addresses auditability. The Mermaid diagram makes data flow traceable end-to-end with no hallucinated or decorative services. The response correctly identifies Elasticsearch for BM25 and explains why rather than just naming it.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives with concrete mechanisms: chunking specifies 500 tokens with 50-token overlap and recursive character split with sentence awareness; embedding specifies model names, dimensions, and batch throughput on A100; retrieval specifies RRF fusion and cross-encoder reranking with specific model names and candidate counts; ACL specifies pre-filtering on top-K metadata. Tradeoffs are named for each (e.g., chunk size dilutes embedding precision, reranker adds latency but boosts precision). The prompt injection failure mode surfaces a non-obvious edge case with a concrete mitigation.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 5 has six concrete tradeoffs tied to specific decisions with reasoning (e.g., sparse+dense reduces misses vs either alone; self-hosted vs API trades data sovereignty against operational burden; embedding dimension trades storage/latency against accuracy). The failure modes table covers eight scenarios with specific mitigations including a non-obvious one (prompt injection via document content). However, tradeoffs are not quantified with concrete numbers and the design does not explicitly acknowledge its own limits or flag non-obvious failure modes like embedding model drift causing retrieval quality degradation after re-indexing.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response embeds functional requirements (natural language Q&A, access control, Slack/Teams integration) across the overview rather than in a dedicated upfront requirements block. Non-functional targets appear in Section 4 with specific numbers (p95 < 3s, 2s end-to-end target) and scale assumptions are stated (10,000 employees, 100 GB, 100 concurrent users) but not justified. There are no explicit non-goals and no disambiguation of prompt ambiguities, keeping this at adequate but not impressive.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"A solid derivation chain exists: company size -> corpus (100 GB) -> chunk count (40M) -> vector storage (60 GB) -> index overhead -> total disk with replication (240 GB) -> embedding compute on A100 (5.5 hours) -> per-component latency budget -> replica count recommendations. Numbers demonstrably drive later decisions (2-4 GPU replicas, NVMe serving). Missing are bandwidth estimates, no flagging of fragile assumptions, and no sanity-check on results, which prevents a score of 5.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is tied to a stated requirement: hybrid search addresses both semantic and exact-match needs, the reranker is justified by precision improvement, ACL sync addresses access control, the citation formatter addresses auditability. The Mermaid diagram makes data flow traceable end-to-end with no hallucinated or decorative services. The response correctly identifies Elasticsearch for BM25 and explains why rather than just naming it.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives with concrete mechanisms: chunking specifies 500 tokens with 50-token overlap and recursive character split with sentence awareness; embedding specifies model names, dimensions, and batch throughput on A100; retrieval specifies RRF fusion and cross-encoder reranking with specific model names and candidate counts; ACL specifies pre-filtering on top-K metadata. Tradeoffs are named for each (e.g., chunk size dilutes embedding precision, reranker adds latency but boosts precision). The prompt injection failure mode surfaces a non-obvious edge case with a concrete mitigation.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 5 has six concrete tradeoffs tied to specific decisions with reasoning (e.g., sparse+dense reduces misses vs either alone; self-hosted vs API trades data sovereignty against operational burden; embedding dimension trades storage/latency against accuracy). The failure modes table covers eight scenarios with specific mitigations including a non-obvious one (prompt injection via document content). However, tradeoffs are not quantified with concrete numbers and the design does not explicitly acknowledge its own limits or flag non-obvious failure modes like embedding model drift causing retrieval quality degradation after re-indexing.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

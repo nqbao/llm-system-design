@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/claude-sonnet-4.6/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "claude-sonnet-4.6",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-19T18:33:01.485309+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with clearly enumerated functional requirements (F1–F7), quantified non-functional requirements (P95 < 8 s, 99.9 % uptime, recall@5 ≥ 0.85, 1 000 concurrent users), and explicit assumptions about scale and data residency. It also lists explicit non-goals (internet search, fine-tuning on company data, replacing the DMS). However, it does not explicitly resolve an ambiguity from the original prompt or note where the design would change at a different scale, so it falls short of the 5 threshold.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The design derives a full estimation chain: 500 K documents → 10 M chunks → vector/BM25/PostgreSQL sizing → RAM/CPU footprint for a 3-node Qdrant cluster. Query throughput is derived from 1 000 users × 10 queries/hour → 2.8 QPS (14 peak), which drives per-step latency budgets and cost math. Ingestion time is calculated for bulk load and steady-state. What keeps it from a 5 is the absence of explicit sanity-checking (e.g., 'does 10 PB make sense?') or flagging of fragile assumptions.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is tied to a requirement (e.g., Qdrant payload filtering for ACL, hybrid retriever for recall@5, Kafka for incremental freshness). Data flows are traceable end-to-end with diagrams and sequence flows. The design explicitly avoids anti-patterns: it explains why a cross-encoder is not used for all candidates ('quadratic cost… infeasible') and why context is limited to 5 passages (Lost-in-the-Middle). No hallucinated services. A strong 4, but not exceptional enough to warrant the rare 5.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "There are concrete deep-dives on chunking (hierarchical 512-token algorithm with 64-token overlap, special cases for tables/code), the hybrid retriever (RRF formula with k=60, dense vs sparse), ACL enforcement (three-layer defense with index filter, application re-check, and source link guard), and the prompt constructor (actual template with token budgets). Tradeoffs are named with reasoning (e.g., cross-encoder vs bi-encoder). Non-obvious edge cases are addressed: stale ACL snapshots, cache poisoning, and embedding model version migration. This meets the 5 bar.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 11 presents ten specific tradeoffs with alternatives and rationale (e.g., chunking granularity, hybrid vs dense-only, Azure vs self-hosted LLM, multi-layer ACL). Section 9 lists concrete failure modes with detection and mitigation: LLM outage with failover, Qdrant node failure with replica reads, stale ACL with application-layer re-check, cross-encoder OOM with graceful degradation, Redis cache poisoning with invalidation, and adversarial prompt injection. However, it lacks an explicit statement of the form 'this design cannot handle X; if that becomes a requirement we would need Y,' keeping it at a 4.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with clearly enumerated functional requirements (F1–F7), quantified non-functional requirements (P95 < 8 s, 99.9 % uptime, recall@5 ≥ 0.85, 1 000 concurrent users), and explicit assumptions about scale and data residency. It also lists explicit non-goals (internet search, fine-tuning on company data, replacing the DMS). However, it does not explicitly resolve an ambiguity from the original prompt or note where the design would change at a different scale, so it falls short of the 5 threshold.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The design derives a full estimation chain: 500 K documents → 10 M chunks → vector/BM25/PostgreSQL sizing → RAM/CPU footprint for a 3-node Qdrant cluster. Query throughput is derived from 1 000 users × 10 queries/hour → 2.8 QPS (14 peak), which drives per-step latency budgets and cost math. Ingestion time is calculated for bulk load and steady-state. What keeps it from a 5 is the absence of explicit sanity-checking (e.g., 'does 10 PB make sense?') or flagging of fragile assumptions.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is tied to a requirement (e.g., Qdrant payload filtering for ACL, hybrid retriever for recall@5, Kafka for incremental freshness). Data flows are traceable end-to-end with diagrams and sequence flows. The design explicitly avoids anti-patterns: it explains why a cross-encoder is not used for all candidates ('quadratic cost… infeasible') and why context is limited to 5 passages (Lost-in-the-Middle). No hallucinated services. A strong 4, but not exceptional enough to warrant the rare 5.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"There are concrete deep-dives on chunking (hierarchical 512-token algorithm with 64-token overlap, special cases for tables/code), the hybrid retriever (RRF formula with k=60, dense vs sparse), ACL enforcement (three-layer defense with index filter, application re-check, and source link guard), and the prompt constructor (actual template with token budgets). Tradeoffs are named with reasoning (e.g., cross-encoder vs bi-encoder). Non-obvious edge cases are addressed: stale ACL snapshots, cache poisoning, and embedding model version migration. This meets the 5 bar.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 11 presents ten specific tradeoffs with alternatives and rationale (e.g., chunking granularity, hybrid vs dense-only, Azure vs self-hosted LLM, multi-layer ACL). Section 9 lists concrete failure modes with detection and mitigation: LLM outage with failover, Qdrant node failure with replica reads, stale ACL with application-layer re-check, cross-encoder OOM with graceful degradation, Redis cache poisoning with invalidation, and adversarial prompt injection. However, it lacks an explicit statement of the form 'this design cannot handle X; if that becomes a requirement we would need Y,' keeping it at a 4.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

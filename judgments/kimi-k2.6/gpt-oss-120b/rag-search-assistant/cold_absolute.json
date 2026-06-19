@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gpt-oss-120b/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-19T18:56:09.340813+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with detailed functional (14 items) and non-functional requirements (quantified latency, throughput, availability SLAs). Explicit assumptions are stated (10k docs, 1k QPS peak, $5k/month). However, it lacks explicit non-goals (e.g., 'we are NOT building X') and does not explicitly resolve ambiguities in the prompt by noting unspecified parameters and justifying the chosen values.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Full estimation chain: assumptions → QPS → token counts → LLM cost per query → monthly cost. The numbers demonstrably drive component sizing (e.g., 1k QPS × 30ms embedding = 30 cores → 4× c5.2xlarge; 0.4ms vector search → 0.4 cores → 2 vCPU nodes; 10M chunks → 70GB → r5.4xlarge). Critically, it flags the fragile assumption that 86M queries/month would cost $568k, sanity-checks against the $5k budget, and adjusts to a realistic 100k queries/month.",
+        "score": 5
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component maps to a stated requirement (e.g., hybrid retrieval to Req 4, reranker to Req 5, citation to Req 8, RBAC to Req 9). The happy-path data flow is traceable end-to-end from API Gateway through embedding, ANN, BM25, rerank, prompt assembly, LLM, and citation. No hallucinated services; technologies are justified. However, there is no explicit anti-pattern avoidance or less-obvious choice justification at the architectural level.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep dives with concrete mechanisms and tradeoffs: ingestion (sliding window chunking, 50% overlap, Celery queue), embedding (managed vs self-hosted with cost/latency/privacy comparison), vector DB (IVF-SQ8 index, storage sizing, active-passive replication), reranker (specific cross-encoder model, CPU runtime, 10ms latency), prompt builder (MMR for redundancy reduction, citation markers), and LLM inference (cost/latency comparison table). Each explains HOW and WHY. However, no deep dive surfaces a non-obvious edge case (e.g., thundering herd, hot key, partial partition) within the component section itself.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Seven specific tradeoffs tied to decisions (managed embedding, FAISS vs Weaviate, hybrid retrieval, reranker, model choice) with pros, cons, and re-evaluation triggers. Eight failure modes with concrete mitigations (e.g., circuit breaker to BM25 on embedding outage, exponential backoff + knowledge-base-only fallback on LLM rate limit, reduce K from 5→3 on burst traffic). Failure modes have specific mitigations. However, tradeoffs are not fully quantified (e.g., 'adds ~20ms p99'), and no non-obvious failure mode (partial partition, TOCTOU, write amplification) is surfaced.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with detailed functional (14 items) and non-functional requirements (quantified latency, throughput, availability SLAs). Explicit assumptions are stated (10k docs, 1k QPS peak, $5k/month). However, it lacks explicit non-goals (e.g., 'we are NOT building X') and does not explicitly resolve ambiguities in the prompt by noting unspecified parameters and justifying the chosen values.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"Full estimation chain: assumptions → QPS → token counts → LLM cost per query → monthly cost. The numbers demonstrably drive component sizing (e.g., 1k QPS × 30ms embedding = 30 cores → 4× c5.2xlarge; 0.4ms vector search → 0.4 cores → 2 vCPU nodes; 10M chunks → 70GB → r5.4xlarge). Critically, it flags the fragile assumption that 86M queries/month would cost $568k, sanity-checks against the $5k budget, and adjusts to a realistic 100k queries/month.\", \"score\": 5}, \"architecture_coherence\": {\"reasoning\": \"Every component maps to a stated requirement (e.g., hybrid retrieval to Req 4, reranker to Req 5, citation to Req 8, RBAC to Req 9). The happy-path data flow is traceable end-to-end from API Gateway through embedding, ANN, BM25, rerank, prompt assembly, LLM, and citation. No hallucinated services; technologies are justified. However, there is no explicit anti-pattern avoidance or less-obvious choice justification at the architectural level.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep dives with concrete mechanisms and tradeoffs: ingestion (sliding window chunking, 50% overlap, Celery queue), embedding (managed vs self-hosted with cost/latency/privacy comparison), vector DB (IVF-SQ8 index, storage sizing, active-passive replication), reranker (specific cross-encoder model, CPU runtime, 10ms latency), prompt builder (MMR for redundancy reduction, citation markers), and LLM inference (cost/latency comparison table). Each explains HOW and WHY. However, no deep dive surfaces a non-obvious edge case (e.g., thundering herd, hot key, partial partition) within the component section itself.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Seven specific tradeoffs tied to decisions (managed embedding, FAISS vs Weaviate, hybrid retrieval, reranker, model choice) with pros, cons, and re-evaluation triggers. Eight failure modes with concrete mitigations (e.g., circuit breaker to BM25 on embedding outage, exponential backoff + knowledge-base-only fallback on LLM rate limit, reduce K from 5→3 on burst traffic). Failure modes have specific mitigations. However, tradeoffs are not fully quantified (e.g., 'adds ~20ms p99'), and no non-obvious failure mode (partial partition, TOCTOU, write amplification) is surfaced.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

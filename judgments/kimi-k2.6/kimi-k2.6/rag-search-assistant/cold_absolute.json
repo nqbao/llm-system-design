@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/kimi-k2.6/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "kimi-k2.6",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-08T07:09:02.046217+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with a detailed requirements table that quantifies both functional targets (10K users, 1M documents, 200K queries/day) and non-functional SLAs (P95 <3.0s, relevance >90%, hallucination <2%, freshness <15 min). It explicitly states scale assumptions (concurrent peak 2,000, 5K words per document) that feed directly into the capacity section. However, it lacks explicit non-goals and does not resolve prompt ambiguities (e.g., 'we are not building X'), stopping short of the exceptional bar.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The math derives a full chain from corpus size to tokens (6.67B) to chunks (18M) to storage (200 GB including HNSW overhead), and from query volume to peak QPS (70) to LLM token throughput (500M input/day). These numbers demonstrably drive infrastructure choices, such as the three-node Milvus cluster and a single GPU embedding worker. It lacks an explicit fragility flag or out-of-band sanity check (e.g., validating the 200 GB figure against a theoretical bound), so it does not reach the top tier.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component in the ingestion and query pipelines is tied to a specific requirement—e.g., the cross-encoder serves accuracy, the Redis exact cache serves latency, and the AuthZ filter enforces document-level ACLs. The data flow is traceable end-to-end from SharePoint through chunking, vector search, reranking, and LLM streaming, with no hallucinated services. The architecture is well-justified and avoids the semantic-cache anti-pattern due to ACL leakage risk, but it remains a standard enterprise RAG pattern rather than an exceptional architectural leap.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response provides multiple deep dives with concrete mechanisms: HNSW index parameters (M=16, ef=128) and physical partitioning by department_id in Milvus; two-phase retrieval with latency budgets (30–60 ms HNSW, 150–250 ms rerank); and a token-level context window budget for the 8K model. It names specific tradeoffs, such as pre-filter speed versus post-filter precision for ACLs, and surfaces edge cases like table row-splitting and code AST boundaries. It stops short of addressing distributed-systems edge cases like thundering herd or partial network partitions that would warrant a top score.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 5 presents six quantified tradeoffs—e.g., accepting 2.5× memory overhead for HNSW speed, and a 200 ms latency cost for a 20% accuracy gain from cross-encoder reranking. Section 6 catalogs concrete failure modes with specific mitigations, including tombstone reaping for stale data, circuit breakers for LLM rate limiting, and output filtering for document-based prompt injection. While it surfaces non-obvious failure modes (prompt injection via docs, table chunking artifacts), it never explicitly acknowledges a hard limit of the design (e.g., 'this cannot handle X; we would need Y'), keeping it at a strong 4.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with a detailed requirements table that quantifies both functional targets (10K users, 1M documents, 200K queries/day) and non-functional SLAs (P95 <3.0s, relevance >90%, hallucination <2%, freshness <15 min). It explicitly states scale assumptions (concurrent peak 2,000, 5K words per document) that feed directly into the capacity section. However, it lacks explicit non-goals and does not resolve prompt ambiguities (e.g., 'we are not building X'), stopping short of the exceptional bar.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The math derives a full chain from corpus size to tokens (6.67B) to chunks (18M) to storage (200 GB including HNSW overhead), and from query volume to peak QPS (70) to LLM token throughput (500M input/day). These numbers demonstrably drive infrastructure choices, such as the three-node Milvus cluster and a single GPU embedding worker. It lacks an explicit fragility flag or out-of-band sanity check (e.g., validating the 200 GB figure against a theoretical bound), so it does not reach the top tier.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component in the ingestion and query pipelines is tied to a specific requirement—e.g., the cross-encoder serves accuracy, the Redis exact cache serves latency, and the AuthZ filter enforces document-level ACLs. The data flow is traceable end-to-end from SharePoint through chunking, vector search, reranking, and LLM streaming, with no hallucinated services. The architecture is well-justified and avoids the semantic-cache anti-pattern due to ACL leakage risk, but it remains a standard enterprise RAG pattern rather than an exceptional architectural leap.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"The response provides multiple deep dives with concrete mechanisms: HNSW index parameters (M=16, ef=128) and physical partitioning by department_id in Milvus; two-phase retrieval with latency budgets (30–60 ms HNSW, 150–250 ms rerank); and a token-level context window budget for the 8K model. It names specific tradeoffs, such as pre-filter speed versus post-filter precision for ACLs, and surfaces edge cases like table row-splitting and code AST boundaries. It stops short of addressing distributed-systems edge cases like thundering herd or partial network partitions that would warrant a top score.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 5 presents six quantified tradeoffs—e.g., accepting 2.5× memory overhead for HNSW speed, and a 200 ms latency cost for a 20% accuracy gain from cross-encoder reranking. Section 6 catalogs concrete failure modes with specific mitigations, including tombstone reaping for stale data, circuit breakers for LLM rate limiting, and output filtering for document-based prompt injection. While it surfaces non-obvious failure modes (prompt injection via docs, table chunking artifacts), it never explicitly acknowledges a hard limit of the design (e.g., 'this cannot handle X; we would need Y'), keeping it at a strong 4.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

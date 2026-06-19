@@ -10,6 +10,7 @@ __pycache__/
 .env
 .env.*
 !.env.example
+.zoo
 
 # Generated outputs
 analysis.db
