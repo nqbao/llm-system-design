@@ -7,12 +7,13 @@ client = get_client(timeout_s=120)
 
 models = [
     # "deepseek-v4-pro-no-thinking",
-    "deepseek-v4-pro",
-    "gpt-5.4",
-    "claude-sonnet-4.6",
-    "kimi-k2.6",
-    "gemini-3.1-pro",
-    "minimax-m2.7",
+    #"deepseek-v4-pro",
+    #"gpt-5.4",
+    #"claude-sonnet-4.6",
+    #"kimi-k2.6",
+    #"gemini-3.1-pro",
+    #"minimax-m2.7",
+    "glm-5.2",
 ]
 
 prompt = "What is 7*8+3? Just the answer."

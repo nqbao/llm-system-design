@@ -39,8 +39,12 @@ function openZoom(svgEl) {
   const overlay = createOverlay();
   const content = overlay.querySelector('.mermaid-zoom-content');
   const clone = svgEl.cloneNode(true);
-  clone.style.maxWidth = '100%';
-  clone.style.maxHeight = '90vh';
+  clone.removeAttribute('width');
+  clone.removeAttribute('height');
+  clone.style.width = 'auto';
+  clone.style.height = 'auto';
+  clone.style.maxWidth = '98%';
+  clone.style.maxHeight = '98%';
   content.appendChild(clone);
   requestAnimationFrame(() => overlay.classList.add('open'));
 }
