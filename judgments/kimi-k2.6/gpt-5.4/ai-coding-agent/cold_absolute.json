@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gpt-5.4/ai-coding-agent_cold.json",
+  "question_id": "ai-coding-agent",
+  "variant": "cold",
+  "model_under_test": "gpt-5.4",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T03:51:11.719737+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Functional and non-functional requirements are clearly listed, and explicit non-goals are stated (e.g., no autonomous prod deployment, no arbitrary browser automation). However, non-functional requirements lack quantified SLAs such as specific p99 latency targets, availability percentages, or durability guarantees; scale assumptions are deferred to the capacity section rather than justified within the requirements section itself.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "Derives a full estimation chain from 25K DAU assumptions to peak concurrency (~2,000 sessions), model RPS (~40), token throughput (279k input tok/s peak), gateway vCPU sizing (8 cores), and storage (135 GB/30-day retention). Numbers demonstrably drive design decisions, including the model routing strategy and the rejection of self-hosting all inference due to cost. A cost sensitivity analysis ($0.25 vs $0.76 per task) acts as a sanity check, but individual assumptions (e.g., 18-minute median task length) are not explicitly flagged as fragile.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (Session Manager, Context Engine, Tool Broker, Sandbox, Patch Engine, Validation Engine, Model Gateway) maps to a stated requirement. Data flow is traceable end-to-end via the sequence diagram. The design explicitly picks the less obvious local-first thick-client over a cloud-first thin-client and avoids an anti-pattern by explicitly rejecting Kafka/microservice sprawl for v1. No hallucinated services or dead-weight components are present.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Provides multiple concrete deep-dives: Context Engine (index math, 768d fp16 embeddings, ranking weights, context budget packing), Sandbox (four permission modes, AST parsing, timeouts, cgroups/ulimit), Patch Engine (unified diff with file-hash preconditions to prevent TOCTOU races, reverse patches), and Validation Engine (targeted test heuristics, flaky-test handling). Each includes mechanism and tradeoff reasoning (e.g., Docker startup latency vs host-shell policy). A non-obvious edge case (time-of-check-to-time-of-use on concurrent user edits) is surfaced and addressed in the Patch Engine deep-dive.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Presents four explicit tradeoff tables with pros/cons/choices (local-first vs cloud-first, structured tools vs shell, single vs multi-agent, targeted vs full tests). Failure modes are specific and mitigated concretely (e.g., shell AST parsing for dangerous commands, file-hash checks for concurrent edits, rerun-once for flaky tests, provider failover). The design acknowledges v1 limits via explicit non-goals and a phased roadmap (multi-agent deferred to V2+). Surfaces non-obvious failure modes including prompt injection via code comments and secret leakage through snippet redaction.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"Functional and non-functional requirements are clearly listed, and explicit non-goals are stated (e.g., no autonomous prod deployment, no arbitrary browser automation). However, non-functional requirements lack quantified SLAs such as specific p99 latency targets, availability percentages, or durability guarantees; scale assumptions are deferred to the capacity section rather than justified within the requirements section itself.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"Derives a full estimation chain from 25K DAU assumptions to peak concurrency (~2,000 sessions), model RPS (~40), token throughput (279k input tok/s peak), gateway vCPU sizing (8 cores), and storage (135 GB/30-day retention). Numbers demonstrably drive design decisions, including the model routing strategy and the rejection of self-hosting all inference due to cost. A cost sensitivity analysis ($0.25 vs $0.76 per task) acts as a sanity check, but individual assumptions (e.g., 18-minute median task length) are not explicitly flagged as fragile.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component (Session Manager, Context Engine, Tool Broker, Sandbox, Patch Engine, Validation Engine, Model Gateway) maps to a stated requirement. Data flow is traceable end-to-end via the sequence diagram. The design explicitly picks the less obvious local-first thick-client over a cloud-first thin-client and avoids an anti-pattern by explicitly rejecting Kafka/microservice sprawl for v1. No hallucinated services or dead-weight components are present.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Provides multiple concrete deep-dives: Context Engine (index math, 768d fp16 embeddings, ranking weights, context budget packing), Sandbox (four permission modes, AST parsing, timeouts, cgroups/ulimit), Patch Engine (unified diff with file-hash preconditions to prevent TOCTOU races, reverse patches), and Validation Engine (targeted test heuristics, flaky-test handling). Each includes mechanism and tradeoff reasoning (e.g., Docker startup latency vs host-shell policy). A non-obvious edge case (time-of-check-to-time-of-use on concurrent user edits) is surfaced and addressed in the Patch Engine deep-dive.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Presents four explicit tradeoff tables with pros/cons/choices (local-first vs cloud-first, structured tools vs shell, single vs multi-agent, targeted vs full tests). Failure modes are specific and mitigated concretely (e.g., shell AST parsing for dangerous commands, file-hash checks for concurrent edits, rerun-once for flaky tests, provider failover). The design acknowledges v1 limits via explicit non-goals and a phased roadmap (multi-agent deferred to V2+). Surfaces non-obvious failure modes including prompt injection via code comments and secret leakage through snippet redaction.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

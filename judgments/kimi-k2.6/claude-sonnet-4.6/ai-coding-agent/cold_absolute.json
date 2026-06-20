@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/claude-sonnet-4.6/ai-coding-agent_cold.json",
+  "question_id": "ai-coding-agent",
+  "variant": "cold",
+  "model_under_test": "claude-sonnet-4.6",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T03:46:42.126583+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with explicit functional requirements (F1–F12) and non-functional requirements (NF1–NF7) that include quantified targets such as first-token latency <3 s, cost <$1 per medium task, and snapshot storage <100 MB. Assumptions are clearly stated (terminal-resident, no browser/GUI, local filesystem). However, it lacks explicit non-goals (e.g., 'we are NOT building a cloud IDE') and does not resolve ambiguities in the prompt by exploring alternative scale assumptions.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "The design derives token budgets per task tier (Small through XL) and translates them into dollar costs using Claude 3.5 Sonnet pricing, which directly drives the summarization sub-call design. It computes rate-limit headroom against Anthropic Tier 2 (153K tok/min consumed vs. 400K limit) and sizes session storage (~2 MB DB + ~5 MB snapshots per medium task). Despite the solid chain, it does not explicitly flag fragile assumptions or perform a sanity-check on its own figures (e.g., questioning whether 100 iterations is realistic).",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component maps to a stated requirement: the Approval Gate satisfies safety/privacy mandates, the Context Manager enforces NF2’s 85% token ceiling, and the Snapshot Manager enables F10 undo. Data flow is traceable end-to-end via sequence diagrams and connector graphs. While the architecture is sensible and free of hallucinated services, it does not explicitly call out and avoid a specific anti-pattern (e.g., 'we avoid a distributed DB here because...') or champion a less-obvious choice with extended reasoning.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The Context Manager presents a concrete token-pressure algorithm with reserved output slots, eviction priorities, and an emergency condensation path. The Safety Enforcer details path traversal with symlink checks, denylist patterns, and ulimits. The ReAct loop implements stuck detection via a (tool_name, args_hash) triple-repeat injection. These deep dives surface non-obvious edge cases—such as partial JSON tool-call parsing, unique-substring edit_file semantics, and symlink path traversal—and address each with specific mechanisms rather than just naming technologies.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response enumerates seven quantified tradeoffs (e.g., autonomy vs. safety with the --yolo flag, cloud vs. local with latency/cost tables, write_file vs. edit_file) and ties each to a concrete design decision. A dedicated failure-mode table covers 14 specific scenarios, including non-obvious ones such as secret leakage with redaction, LLM premature victory with a post-task test-validation hook, and session DB corruption mitigated by SQLite WAL. It also explicitly acknowledges the design’s limits (local model degradation on complex multi-file tasks, Docker’s +1–3 s startup penalty).",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with explicit functional requirements (F1–F12) and non-functional requirements (NF1–NF7) that include quantified targets such as first-token latency <3 s, cost <$1 per medium task, and snapshot storage <100 MB. Assumptions are clearly stated (terminal-resident, no browser/GUI, local filesystem). However, it lacks explicit non-goals (e.g., 'we are NOT building a cloud IDE') and does not resolve ambiguities in the prompt by exploring alternative scale assumptions.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"The design derives token budgets per task tier (Small through XL) and translates them into dollar costs using Claude 3.5 Sonnet pricing, which directly drives the summarization sub-call design. It computes rate-limit headroom against Anthropic Tier 2 (153K tok/min consumed vs. 400K limit) and sizes session storage (~2 MB DB + ~5 MB snapshots per medium task). Despite the solid chain, it does not explicitly flag fragile assumptions or perform a sanity-check on its own figures (e.g., questioning whether 100 iterations is realistic).\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component maps to a stated requirement: the Approval Gate satisfies safety/privacy mandates, the Context Manager enforces NF2’s 85% token ceiling, and the Snapshot Manager enables F10 undo. Data flow is traceable end-to-end via sequence diagrams and connector graphs. While the architecture is sensible and free of hallucinated services, it does not explicitly call out and avoid a specific anti-pattern (e.g., 'we avoid a distributed DB here because...') or champion a less-obvious choice with extended reasoning.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"The Context Manager presents a concrete token-pressure algorithm with reserved output slots, eviction priorities, and an emergency condensation path. The Safety Enforcer details path traversal with symlink checks, denylist patterns, and ulimits. The ReAct loop implements stuck detection via a (tool_name, args_hash) triple-repeat injection. These deep dives surface non-obvious edge cases—such as partial JSON tool-call parsing, unique-substring edit_file semantics, and symlink path traversal—and address each with specific mechanisms rather than just naming technologies.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"The response enumerates seven quantified tradeoffs (e.g., autonomy vs. safety with the --yolo flag, cloud vs. local with latency/cost tables, write_file vs. edit_file) and ties each to a concrete design decision. A dedicated failure-mode table covers 14 specific scenarios, including non-obvious ones such as secret leakage with redaction, LLM premature victory with a post-task test-validation hook, and session DB corruption mitigated by SQLite WAL. It also explicitly acknowledges the design’s limits (local model degradation on complex multi-file tasks, Docker’s +1–3 s startup penalty).\", \"score\": 5}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

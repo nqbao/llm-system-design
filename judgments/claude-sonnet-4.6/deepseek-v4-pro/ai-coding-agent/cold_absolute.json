@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/deepseek-v4-pro/ai-coding-agent_cold.json",
+  "question_id": "ai-coding-agent",
+  "variant": "cold",
+  "model_under_test": "deepseek-v4-pro",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T05:35:31.109937+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "There is no dedicated requirements section. Non-functional priorities ('safety, cost-efficiency, reliability, intuitive terminal UX') are listed in the Overview but never quantified (no p99 latency target, no availability SLA, no durability guarantee). Functional requirements are only implicit in the tool catalog and component descriptions. Assumptions appear in Section 5 (capacity), not upfront where they would drive design. No non-goals are declared, and no ambiguities in the prompt are explicitly resolved.",
+        "score": 2
+      },
+      "capacity_estimation": {
+        "reasoning": "Section 5 provides a genuine derivation chain: turns to token counts to cost per task to cost per developer per day, with specific pricing ($5/1M input, $15/1M output). Latency is also estimated (2-5 s per LLM turn, 30-60 s per task). However, the numbers do not propagate into specific design decisions elsewhere (e.g., the sliding window is not justified by hitting a specific token ceiling). Storage and bandwidth are not estimated. The 8000-char output truncation limit in Section 3.4 is stated but not traced back to a capacity number.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component in the Mermaid graph has a clear stated responsibility, and the full sequence diagram traces one concrete task end-to-end, making data flow genuinely traceable. The tool catalog is comprehensive and each tool maps to a real engineering need. No hallucinated services are present. Component choices (e.g., Tree-sitter for AST, git branching for workspace safety) are grounded in requirements rather than decoration.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple sections go beyond naming: the Context Manager specifies all-MiniLM-L6-v2 for embeddings and Tree-sitter for AST parsing; the Tool Executor gives concrete limits (30 s timeout, 8000-char truncation, 5 s search timeout); the LLM Client describes a sliding-window-with-summary strategy and exponential backoff. The tradeoff table names failure modes for specific mechanisms (diff application failure falling back to full rewrite; embedding index adding startup cost). However, no deep-dive surfaces a non-obvious failure mode specific to the mechanism, such as Tree-sitter parse failure on syntax errors mid-edit or the summary step hallucinating a prior decision and corrupting later reasoning.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 6 identifies seven concrete design decisions with specific choices, rationale, and tradeoffs (e.g., diff vs full rewrite where diff can fail on context mismatch; interactive loop vs planning where the loop may spend more steps exploring). Section 7 lists eight failure modes with concrete mitigations (e.g., max-step limit for infinite loops, 2-minute timeout for hanging tests). However, no tradeoff is quantified numerically, and the design never explicitly acknowledges what it cannot do. Non-obvious failure modes like the summary step corrupting agent memory or a patch passing tests while silently altering semantics are not surfaced.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"There is no dedicated requirements section. Non-functional priorities ('safety, cost-efficiency, reliability, intuitive terminal UX') are listed in the Overview but never quantified (no p99 latency target, no availability SLA, no durability guarantee). Functional requirements are only implicit in the tool catalog and component descriptions. Assumptions appear in Section 5 (capacity), not upfront where they would drive design. No non-goals are declared, and no ambiguities in the prompt are explicitly resolved.\", \"score\": 2}, \"capacity_estimation\": {\"reasoning\": \"Section 5 provides a genuine derivation chain: turns to token counts to cost per task to cost per developer per day, with specific pricing ($5/1M input, $15/1M output). Latency is also estimated (2-5 s per LLM turn, 30-60 s per task). However, the numbers do not propagate into specific design decisions elsewhere (e.g., the sliding window is not justified by hitting a specific token ceiling). Storage and bandwidth are not estimated. The 8000-char output truncation limit in Section 3.4 is stated but not traced back to a capacity number.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component in the Mermaid graph has a clear stated responsibility, and the full sequence diagram traces one concrete task end-to-end, making data flow genuinely traceable. The tool catalog is comprehensive and each tool maps to a real engineering need. No hallucinated services are present. Component choices (e.g., Tree-sitter for AST, git branching for workspace safety) are grounded in requirements rather than decoration.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple sections go beyond naming: the Context Manager specifies all-MiniLM-L6-v2 for embeddings and Tree-sitter for AST parsing; the Tool Executor gives concrete limits (30 s timeout, 8000-char truncation, 5 s search timeout); the LLM Client describes a sliding-window-with-summary strategy and exponential backoff. The tradeoff table names failure modes for specific mechanisms (diff application failure falling back to full rewrite; embedding index adding startup cost). However, no deep-dive surfaces a non-obvious failure mode specific to the mechanism, such as Tree-sitter parse failure on syntax errors mid-edit or the summary step hallucinating a prior decision and corrupting later reasoning.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 6 identifies seven concrete design decisions with specific choices, rationale, and tradeoffs (e.g., diff vs full rewrite where diff can fail on context mismatch; interactive loop vs planning where the loop may spend more steps exploring). Section 7 lists eight failure modes with concrete mitigations (e.g., max-step limit for infinite loops, 2-minute timeout for hanging tests). However, no tradeoff is quantified numerically, and the design never explicitly acknowledges what it cannot do. Non-obvious failure modes like the summary step corrupting agent memory or a patch passing tests while silently altering semantics are not surfaced.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

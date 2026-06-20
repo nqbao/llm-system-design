@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gemini-3.1-pro/ai-coding-agent_cold.json",
+  "question_id": "ai-coding-agent",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T03:47:24.790032+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The intro paragraph implicitly states functional requirements (navigate codebase, write code, execute tests, debug) and non-functional constraints (context window optimization, cost control, deterministic editing, execution safety). Explicit assumptions appear in Section 4 (1,000 files, 200 LOC/file). However, there is no dedicated requirements section, no quantified SLAs (e.g., p99 latency targets, task success rate), and no explicit non-goals or resolved ambiguities from the prompt. Meets the bar for 3 but does not reach 4.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "Section 4 builds a coherent chain: file count x LOC/file -> total tokens -> repo map compression (90%) -> PageRank filtering (50 files -> 10k tokens) -> per-turn payload (20k) -> cost per task ($1.01). The repo map compression decision is explicitly driven by the 200k context window limit. However, the estimation is entirely token/cost-focused with no bandwidth, storage, or component-sizing derived, and no assumptions are flagged as fragile or sanity-checked against an external reference. Solid estimation that drives design decisions, fitting a 3.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every subsystem is connected to a stated design challenge: Context Manager to context overflow, Tool Engine to deterministic editing, LLM Gateway to rate limits. The Mermaid diagram provides a clear topology and data flow is traceable end-to-end. There are no decorative or hallucinated components. The native shell vs. Docker decision picks the less obvious but pragmatically superior choice with explicit justification against user friction, earning a 4.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives with concrete mechanisms: (1) Repo Map uses tree-sitter extraction plus PageRank-style ranking with dynamic eviction against a hard token budget; (2) edit_file uses Search/Replace blocks with a Levenshtein-distance fuzzy fallback cascading to whole-file generation, a specific mechanism with named tradeoff; (3) AST validation via tree-sitter before file saves as a pre-commit guard. The stdout overflow edge case ('cat bundle.js' producing 300k tokens) is non-obvious with a specific head+tail truncation mitigation. This clears the bar for 4.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Three explicit tradeoffs in Section 5 are each tied to specific decisions with named pros/cons: diff vs whole-file (cost vs reliability), Docker vs native shell (security vs UX friction), ReAct vs Plan-and-Solve (micro-step accuracy vs goal coherence). The failure mode table in Section 6 is concrete, with specific mitigations including state hashing for loop detection, stdout truncation caps, AST validation with git branch guardrails, and system prompt injection for task drift. The infinite loop detection via action hashing is a non-obvious failure mode addressed specifically. The design does not explicitly acknowledge its own limits or what it cannot handle, falling just short of a 5.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The intro paragraph implicitly states functional requirements (navigate codebase, write code, execute tests, debug) and non-functional constraints (context window optimization, cost control, deterministic editing, execution safety). Explicit assumptions appear in Section 4 (1,000 files, 200 LOC/file). However, there is no dedicated requirements section, no quantified SLAs (e.g., p99 latency targets, task success rate), and no explicit non-goals or resolved ambiguities from the prompt. Meets the bar for 3 but does not reach 4.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"Section 4 builds a coherent chain: file count x LOC/file -> total tokens -> repo map compression (90%) -> PageRank filtering (50 files -> 10k tokens) -> per-turn payload (20k) -> cost per task ($1.01). The repo map compression decision is explicitly driven by the 200k context window limit. However, the estimation is entirely token/cost-focused with no bandwidth, storage, or component-sizing derived, and no assumptions are flagged as fragile or sanity-checked against an external reference. Solid estimation that drives design decisions, fitting a 3.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every subsystem is connected to a stated design challenge: Context Manager to context overflow, Tool Engine to deterministic editing, LLM Gateway to rate limits. The Mermaid diagram provides a clear topology and data flow is traceable end-to-end. There are no decorative or hallucinated components. The native shell vs. Docker decision picks the less obvious but pragmatically superior choice with explicit justification against user friction, earning a 4.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives with concrete mechanisms: (1) Repo Map uses tree-sitter extraction plus PageRank-style ranking with dynamic eviction against a hard token budget; (2) edit_file uses Search/Replace blocks with a Levenshtein-distance fuzzy fallback cascading to whole-file generation, a specific mechanism with named tradeoff; (3) AST validation via tree-sitter before file saves as a pre-commit guard. The stdout overflow edge case ('cat bundle.js' producing 300k tokens) is non-obvious with a specific head+tail truncation mitigation. This clears the bar for 4.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Three explicit tradeoffs in Section 5 are each tied to specific decisions with named pros/cons: diff vs whole-file (cost vs reliability), Docker vs native shell (security vs UX friction), ReAct vs Plan-and-Solve (micro-step accuracy vs goal coherence). The failure mode table in Section 6 is concrete, with specific mitigations including state hashing for loop detection, stdout truncation caps, AST validation with git branch guardrails, and system prompt injection for task drift. The infinite loop detection via action hashing is a non-obvious failure mode addressed specifically. The design does not explicitly acknowledge its own limits or what it cannot handle, falling just short of a 5.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

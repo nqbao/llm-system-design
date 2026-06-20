@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/deepseek-v4-pro/ai-coding-agent_cold.json",
+  "question_id": "ai-coding-agent",
+  "variant": "cold",
+  "model_under_test": "deepseek-v4-pro",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T05:35:31.109937+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The overview states non-functional priorities (safety, cost-efficiency, reliability, UX) and the capacity section provides operational assumptions (e.g., 'Average software engineering task: 5–15 steps', 'Each LLM turn: ~3,000 input tokens'). However, there is no explicit requirements section enumerating functional and non-functional requirements, no quantified SLAs (e.g., availability %), and no explicit non-goals or ambiguity resolution.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "Section 5 derives a cost-per-task chain from token assumptions (30k input + 5k output → ~$0.225 per task) and estimates latency ('30–60 seconds wall-clock time'). The numbers do inform the sliding window context strategy and caching mention, but they are not used to size infrastructure components (no shards, nodes, or bandwidth provisioning), and the author does not flag fragile assumptions or perform a sanity-check.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component serves a clear need: the LLM Client maps to token/cost management, the Workspace Manager to backup/rollback, and the Context Manager to prompt window constraints. Data flow is traceable via the mermaid diagram and sequence diagram. The tradeoffs table explicitly justifies specific architectural choices (diffs over full rewrites, single-agent over multi-agent) without introducing decorative or hallucinated services.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The LLM Client details a concrete sliding window with compressed summaries and exponential backoff; the Context Manager explains lazy Tree-sitter symbol indexing and local embedding vectors (`all-MiniLM-L6-v2`); the Workspace Manager specifies backup paths (`.ai-code-backup/` or git branch `ai-code/session-<id>`). Each includes mechanism and rationale. However, failure-mode handling is mostly segregated into a separate table rather than being surfaced inside the deep-dive sections.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "A table of seven decisions (LLM backend, context management, safety policy, search strategy, file editing, planning style, agent topology) each presents a choice, rationale, and tradeoff. A separate table lists eight failure modes with concrete mitigations (e.g., max-step limit for infinite loops, wildcard deny for `rm`, 2-min timeout for hung tests). The tradeoffs are not quantified, and there is no explicit 'this design cannot handle X' acknowledgement of hard limits.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The overview states non-functional priorities (safety, cost-efficiency, reliability, UX) and the capacity section provides operational assumptions (e.g., 'Average software engineering task: 5–15 steps', 'Each LLM turn: ~3,000 input tokens'). However, there is no explicit requirements section enumerating functional and non-functional requirements, no quantified SLAs (e.g., availability %), and no explicit non-goals or ambiguity resolution.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"Section 5 derives a cost-per-task chain from token assumptions (30k input + 5k output → ~$0.225 per task) and estimates latency ('30–60 seconds wall-clock time'). The numbers do inform the sliding window context strategy and caching mention, but they are not used to size infrastructure components (no shards, nodes, or bandwidth provisioning), and the author does not flag fragile assumptions or perform a sanity-check.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component serves a clear need: the LLM Client maps to token/cost management, the Workspace Manager to backup/rollback, and the Context Manager to prompt window constraints. Data flow is traceable via the mermaid diagram and sequence diagram. The tradeoffs table explicitly justifies specific architectural choices (diffs over full rewrites, single-agent over multi-agent) without introducing decorative or hallucinated services.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"The LLM Client details a concrete sliding window with compressed summaries and exponential backoff; the Context Manager explains lazy Tree-sitter symbol indexing and local embedding vectors (`all-MiniLM-L6-v2`); the Workspace Manager specifies backup paths (`.ai-code-backup/` or git branch `ai-code/session-<id>`). Each includes mechanism and rationale. However, failure-mode handling is mostly segregated into a separate table rather than being surfaced inside the deep-dive sections.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"A table of seven decisions (LLM backend, context management, safety policy, search strategy, file editing, planning style, agent topology) each presents a choice, rationale, and tradeoff. A separate table lists eight failure modes with concrete mitigations (e.g., max-step limit for infinite loops, wildcard deny for `rm`, 2-min timeout for hung tests). The tradeoffs are not quantified, and there is no explicit 'this design cannot handle X' acknowledgement of hard limits.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

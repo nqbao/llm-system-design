@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gpt-5.4/ai-coding-agent_cold.json",
+  "question_id": "ai-coding-agent",
+  "variant": "cold",
+  "model_under_test": "gpt-5.4",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T03:51:11.719737+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response clearly states functional and non-functional requirements, and explicitly sets non-goals for v1. However, non-functional requirements are described qualitatively (e.g., 'low latency: first useful action in a few seconds') without quantified SLAs like p99 latency or availability %, so it falls short of a 4. Assumptions about scale are not stated in the requirements section itself.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response provides a full estimation chain: assumptions (25k DAU, 1.2 tasks/user/day, etc.) → derived concurrent sessions, QPS for model calls, token volumes → component sizing (gateway vCPUs). It flags fragile assumptions (peak multiplier, cost impact of model choice) and sanity-checks the result ('this strongly justifies model routing'). This meets the criteria for a 5.",
+        "score": 5
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component in the architecture diagram and text serves a clear purpose tied to the requirements. The data flow is traceable from user input through the session manager, context engine, tool broker, and model gateway. The design avoids buzzword-driven choices, explicitly justifies local-first over cloud-first, and identifies anti-patterns like unnecessary Docker overhead. This is exceptional coherence.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are present (Context Engine, Tool Broker, Sandbox, Patch Engine, Validation, Model Gateway), each with concrete mechanisms (indexing strategy with ranking weights, patch concurrency handling, test selection heuristics). Tradeoffs are discussed (e.g., semantic index optionality, structured vs shell tools). The design surfaces non-obvious edge cases like flaky test handling, prompt injection in repo content, and concurrent file edits with rebasing, addressing them specifically.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The design includes an explicit tradeoffs table comparing multiple architectural choices with pros/cons and rationale. A comprehensive failure modes table lists specific risks (agent loops, context overflow, secret leakage, flaky tests, concurrent sessions) and concrete mitigations. The design acknowledges its own limits via explicit non-goals and version-based roadmap, and addresses non-obvious failure modes like patch conflict and shell command classification.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response clearly states functional and non-functional requirements, and explicitly sets non-goals for v1. However, non-functional requirements are described qualitatively (e.g., 'low latency: first useful action in a few seconds') without quantified SLAs like p99 latency or availability %, so it falls short of a 4. Assumptions about scale are not stated in the requirements section itself.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The response provides a full estimation chain: assumptions (25k DAU, 1.2 tasks/user/day, etc.) → derived concurrent sessions, QPS for model calls, token volumes → component sizing (gateway vCPUs). It flags fragile assumptions (peak multiplier, cost impact of model choice) and sanity-checks the result ('this strongly justifies model routing'). This meets the criteria for a 5.\",\n    \"score\": 5\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component in the architecture diagram and text serves a clear purpose tied to the requirements. The data flow is traceable from user input through the session manager, context engine, tool broker, and model gateway. The design avoids buzzword-driven choices, explicitly justifies local-first over cloud-first, and identifies anti-patterns like unnecessary Docker overhead. This is exceptional coherence.\",\n    \"score\": 5\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives are present (Context Engine, Tool Broker, Sandbox, Patch Engine, Validation, Model Gateway), each with concrete mechanisms (indexing strategy with ranking weights, patch concurrency handling, test selection heuristics). Tradeoffs are discussed (e.g., semantic index optionality, structured vs shell tools). The design surfaces non-obvious edge cases like flaky test handling, prompt injection in repo content, and concurrent file edits with rebasing, addressing them specifically.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The design includes an explicit tradeoffs table comparing multiple architectural choices with pros/cons and rationale. A comprehensive failure modes table lists specific risks (agent loops, context overflow, secret leakage, flaky tests, concurrent sessions) and concrete mitigations. The design acknowledges its own limits via explicit non-goals and version-based roadmap, and addresses non-obvious failure modes like patch conflict and shell command classification.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

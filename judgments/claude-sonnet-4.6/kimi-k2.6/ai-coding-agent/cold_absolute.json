@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/kimi-k2.6/ai-coding-agent_cold.json",
+  "question_id": "ai-coding-agent",
+  "variant": "cold",
+  "model_under_test": "kimi-k2.6",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T03:54:34.044171+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The Executive Summary implicitly covers functional requirements (natural language tasks, multi-step planning, sandboxed execution, human oversight) and quantifies some non-functionals (sub-200ms search, streaming output, 500k-line repo target). Section 5 tradeoffs reference scale assumptions. However, there is no formal requirements section, no explicit list of justified assumptions, and no non-goals statement (e.g., 'we are NOT building multi-user or cloud-hosted variants'). Scale is implied as single-user but never stated as a justified assumption with notes on where the design would change.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "Section 4 provides a genuine estimation chain: 500k lines → ~5k chunks → 30 MB raw / 70 MB with HNSW; per-turn cost derived from token counts ($0.09 input + $0.03 output = $0.12/turn → $1.20 per 10-turn task); embedding cost derived from token count ($0.075 one-time). Numbers demonstrably drive design choices: the 70 MB footprint justifies in-process vector DB, cost math justifies Haiku for the reviewer, and the 200k token budget table drives eviction policy. The response does not flag which assumptions are most fragile nor perform an explicit sanity-check cross-validation, so it falls just short of a 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "The Mermaid diagram is detailed and every component named in it is subsequently explained in Section 3. Each component is tied to a stated requirement or capacity number: the LLM Router to token budget management, the Git Guardian to data destruction failure mode, Tree-sitter vs. LSP to the structural edit tradeoff. No hallucinated or decorative components are present. Data flow is traceable end-to-end. The response also picks the less obvious search-replace-block approach over line-number edits and explicitly justifies the choice, which qualifies for the top tier.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives are present and concrete: (1) Context Engine covers chunking math, HNSW query latency breakdown (50ms embed + 100ms search), storage math, and LSP cold-start vs. warm-query latency. (2) Shell Sandbox specifies rootless Docker flags, seccomp restrictions, memory/CPU/timeout limits, and UID mapping rationale. (3) Edit tool details the 3-line unique anchor requirement with a quantified failure rate reduction (15% → <2%). Each deep-dive names a specific tradeoff with reasoning. Section 6.5 surfaces a non-obvious edge case (ambiguous search/replace match on common patterns like 'return None') and addresses it with the AMBIGUOUS_MATCH return mechanism.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 5 contains five explicitly scoped tradeoffs, each tied to a specific decision with quantified costs: RAG hybrid saves 60% cost vs. full-context at the price of a 5-10% cross-file miss rate; search/replace increases token usage 8% but cuts edit failure from 15% to <2%; remote vs. local LLM tradeoff quantifies quality, cost, and hardware requirements. Section 6 covers seven failure modes, each with a specific mitigation mechanism. The response acknowledges its own limit in Section 5.4: 'air-gapped mode limits tasks to <5-file refactors.' The loop-detection hash and the AMBIGUOUS_MATCH mechanism surface non-obvious failure modes. This is a genuinely strong tradeoffs section.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The Executive Summary implicitly covers functional requirements (natural language tasks, multi-step planning, sandboxed execution, human oversight) and quantifies some non-functionals (sub-200ms search, streaming output, 500k-line repo target). Section 5 tradeoffs reference scale assumptions. However, there is no formal requirements section, no explicit list of justified assumptions, and no non-goals statement (e.g., 'we are NOT building multi-user or cloud-hosted variants'). Scale is implied as single-user but never stated as a justified assumption with notes on where the design would change.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"Section 4 provides a genuine estimation chain: 500k lines → ~5k chunks → 30 MB raw / 70 MB with HNSW; per-turn cost derived from token counts ($0.09 input + $0.03 output = $0.12/turn → $1.20 per 10-turn task); embedding cost derived from token count ($0.075 one-time). Numbers demonstrably drive design choices: the 70 MB footprint justifies in-process vector DB, cost math justifies Haiku for the reviewer, and the 200k token budget table drives eviction policy. The response does not flag which assumptions are most fragile nor perform an explicit sanity-check cross-validation, so it falls just short of a 5.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"The Mermaid diagram is detailed and every component named in it is subsequently explained in Section 3. Each component is tied to a stated requirement or capacity number: the LLM Router to token budget management, the Git Guardian to data destruction failure mode, Tree-sitter vs. LSP to the structural edit tradeoff. No hallucinated or decorative components are present. Data flow is traceable end-to-end. The response also picks the less obvious search-replace-block approach over line-number edits and explicitly justifies the choice, which qualifies for the top tier.\", \"score\": 5}, \"deep_dive_depth\": {\"reasoning\": \"Multiple deep-dives are present and concrete: (1) Context Engine covers chunking math, HNSW query latency breakdown (50ms embed + 100ms search), storage math, and LSP cold-start vs. warm-query latency. (2) Shell Sandbox specifies rootless Docker flags, seccomp restrictions, memory/CPU/timeout limits, and UID mapping rationale. (3) Edit tool details the 3-line unique anchor requirement with a quantified failure rate reduction (15% → <2%). Each deep-dive names a specific tradeoff with reasoning. Section 6.5 surfaces a non-obvious edge case (ambiguous search/replace match on common patterns like 'return None') and addresses it with the AMBIGUOUS_MATCH return mechanism.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 5 contains five explicitly scoped tradeoffs, each tied to a specific decision with quantified costs: RAG hybrid saves 60% cost vs. full-context at the price of a 5-10% cross-file miss rate; search/replace increases token usage 8% but cuts edit failure from 15% to <2%; remote vs. local LLM tradeoff quantifies quality, cost, and hardware requirements. Section 6 covers seven failure modes, each with a specific mitigation mechanism. The response acknowledges its own limit in Section 5.4: 'air-gapped mode limits tasks to <5-file refactors.' The loop-detection hash and the AMBIGUOUS_MATCH mechanism surface non-obvious failure modes. This is a genuinely strong tradeoffs section.\", \"score\": 5}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

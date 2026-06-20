@@ -181,3 +181,81 @@
   display: table !important;
   width: 100% !important;
 }
+
+/* Mermaid zoom overlay */
+#mermaid-zoom-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+#mermaid-zoom-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mermaid-zoom-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.mermaid-zoom-container {
+  position: relative;
+  max-width: 95vw;
+  max-height: 95vh;
+  background: var(--sl-color-white, #fff);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  transform: scale(0.95);
+  transition: transform 0.25s ease;
+}
+
+#mermaid-zoom-overlay.open .mermaid-zoom-container {
+  transform: scale(1);
+}
+
+.mermaid-zoom-close {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--sl-color-gray-3, #666);
+  z-index: 1;
+  padding: 0.25rem;
+}
+
+.mermaid-zoom-close:hover {
+  color: var(--sl-color-white, #000);
+}
+
+.mermaid-zoom-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  max-height: 85vh;
+}
+
+.mermaid-zoom-content svg {
+  display: block;
+}
+
+[data-theme="dark"] .mermaid-zoom-container {
+  background: var(--sl-color-gray-7, #1a1a2e);
+}
+
+[data-theme="dark"] .mermaid-zoom-close:hover {
+  color: var(--sl-color-white, #fff);
+}

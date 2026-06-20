@@ -57,3 +57,9 @@
   title: Design Twitter
   prompt_cold: |
     Design a microblogging platform like Twitter.
+
+- id: ai-coding-agent
+  tier: hard
+  title: Design a Terminal-based AI Coding Agent
+  prompt_cold: |
+    Design a terminal-based AI coding agent that can complete software engineering tasks.

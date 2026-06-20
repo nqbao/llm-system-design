@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gemini-3.1-pro/ai-coding-agent_cold.json",
+  "question_id": "ai-coding-agent",
+  "variant": "cold",
+  "model_under_test": "gemini-3.1-pro",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T03:47:24.790032+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response begins with a clear problem statement and primary challenges (context window optimization, cost control, deterministic editing, safeguarding local execution) which imply functional and non-functional requirements, but it does not explicitly list them in dedicated sections. Assumptions are stated in the capacity math (e.g., repo size, LLM choice), but no quantified SLAs or explicit non-goals are provided.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "The response includes a detailed capacity and cost math section, deriving token counts from assumptions, computing cost per task, and using these numbers to justify design decisions like Repo Map compression and aggressive context pruning. It sanity-checks cost viability and flags an assumption about repo size being too large without optimization.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every listed component (CLI, Orchestration Engine, Context Manager, Tool Execution, LLM Gateway) is clearly tied to the stated challenges and requirements. The architecture diagram and descriptions show a coherent data flow without contradictions or unnecessary components. The Context Manager is specifically justified by token math, and tool execution by deterministic editing needs.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response provides deep-dives into the Context Manager, Tool Execution Engine, and Orchestration Engine. The Context Manager section describes TPiano Repo Map generation with tree-sitter, dynamic context loading, and token reductions, with a named tradeoff around compression vs. reasoning quality. The Tool Execution section includes concrete mechanisms like edit_file with diffs and linter validation. Later tradeoff discussions add depth to file editing choices. Two or more components are explored with concrete mechanisms and rationales.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response contains an explicit tradeoffs section with three comparisons (file editing methods, execution environment, agentic framework) each listing pros/cons and a decision with rationale. It also includes a detailed failure modes table with specific mitigations (state hashing for infinite loops, AST validation, Git guardrails, stream truncation). While it recognizes limitations (e.g., ReAct losing big picture), it does not explicitly state design boundaries in the form 'this design cannot handle X' or surface classic distributed system edge cases like thundering herds.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response begins with a clear problem statement and primary challenges (context window optimization, cost control, deterministic editing, safeguarding local execution) which imply functional and non-functional requirements, but it does not explicitly list them in dedicated sections. Assumptions are stated in the capacity math (e.g., repo size, LLM choice), but no quantified SLAs or explicit non-goals are provided.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The response includes a detailed capacity and cost math section, deriving token counts from assumptions, computing cost per task, and using these numbers to justify design decisions like Repo Map compression and aggressive context pruning. It sanity-checks cost viability and flags an assumption about repo size being too large without optimization.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every listed component (CLI, Orchestration Engine, Context Manager, Tool Execution, LLM Gateway) is clearly tied to the stated challenges and requirements. The architecture diagram and descriptions show a coherent data flow without contradictions or unnecessary components. The Context Manager is specifically justified by token math, and tool execution by deterministic editing needs.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response provides deep-dives into the Context Manager, Tool Execution Engine, and Orchestration Engine. The Context Manager section describes TPiano Repo Map generation with tree-sitter, dynamic context loading, and token reductions, with a named tradeoff around compression vs. reasoning quality. The Tool Execution section includes concrete mechanisms like edit_file with diffs and linter validation. Later tradeoff discussions add depth to file editing choices. Two or more components are explored with concrete mechanisms and rationales.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The response contains an explicit tradeoffs section with three comparisons (file editing methods, execution environment, agentic framework) each listing pros/cons and a decision with rationale. It also includes a detailed failure modes table with specific mitigations (state hashing for infinite loops, AST validation, Git guardrails, stream truncation). While it recognizes limitations (e.g., ReAct losing big picture), it does not explicitly state design boundaries in the form 'this design cannot handle X' or surface classic distributed system edge cases like thundering herds.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

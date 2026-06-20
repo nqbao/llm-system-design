@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gemma-4-31b-it/ai-coding-agent_cold.json",
+  "question_id": "ai-coding-agent",
+  "variant": "cold",
+  "model_under_test": "gemma-4-31b-it",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T03:48:41.222070+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response does not contain a dedicated requirements section; it directly presents the architecture. It mentions the agent's functional capabilities (file operations, shell execution) but does not explicitly list non-functional requirements like latency, availability, or scalability. Assumptions are given only in the capacity section, not in a scoping statement. No quantified SLAs or non-goals are present.",
+        "score": 2
+      },
+      "capacity_estimation": {
+        "reasoning": "The response includes token budget and throughput calculations based on assumptions about context window, code size, and latency. These numbers are derived from stated assumptions and are used to justify the context window manager design (working set, summarization), demonstrating a connection between estimation and design. However, it does not include a full chain like QPS→storage→bandwidth, nor does it flag fragile assumptions or perform sanity checks.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "The architecture is clearly described with a diagram and text, showing components and their connections. Each component serves a clear purpose (orchestration, planning, context management, tool execution) and there are no hallucinations. While some components (Context Window Manager) are directly tied to capacity numbers, others lack explicit justification against specific requirements. The data flow is traceable end-to-end.",
+        "score": 3
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response provides multiple deep-dives, notably the diff-based edit mechanism (with search-and-replace blocks) and the sandbox strategy (Dockerized runtime). Both include concrete mechanisms and named tradeoffs with reasoning (reliability vs token efficiency, security vs ease of access). These demonstrate understanding of why certain choices are made. While there is edge-case handling in the diff failure retry, it is not a highly non-obvious failure mode to warrant a 5.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response presents two specific tradeoffs (diff vs full write, sandbox vs native shell) each tied to concrete decisions with pros/cons and rationales. These are concretely scoped with detailed scenarios. Additionally, a table of failure modes lists five distinct issues with specific mitigation strategies (e.g., iteration limit, goal anchoring). This meets the threshold for a 4, but the design does not explicitly state its own limits or surface a non-obvious failure mode like thundering herd.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response does not contain a dedicated requirements section; it directly presents the architecture. It mentions the agent's functional capabilities (file operations, shell execution) but does not explicitly list non-functional requirements like latency, availability, or scalability. Assumptions are given only in the capacity section, not in a scoping statement. No quantified SLAs or non-goals are present.\",\n    \"score\": 2\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The response includes token budget and throughput calculations based on assumptions about context window, code size, and latency. These numbers are derived from stated assumptions and are used to justify the context window manager design (working set, summarization), demonstrating a connection between estimation and design. However, it does not include a full chain like QPS→storage→bandwidth, nor does it flag fragile assumptions or perform sanity checks.\",\n    \"score\": 3\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"The architecture is clearly described with a diagram and text, showing components and their connections. Each component serves a clear purpose (orchestration, planning, context management, tool execution) and there are no hallucinations. While some components (Context Window Manager) are directly tied to capacity numbers, others lack explicit justification against specific requirements. The data flow is traceable end-to-end.\",\n    \"score\": 3\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The response provides multiple deep-dives, notably the diff-based edit mechanism (with search-and-replace blocks) and the sandbox strategy (Dockerized runtime). Both include concrete mechanisms and named tradeoffs with reasoning (reliability vs token efficiency, security vs ease of access). These demonstrate understanding of why certain choices are made. While there is edge-case handling in the diff failure retry, it is not a highly non-obvious failure mode to warrant a 5.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The response presents two specific tradeoffs (diff vs full write, sandbox vs native shell) each tied to concrete decisions with pros/cons and rationales. These are concretely scoped with detailed scenarios. Additionally, a table of failure modes lists five distinct issues with specific mitigation strategies (e.g., iteration limit, goal anchoring). This meets the threshold for a 4, but the design does not explicitly state its own limits or surface a non-obvious failure mode like thundering herd.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

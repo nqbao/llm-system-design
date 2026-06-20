@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import tempfile
 from pathlib import Path
 
 import yaml
@@ -105,7 +106,15 @@ PAIRWISE_PROMPT = (
 
 def load_transcript(path: str | Path) -> dict:
     path = Path(path)
-    data = json.loads(path.read_text())
+    raw_text = path.read_text()
+
+    try:
+        data = json.loads(raw_text)
+    except json.JSONDecodeError:
+        tmp = Path(tempfile.mktemp(suffix=".json", prefix=f"{path.stem}_"))
+        tmp.write_text(raw_text)
+        print(f"  [error] JSON decode failed for {path} — raw content saved to {tmp}", file=sys.stderr)
+        raise
 
     content = data.get("content", "")
     if not content:
@@ -150,7 +159,7 @@ def run_absolute(
             {"role": "system", "content": rubric["prompt"]},
             {"role": "user", "content": f"Evaluate this transcript:\n\n'''\n{text}\n'''"},
         ]
-        result = chat_json(client, model, messages, max_tokens=4096)
+        result = chat_json(client, model, messages, max_tokens=8192)
         results[judge_id] = result
 
     judgment = {

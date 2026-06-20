@@ -33,6 +33,13 @@ export default defineConfig({
 						src: '//gc.zgo.at/count.js',
 					},
 				},
+				{
+					tag: 'script',
+					attrs: {
+						src: '/scripts/mermaid-zoom.js',
+						defer: true,
+					},
+				},
 			],
 		}),
 	],
