@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/glm-5.2/news-feed_cold.json",
+  "question_id": "news-feed",
+  "variant": "cold",
+  "model_under_test": "glm-5.2",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T18:37:48.627089+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "Both functional and non-functional requirements are stated. Assumptions are partially present in the capacity estimation (Twitter-like scale) but not explicitly scoped in the requirements section. No quantified SLAs beyond <200ms latency, and no non-goals.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "Full estimation chain from DAU assumptions to QPS, storage, and bandwidth. Numbers directly influence design decisions (Redis cluster sizing, hybrid fan-out threshold). However, no explicit fragility flags or sanity-checking.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against a requirement or capacity number. Data flow is traceable (post → Kafka → fanout → Redis → Feed Service). The hybrid fan-out directly addresses the celebrity problem derived from capacity math.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The hybrid fan-out strategy is a deep dive with concrete mechanisms (Redis Sorted Sets, follower threshold, read-time merge). Tradeoffs are named and quantified (write amplification vs. read latency, cache memory vs. fallback cost). Additional details on Redis caching and Feed Service merging provide a second substantive exploration.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Multiple tradeoffs are explicitly quantified (200 Redis writes vs. 0, 2ms vs. 10ms, 2.4 TB cache). Failure scenarios (Redis loss, Kafka backlogs, Graph DB outage, thundering herd) each have specific mitigations. The design’s limits are implied but not explicitly stated as non-goals.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"Both functional and non-functional requirements are stated. Assumptions are partially present in the capacity estimation (Twitter-like scale) but not explicitly scoped in the requirements section. No quantified SLAs beyond <200ms latency, and no non-goals.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Full estimation chain from DAU assumptions to QPS, storage, and bandwidth. Numbers directly influence design decisions (Redis cluster sizing, hybrid fan-out threshold). However, no explicit fragility flags or sanity-checking.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component is justified against a requirement or capacity number. Data flow is traceable (post → Kafka → fanout → Redis → Feed Service). The hybrid fan-out directly addresses the celebrity problem derived from capacity math.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The hybrid fan-out strategy is a deep dive with concrete mechanisms (Redis Sorted Sets, follower threshold, read-time merge). Tradeoffs are named and quantified (write amplification vs. read latency, cache memory vs. fallback cost). Additional details on Redis caching and Feed Service merging provide a second substantive exploration.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Multiple tradeoffs are explicitly quantified (200 Redis writes vs. 0, 2ms vs. 10ms, 2.4 TB cache). Failure scenarios (Redis loss, Kafka backlogs, Graph DB outage, thundering herd) each have specific mitigations. The design’s limits are implied but not explicitly stated as non-goals.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

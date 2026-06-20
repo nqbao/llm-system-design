@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/glm-5.2/news-feed_cold.json",
+  "question_id": "news-feed",
+  "variant": "cold",
+  "model_under_test": "glm-5.2",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T18:37:48.627089+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response states both functional requirements (post, follow, feed, pagination, ordering) and non-functional requirements (availability, latency <200ms, eventual consistency, scalability). Explicit scale assumptions are made (300M DAU, 200 avg followers, celebrity threshold 50K+). However, availability is not quantified (no SLA %), no durability guarantee is stated, and there are no explicit non-goals or ambiguity resolution. The response lands solidly at the 3/4 boundary but doesn't cross into 4 because non-functionals are only partially quantified.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "A full derivation chain is present: DAU to feed requests (300M x 10 = 3B/day), posts to storage (50 GB/day, 180 TB/decade), read bandwidth (3B x 10 KB = 350 MB/s), and the celebrity write-amplification math (100M followers divided by 100K ops/sec = 1000 seconds) that directly drives the hybrid fan-out decision. Feed cache sizing (300M x 1000 x 8 bytes = 2.4 TB, 20-node Redis cluster) propagates into a concrete hardware spec. QPS is never derived explicitly (3B/day is roughly 34,700 QPS but left implicit), and no assumption is flagged as fragile or sanity-checked against a known benchmark. This is a strong 4 but not a 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is traceable to a stated requirement or capacity constraint: Kafka decouples write ingestion from fan-out workers; Redis serves the <200ms latency requirement; the Graph DB serves follower lookups for fan-out; S3 handles media outside the hot path. The end-to-end data flow from post write to Kafka event to fan-out worker to Redis list to Feed Service merge to client is clear and consistent. The hybrid fan-out is explicitly justified against the celebrity capacity math, representing a deliberate anti-pattern avoidance. Not a 5 because the Graph DB technology choice between Neo4j and RDBMS is raised but not resolved.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Two substantive deep-dives are present: the hybrid fan-out strategy with specific thresholds (50K followers), concrete write counts, timing estimates, and named pros/cons for each branch; and the Feed Cache with Redis data structure choice, key schema, the 1000-post cap with fallback path, and a 7-day TTL. The thundering herd on the celebrity Post DB surfaces a non-obvious failure mode and addresses it with a specific pattern (5-second TTL lease). The 50K celebrity threshold is asserted without justification and the choice between Sorted Set and List is unresolved, which prevents a 5.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Four failure modes are addressed with specific mitigations: Redis shard failure with replica promotion and cold-start rebuild, Kafka backlog with consumer-lag-based autoscaling, Graph DB unavailability with active-active multi-region and partial follower cache, and thundering herd on celebrity Post DB with a 5-second TTL distributed cache. Tradeoffs are quantified where it matters: 200ms latency budget, 2ms vs 10ms extra for hybrid paths, 2.4 TB cache footprint. What is missing for a 5 is an explicit acknowledgment of the design's own limits stating what it cannot handle and what would be needed to address it.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response states both functional requirements (post, follow, feed, pagination, ordering) and non-functional requirements (availability, latency <200ms, eventual consistency, scalability). Explicit scale assumptions are made (300M DAU, 200 avg followers, celebrity threshold 50K+). However, availability is not quantified (no SLA %), no durability guarantee is stated, and there are no explicit non-goals or ambiguity resolution. The response lands solidly at the 3/4 boundary but doesn't cross into 4 because non-functionals are only partially quantified.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"A full derivation chain is present: DAU to feed requests (300M x 10 = 3B/day), posts to storage (50 GB/day, 180 TB/decade), read bandwidth (3B x 10 KB = 350 MB/s), and the celebrity write-amplification math (100M followers divided by 100K ops/sec = 1000 seconds) that directly drives the hybrid fan-out decision. Feed cache sizing (300M x 1000 x 8 bytes = 2.4 TB, 20-node Redis cluster) propagates into a concrete hardware spec. QPS is never derived explicitly (3B/day is roughly 34,700 QPS but left implicit), and no assumption is flagged as fragile or sanity-checked against a known benchmark. This is a strong 4 but not a 5.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is traceable to a stated requirement or capacity constraint: Kafka decouples write ingestion from fan-out workers; Redis serves the <200ms latency requirement; the Graph DB serves follower lookups for fan-out; S3 handles media outside the hot path. The end-to-end data flow from post write to Kafka event to fan-out worker to Redis list to Feed Service merge to client is clear and consistent. The hybrid fan-out is explicitly justified against the celebrity capacity math, representing a deliberate anti-pattern avoidance. Not a 5 because the Graph DB technology choice between Neo4j and RDBMS is raised but not resolved.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Two substantive deep-dives are present: the hybrid fan-out strategy with specific thresholds (50K followers), concrete write counts, timing estimates, and named pros/cons for each branch; and the Feed Cache with Redis data structure choice, key schema, the 1000-post cap with fallback path, and a 7-day TTL. The thundering herd on the celebrity Post DB surfaces a non-obvious failure mode and addresses it with a specific pattern (5-second TTL lease). The 50K celebrity threshold is asserted without justification and the choice between Sorted Set and List is unresolved, which prevents a 5.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Four failure modes are addressed with specific mitigations: Redis shard failure with replica promotion and cold-start rebuild, Kafka backlog with consumer-lag-based autoscaling, Graph DB unavailability with active-active multi-region and partial follower cache, and thundering herd on celebrity Post DB with a 5-second TTL distributed cache. Tradeoffs are quantified where it matters: 200ms latency budget, 2ms vs 10ms extra for hybrid paths, 2.4 TB cache footprint. What is missing for a 5 is an explicit acknowledgment of the design's own limits stating what it cannot handle and what would be needed to address it.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

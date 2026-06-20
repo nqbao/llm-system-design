@@ -60,8 +60,11 @@ def all_pages_exist():
         assert exists(f"models/{mslug}/index.html")
         for qid in QUESTIONS:
             assert exists(f"models/{mslug}/{qid}/index.html")
+    for qid in QUESTIONS:
+        assert exists(f"questions/{qid}/index.html")
     print(f"  ✓ {len(MODEL_SLUGS)} models, {len(QUESTIONS)} questions, "
-          f"{len(MODEL_SLUGS) * len(QUESTIONS)} transcripts")
+          f"{len(MODEL_SLUGS) * len(QUESTIONS)} transcripts, "
+          f"{len(QUESTIONS)} question pages")
 
 
 def homepage_stat_is_consistent():
@@ -126,7 +129,24 @@ def problems_page_lists_all_questions():
     html = page("problems/index.html")
     for q in QUESTIONS:
         assert q in html, f"Question '{q}' missing from problems page"
-    print(f"  ✓ {len(QUESTIONS)} questions on problems page")
+        assert f"/questions/{q}/" in html, f"Question '{q}' should link to question page"
+    print(f"  ✓ {len(QUESTIONS)} questions on problems page with question page links")
+
+
+def question_pages_list_all_models():
+    for qid in QUESTIONS[:1]:  # spot-check first question
+        path = f"questions/{qid}/index.html"
+        if not exists(path):
+            continue
+        html = page(path)
+        for mslug in MODEL_SLUGS:
+            assert mslug in html, f"Model {mslug} missing from question page {qid}"
+        model_refs = html.count("/models/")
+        expected_min = len(MODEL_SLUGS)
+        assert model_refs >= expected_min, (
+            f"{path}: expected at least {expected_min} model links, got {model_refs}"
+        )
+    print(f"  ✓ question pages list all models")
 
 
 def invalid_mermaid_falls_back_to_code_view():
@@ -183,6 +203,7 @@ def main():
         transcript_dropdowns_have_all_models,
         sidebar_is_generated,
         problems_page_lists_all_questions,
+        question_pages_list_all_models,
         invalid_mermaid_falls_back_to_code_view,
         urls_respect_base_prefix,
     ]

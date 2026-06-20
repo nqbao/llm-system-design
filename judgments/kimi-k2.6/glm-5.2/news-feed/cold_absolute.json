@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/glm-5.2/news-feed_cold.json",
+  "question_id": "news-feed",
+  "variant": "cold",
+  "model_under_test": "glm-5.2",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T18:37:48.627089+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists five functional and four non-functional requirements, including a concrete latency target (<200ms) and scale assumptions (300M DAU, 100M posts/day). However, it lacks availability SLAs (e.g., 99.9%), explicit non-goals, and justification for the chosen scale figures, so it meets the standard expectations without exceeding them.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "Derives QPS, storage (50 GB/day text, 20 TB/day media), and bandwidth (350 MB/s read) from the DAU assumptions. The numbers demonstrably drive decisions: the 2.4 TB total cache size justifies a 20-node Redis cluster, and the 100M-follower celebrity scenario directly motivates the hybrid fan-out model. It does not flag fragile assumptions or sanity-check the estimations, so it is strong but not exceptional.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "All core components (Post Service, Feed Service, Kafka, Redis, Graph DB, Fan-out Workers) are justified against specific requirements or capacity numbers, and the data flow is traceable from ingestion to read-time merge. The diagram and textual descriptions are coherent and free of hallucinations. It does not make a non-obvious architectural choice or explicitly avoid an unmentioned anti-pattern beyond the standard celebrity fan-out problem, so it sits at the impressive level.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Provides two deep-dives with concrete mechanisms and named tradeoffs: (1) the hybrid fan-out strategy weighs write amplification (10,000 Redis writes) versus read latency (O(1) fetch), and (2) the Redis feed cache limits entries to 1,000 post IDs, trading memory for deep-pagination fallback. These demonstrate reasoning behind the choices, but the component deep-dives do not surface non-obvious edge cases like partial network partitions or GC tail latency, keeping it from a 5.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Tradeoffs are quantified: pure fan-out would take 1000 seconds for a celebrity post, whereas the hybrid model adds only ~10 ms per read. Four failure modes include specific mitigations: Redis replica promotion with cold-start reconstruction, Kafka auto-scaling on consumer lag, active-active Graph DB, and a 5-second TTL cache for celebrity thundering herds. It does not explicitly acknowledge its own design limits (e.g., inability to support real-time ranking), so it is a 4.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response lists five functional and four non-functional requirements, including a concrete latency target (<200ms) and scale assumptions (300M DAU, 100M posts/day). However, it lacks availability SLAs (e.g., 99.9%), explicit non-goals, and justification for the chosen scale figures, so it meets the standard expectations without exceeding them.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"Derives QPS, storage (50 GB/day text, 20 TB/day media), and bandwidth (350 MB/s read) from the DAU assumptions. The numbers demonstrably drive decisions: the 2.4 TB total cache size justifies a 20-node Redis cluster, and the 100M-follower celebrity scenario directly motivates the hybrid fan-out model. It does not flag fragile assumptions or sanity-check the estimations, so it is strong but not exceptional.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"All core components (Post Service, Feed Service, Kafka, Redis, Graph DB, Fan-out Workers) are justified against specific requirements or capacity numbers, and the data flow is traceable from ingestion to read-time merge. The diagram and textual descriptions are coherent and free of hallucinations. It does not make a non-obvious architectural choice or explicitly avoid an unmentioned anti-pattern beyond the standard celebrity fan-out problem, so it sits at the impressive level.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Provides two deep-dives with concrete mechanisms and named tradeoffs: (1) the hybrid fan-out strategy weighs write amplification (10,000 Redis writes) versus read latency (O(1) fetch), and (2) the Redis feed cache limits entries to 1,000 post IDs, trading memory for deep-pagination fallback. These demonstrate reasoning behind the choices, but the component deep-dives do not surface non-obvious edge cases like partial network partitions or GC tail latency, keeping it from a 5.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Tradeoffs are quantified: pure fan-out would take 1000 seconds for a celebrity post, whereas the hybrid model adds only ~10 ms per read. Four failure modes include specific mitigations: Redis replica promotion with cold-start reconstruction, Kafka auto-scaling on consumer lag, active-active Graph DB, and a 5-second TTL cache for celebrity thundering herds. It does not explicitly acknowledge its own design limits (e.g., inability to support real-time ranking), so it is a 4.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}
