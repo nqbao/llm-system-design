@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/glm-5.2/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "glm-5.2",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T06:17:26.886387+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response lists both functional and non-functional requirements with explicit quantified targets (P95 < 4s, Recall@10 >= 0.85, $0.05/query). It also sets explicit non-goals (out-of-scope section). However, key scale assumptions like 10k DAU and 2M documents are stated but not justified, and no ambiguity in the prompt is resolved, so it falls short of the 'assumptions stated AND justified' bar for a 4.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "Derives a complete chain: corpus size -> chunk count -> vector storage with HNSW overhead -> query load -> token counts -> cost breakdown. The numbers demonstrably drive later decisions: self-hosted embedding is chosen because cheaper at this volume, 180 GB vector storage drives Qdrant node sizing, and sharding is triggered at 50M chunks. Cost is sanity-checked against the budget ceiling. Lacks explicit flagging of fragile assumptions.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against a specific requirement or capacity number: Qdrant is chosen for native ACL payload filtering and on-prem PII; hybrid BM25+dense catches keyword-heavy queries; Redis cache targets latency/cost. The data flow is traceable end-to-end with a diagram. It explicitly identifies and avoids the anti-pattern of relying solely on ACL post-filter (which is 'risky and leaky in logs'), instead choosing pre-filter with a post-filter safety net.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Provides multiple concrete deep dives with mechanisms and named tradeoffs: the chunker uses hierarchical 800-token windows with 150 overlap; the semantic cache uses MinHash plus reverse index invalidation to address stale cache edge cases; the ACL filter surfaces the non-obvious recall degradation for heavily restricted users and mitigates with 4x oversampling; HNSW tombstones and nightly compaction are addressed. Demonstrates knowing why, not just what.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Offers numerous quantified tradeoffs tied to specific decisions: reranker adds ~250ms and a GPU but prevents ~15% recall drop; filtered HNSW pre-filter is ~2x slower; caching trades hit rate against staleness. Failure modes are specific and mitigated: model version drift via pinned hashes and offline eval, prompt injection via delimiter wrapping, reindex storms via backpressure, and citation rot via redirect tables. Does not explicitly acknowledge an inherent design limitation in the form 'this design cannot handle X'.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response lists both functional and non-functional requirements with explicit quantified targets (P95 < 4s, Recall@10 >= 0.85, $0.05/query). It also sets explicit non-goals (out-of-scope section). However, key scale assumptions like 10k DAU and 2M documents are stated but not justified, and no ambiguity in the prompt is resolved, so it falls short of the 'assumptions stated AND justified' bar for a 4.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"Derives a complete chain: corpus size -> chunk count -> vector storage with HNSW overhead -> query load -> token counts -> cost breakdown. The numbers demonstrably drive later decisions: self-hosted embedding is chosen because cheaper at this volume, 180 GB vector storage drives Qdrant node sizing, and sharding is triggered at 50M chunks. Cost is sanity-checked against the budget ceiling. Lacks explicit flagging of fragile assumptions.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is justified against a specific requirement or capacity number: Qdrant is chosen for native ACL payload filtering and on-prem PII; hybrid BM25+dense catches keyword-heavy queries; Redis cache targets latency/cost. The data flow is traceable end-to-end with a diagram. It explicitly identifies and avoids the anti-pattern of relying solely on ACL post-filter (which is 'risky and leaky in logs'), instead choosing pre-filter with a post-filter safety net.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Provides multiple concrete deep dives with mechanisms and named tradeoffs: the chunker uses hierarchical 800-token windows with 150 overlap; the semantic cache uses MinHash plus reverse index invalidation to address stale cache edge cases; the ACL filter surfaces the non-obvious recall degradation for heavily restricted users and mitigates with 4x oversampling; HNSW tombstones and nightly compaction are addressed. Demonstrates knowing why, not just what.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Offers numerous quantified tradeoffs tied to specific decisions: reranker adds ~250ms and a GPU but prevents ~15% recall drop; filtered HNSW pre-filter is ~2x slower; caching trades hit rate against staleness. Failure modes are specific and mitigated: model version drift via pinned hashes and offline eval, prompt injection via delimiter wrapping, reindex storms via backpressure, and citation rot via redirect tables. Does not explicitly acknowledge an inherent design limitation in the form 'this design cannot handle X'.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/glm-5.2/ai-coding-agent_cold.json",
+  "question_id": "ai-coding-agent",
+  "variant": "cold",
+  "model_under_test": "glm-5.2",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T05:54:00.552547+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response states explicit non-goals (no IDE integration, multi-repo, etc.) and defines the target user and environment. Functional requirements are implied throughout, and non-functional aspects like latency are mentioned but not quantified as p99 SLAs. No explicit availability or durability targets are given, so it falls short of a 4.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "Section 5 derives token counts, cost, and resource usage from assumptions (100k-LOC repo, 2-hour session, model pricing). Numbers drive design choices such as the $5 session cap, compaction trigger at 75% context window, and local embedder selection. A sanity check is provided for session cost realism.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is justified against a specific requirement or capacity number (e.g., index service for retrieval, confirmation layer for safety). The Mermaid diagram and end-to-end flow trace data clearly. The choice of line-buffered CLI over full TUI demonstrates a less obvious but correct decision explained with rationale (scriptability, log capture), satisfying the criterion for a 5.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives (index service, context manager, shell tool, LLM client) provide concrete mechanisms (hybrid retrieval with RRF fusion, token budget with compaction, cgroups sandboxing, structured output validation). Each includes named tradeoffs (local vs API embeddings, patches vs full writes, in-process vs containers). The LLM client deep-dive additionally surfaces the non-obvious replay hazard for shell commands and mitigates it with a per-call nonce, meeting the level 5 edge case criterion.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 7 lists multiple tradeoffs tied to specific decisions with quantification (e.g., local embeddings quality hit is 5–10%). Section 6 presents a comprehensive failure mode table with specific mitigations, including non-obvious cases like undo log corruption relying on git refs. The design explicitly acknowledges limits (e.g., in-process sandbox 'not for hosted multi-tenant') and surfaces nuanced failure modes.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response states explicit non-goals (no IDE integration, multi-repo, etc.) and defines the target user and environment. Functional requirements are implied throughout, and non-functional aspects like latency are mentioned but not quantified as p99 SLAs. No explicit availability or durability targets are given, so it falls short of a 4.\",\n    \"score\": 3\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Section 5 derives token counts, cost, and resource usage from assumptions (100k-LOC repo, 2-hour session, model pricing). Numbers drive design choices such as the $5 session cap, compaction trigger at 75% context window, and local embedder selection. A sanity check is provided for session cost realism.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component is justified against a specific requirement or capacity number (e.g., index service for retrieval, confirmation layer for safety). The Mermaid diagram and end-to-end flow trace data clearly. The choice of line-buffered CLI over full TUI demonstrates a less obvious but correct decision explained with rationale (scriptability, log capture), satisfying the criterion for a 5.\",\n    \"score\": 5\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives (index service, context manager, shell tool, LLM client) provide concrete mechanisms (hybrid retrieval with RRF fusion, token budget with compaction, cgroups sandboxing, structured output validation). Each includes named tradeoffs (local vs API embeddings, patches vs full writes, in-process vs containers). The LLM client deep-dive additionally surfaces the non-obvious replay hazard for shell commands and mitigates it with a per-call nonce, meeting the level 5 edge case criterion.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Section 7 lists multiple tradeoffs tied to specific decisions with quantification (e.g., local embeddings quality hit is 5–10%). Section 6 presents a comprehensive failure mode table with specific mitigations, including non-obvious cases like undo log corruption relying on git refs. The design explicitly acknowledges limits (e.g., in-process sandbox 'not for hosted multi-tenant') and surfaces nuanced failure modes.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

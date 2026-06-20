@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/glm-5.2/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "glm-5.2",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T06:17:26.886387+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response explicitly states both functional and non-functional requirements, with quantified non-functionals (p95 latency < 4s, 99.9% availability, cost ceiling). It includes out-of-scope items, effectively defining non-goals, which clarifies boundaries. The scale is assumed and stated, though it doesn't explicitly say 'the prompt didn't specify, so I picked 100M...'.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Full derivation chain: from 2M docs to 40M chunks to 180 GB vector storage, and from 50k queries/day to 15M tokens/day and $60/day. Numbers directly drive design choices like vector DB sharding threshold, cost budgeting, and scaling projections. Includes a sanity check that cost is well under the ceiling.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component in the diagram serves a stated requirement; data flow is traceable from ingestion through retrieval and generation. Components like Qdrant, Kafka, and Redis are justified in the deep-dives. The architecture is coherent and no hallucinations are present.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple deep-dives (chunking, Qdrant sharding/filtering, hybrid retrieval, reranker, semantic cache) include concrete mechanisms (e.g., hierarchical chunking with overlap, RRF fusion, chunk-keyed cache eviction). Tradeoffs are named and reasoned (chunk size, reranker cost vs recall, ACL pre-filter impact). Non-obvious edge cases like hot sharding and cache invalidation after document update are addressed.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 6 lists tradeoffs tied to specific decisions (chunk size, self-hosted vs hosted LLM, reranker on/off, caching aggressiveness) with quantified or concretely scoped reasoning. Section 7 presents a comprehensive table of failure modes with mitigations, including non-obvious ones like hot shard, reindex storm, and prompt injection. The design explicitly acknowledges limits (e.g., if latency must drop below 2s, switch to smaller model) and conditions for revisiting choices.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response explicitly states both functional and non-functional requirements, with quantified non-functionals (p95 latency < 4s, 99.9% availability, cost ceiling). It includes out-of-scope items, effectively defining non-goals, which clarifies boundaries. The scale is assumed and stated, though it doesn't explicitly say 'the prompt didn't specify, so I picked 100M...'.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Full derivation chain: from 2M docs to 40M chunks to 180 GB vector storage, and from 50k queries/day to 15M tokens/day and $60/day. Numbers directly drive design choices like vector DB sharding threshold, cost budgeting, and scaling projections. Includes a sanity check that cost is well under the ceiling.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component in the diagram serves a stated requirement; data flow is traceable from ingestion through retrieval and generation. Components like Qdrant, Kafka, and Redis are justified in the deep-dives. The architecture is coherent and no hallucinations are present.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple deep-dives (chunking, Qdrant sharding/filtering, hybrid retrieval, reranker, semantic cache) include concrete mechanisms (e.g., hierarchical chunking with overlap, RRF fusion, chunk-keyed cache eviction). Tradeoffs are named and reasoned (chunk size, reranker cost vs recall, ACL pre-filter impact). Non-obvious edge cases like hot sharding and cache invalidation after document update are addressed.\",\n    \"score\": 5\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Section 6 lists tradeoffs tied to specific decisions (chunk size, self-hosted vs hosted LLM, reranker on/off, caching aggressiveness) with quantified or concretely scoped reasoning. Section 7 presents a comprehensive table of failure modes with mitigations, including non-obvious ones like hot shard, reindex storm, and prompt injection. The design explicitly acknowledges limits (e.g., if latency must drop below 2s, switch to smaller model) and conditions for revisiting choices.\",\n    \"score\": 5\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

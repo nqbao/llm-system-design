@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/glm-5.2/rag-search-assistant_cold.json",
+  "question_id": "rag-search-assistant",
+  "variant": "cold",
+  "model_under_test": "glm-5.2",
+  "judge_model": "claude-sonnet-4.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T06:17:26.886387+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "All five functional requirements are precisely stated (grounded answers, citations, ACL enforcement, multi-turn, admin lifecycle). Non-functionals are quantified with specific targets: 30 qps burst, P95 < 4 s, P99 < 8 s, Recall@10 >= 0.85, 99.9% availability, $0.05/query cost ceiling. The response explicitly sets non-goals ('Out of scope: training/fine-tuning the LLM, multi-modal, real-time streaming') and resolves implicit ambiguities (PII concerns, OCR scope limited to text extraction only). This satisfies every criterion for a 5.",
+        "score": 5
+      },
+      "capacity_estimation": {
+        "reasoning": "The estimation chain is complete and internally consistent: corpus -> chunking (40 M chunks) -> vector size (120 GB) -> index overhead (180 GB) -> RAM sizing (192 GB nodes, int8 quantization shrinking to 60 GB resident). Query load -> per-day token counts -> itemized cost breakdown per component ($45 generation + $1 embedding + $5 vector search + $10 reranker = ~$60/day -> $0.0012/query), explicitly sanity-checked against the $0.05 ceiling. Storage growth is projected over 12 months to trigger sharding threshold. Numbers directly drive component decisions (GPU node count, RAM per Qdrant node, when to shard at 50 M chunks).",
+        "score": 5
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is traceable to a stated requirement or capacity number: Qdrant chosen specifically because payload filtering enables ACL pre-filtering, Kafka chosen for append-only change log enabling reliable delta ingestion, Redis cache justified against the cost budget and 15-20% hit-rate target. The Mermaid diagram makes data flow unambiguous. The response explicitly avoids a known anti-pattern: post-filter ACL is rejected because it leaks snippets in logs, with Qdrant payload pre-filter selected as the less obvious but more correct approach. No hallucinated services or decorative components.",
+        "score": 5
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple concrete deep-dives: (1) Chunker with hierarchical header-first then 800-token windows, different parameters for code/tables; (2) Qdrant HNSW with scalar quantization, RF=2, and the non-obvious edge case that HNSW does not physically remove deleted vectors requiring nightly compaction; (3) Hybrid retrieval with dense ANN + BM25 fused via RRF with specific model names and latency numbers; (4) Semantic cache with MinHash of retrieved chunks and chunk-keyed eviction via reverse-index in Redis. The filtered-ANN recall degradation for low-privilege users is a genuine non-obvious edge case with a concrete mitigation.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Tradeoffs are quantified and scoped: reranker adds +15% recall@5 at +250ms and a GPU; self-hosted LLM saves per-token cost but costs ~$25k GPU capex; ACL pre-filter is ~2x slower with recall risk on selective filters, mitigated by 4x oversampling. The failure modes table covers 10 scenarios with specific mitigations including non-obvious ones: prompt injection via malicious uploaded documents with delimiter-based countermeasure, embedding model version drift causing recall collapse with hash-pinned offline eval gate, and reindex storm from connector bug with backpressure queue. The design explicitly acknowledges its limits with RPO/RTO numbers and the roadmap signals what the current design cannot handle.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"All five functional requirements are precisely stated (grounded answers, citations, ACL enforcement, multi-turn, admin lifecycle). Non-functionals are quantified with specific targets: 30 qps burst, P95 < 4 s, P99 < 8 s, Recall@10 >= 0.85, 99.9% availability, $0.05/query cost ceiling. The response explicitly sets non-goals ('Out of scope: training/fine-tuning the LLM, multi-modal, real-time streaming') and resolves implicit ambiguities (PII concerns, OCR scope limited to text extraction only). This satisfies every criterion for a 5.\", \"score\": 5}, \"capacity_estimation\": {\"reasoning\": \"The estimation chain is complete and internally consistent: corpus -> chunking (40 M chunks) -> vector size (120 GB) -> index overhead (180 GB) -> RAM sizing (192 GB nodes, int8 quantization shrinking to 60 GB resident). Query load -> per-day token counts -> itemized cost breakdown per component ($45 generation + $1 embedding + $5 vector search + $10 reranker = ~$60/day -> $0.0012/query), explicitly sanity-checked against the $0.05 ceiling. Storage growth is projected over 12 months to trigger sharding threshold. Numbers directly drive component decisions (GPU node count, RAM per Qdrant node, when to shard at 50 M chunks).\", \"score\": 5}, \"architecture_coherence\": {\"reasoning\": \"Every component is traceable to a stated requirement or capacity number: Qdrant chosen specifically because payload filtering enables ACL pre-filtering, Kafka chosen for append-only change log enabling reliable delta ingestion, Redis cache justified against the cost budget and 15-20% hit-rate target. The Mermaid diagram makes data flow unambiguous. The response explicitly avoids a known anti-pattern: post-filter ACL is rejected because it leaks snippets in logs, with Qdrant payload pre-filter selected as the less obvious but more correct approach. No hallucinated services or decorative components.\", \"score\": 5}, \"deep_dive_depth\": {\"reasoning\": \"Multiple concrete deep-dives: (1) Chunker with hierarchical header-first then 800-token windows, different parameters for code/tables; (2) Qdrant HNSW with scalar quantization, RF=2, and the non-obvious edge case that HNSW does not physically remove deleted vectors requiring nightly compaction; (3) Hybrid retrieval with dense ANN + BM25 fused via RRF with specific model names and latency numbers; (4) Semantic cache with MinHash of retrieved chunks and chunk-keyed eviction via reverse-index in Redis. The filtered-ANN recall degradation for low-privilege users is a genuine non-obvious edge case with a concrete mitigation.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Tradeoffs are quantified and scoped: reranker adds +15% recall@5 at +250ms and a GPU; self-hosted LLM saves per-token cost but costs ~$25k GPU capex; ACL pre-filter is ~2x slower with recall risk on selective filters, mitigated by 4x oversampling. The failure modes table covers 10 scenarios with specific mitigations including non-obvious ones: prompt injection via malicious uploaded documents with delimiter-based countermeasure, embedding model version drift causing recall collapse with hash-pinned offline eval gate, and reindex storm from connector bug with backpressure queue. The design explicitly acknowledges its limits with RPO/RTO numbers and the roadmap signals what the current design cannot handle.\", \"score\": 5}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

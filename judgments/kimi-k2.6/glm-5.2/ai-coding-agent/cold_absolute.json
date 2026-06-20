@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/glm-5.2/ai-coding-agent_cold.json",
+  "question_id": "ai-coding-agent",
+  "variant": "cold",
+  "model_under_test": "glm-5.2",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T05:54:00.552547+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with a clear problem statement scoped to a terminal-native local agent, explicitly lists non-goals (IDE integration, multi-repo orchestration, training/fine-tuning, GUI), and states concrete target-user hardware assumptions (8-16 cores, 16-64 GB RAM, SSD). It resolves the ambiguity of whether this is a local dev tool versus a server product by declaring Not a server product. While it lacks traditional quantified SLAs like p99 latency, the hardware assumptions are concrete and drive downstream design choices.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Section 5 derives a full estimation chain: 100k LOC to 5k chunks to 2.5M tokens for indexing; per-turn token counts to $0.1125 per turn; a $5 cap to ~45 turns. It also computes context-window consumption (200k window minus 22k fixed overhead to 178k for history) and shows this directly drives the compaction strategy. It sanity-checks results by noting the index DB (~50 MB) and embedder RAM (~400 MB) fit comfortably in a 16 GB laptop.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "The mermaid diagram and component sections trace data flow end-to-end. Every component is tied to a requirement (e.g., Index Service for codebase exploration, Confirmation Layer for safety, Context Manager for window limits). The design explicitly picks less-obvious choices and justifies them (line-buffered default over a full TUI for scriptability, in-process sandbox over Docker to avoid volume-mount friction). No decorative or hallucinated services appear.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple components receive concrete deep dives. The Context Manager specifies priority-ordered sections, a 75% window compaction trigger, and a 300-token recap mechanism. The Index Service details hybrid retrieval (BM25 plus cosine plus ripgrep with RRF), a specific embedding model (bge-small-en, 384-dim), and sqlite-vec storage. The Shell Sandbox defines allowlist tiers, cgroups/ulimit caps, and a no-network default. The Tool Layer includes a fallback strategy from patch to full-file writes. Non-obvious edge cases are addressed inside the deep dives, such as partial-JSON buffering during streaming, dirty-file detection via FSWatcher before editing, and per-call nonces to prevent replay hazards on resume.",
+        "score": 5
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 7 lists six explicit, named tradeoffs tied to specific decisions (e.g., autonomy vs. confirmation prompts, local embeddings vs. API quality hit, patches vs. full writes). Section 6 provides a table of twelve failure modes with specific mitigations (e.g., repeated tool-argument hashes to detect edit loops, git refs as source-of-truth for undo corruption, wall plus CPU timeouts with SIGKILL for shell hangs). The design acknowledges its own limits directly, stating the in-process sandbox is acceptable for a dev tool, not for hosted multi-tenant and that a single model is chosen for simplicity with routing deferred.",
+        "score": 5
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response opens with a clear problem statement scoped to a terminal-native local agent, explicitly lists non-goals (IDE integration, multi-repo orchestration, training/fine-tuning, GUI), and states concrete target-user hardware assumptions (8-16 cores, 16-64 GB RAM, SSD). It resolves the ambiguity of whether this is a local dev tool versus a server product by declaring Not a server product. While it lacks traditional quantified SLAs like p99 latency, the hardware assumptions are concrete and drive downstream design choices.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"Section 5 derives a full estimation chain: 100k LOC to 5k chunks to 2.5M tokens for indexing; per-turn token counts to $0.1125 per turn; a $5 cap to ~45 turns. It also computes context-window consumption (200k window minus 22k fixed overhead to 178k for history) and shows this directly drives the compaction strategy. It sanity-checks results by noting the index DB (~50 MB) and embedder RAM (~400 MB) fit comfortably in a 16 GB laptop.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"The mermaid diagram and component sections trace data flow end-to-end. Every component is tied to a requirement (e.g., Index Service for codebase exploration, Confirmation Layer for safety, Context Manager for window limits). The design explicitly picks less-obvious choices and justifies them (line-buffered default over a full TUI for scriptability, in-process sandbox over Docker to avoid volume-mount friction). No decorative or hallucinated services appear.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple components receive concrete deep dives. The Context Manager specifies priority-ordered sections, a 75% window compaction trigger, and a 300-token recap mechanism. The Index Service details hybrid retrieval (BM25 plus cosine plus ripgrep with RRF), a specific embedding model (bge-small-en, 384-dim), and sqlite-vec storage. The Shell Sandbox defines allowlist tiers, cgroups/ulimit caps, and a no-network default. The Tool Layer includes a fallback strategy from patch to full-file writes. Non-obvious edge cases are addressed inside the deep dives, such as partial-JSON buffering during streaming, dirty-file detection via FSWatcher before editing, and per-call nonces to prevent replay hazards on resume.\", \"score\": 5}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 7 lists six explicit, named tradeoffs tied to specific decisions (e.g., autonomy vs. confirmation prompts, local embeddings vs. API quality hit, patches vs. full writes). Section 6 provides a table of twelve failure modes with specific mitigations (e.g., repeated tool-argument hashes to detect edit loops, git refs as source-of-truth for undo corruption, wall plus CPU timeouts with SIGKILL for shell hangs). The design acknowledges its own limits directly, stating the in-process sandbox is acceptable for a dev tool, not for hosted multi-tenant and that a single model is chosen for simplicity with routing deferred.\", \"score\": 5}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}
