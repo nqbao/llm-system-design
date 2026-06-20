@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gpt-oss-20b/ai-coding-agent_cold.json",
+  "question_id": "ai-coding-agent",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-20b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T03:52:02.503757+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design begins with a clear problem statement and describes both functional (code generation, testing, VCS) and non-functional aspects (modular, low cost, safe, extensible). It states explicit assumptions in the capacity section (token counts, requests/hour, pricing) but does not set quantified SLAs like p99 latency or availability targets.",
+        "score": 3
+      },
+      "capacity_estimation": {
+        "reasoning": "A detailed capacity table derives token consumption and cost per hour from assumptions about prompt length and request rate. Numbers are roughly correct and used in the cloud vs. local trade-off, but they do not propagate significantly into architectural component sizing beyond the cost recommendation.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component (CLI, Parser, NLP, LLM, Sandbox, etc.) directly supports a stated requirement, and the data flow is traceable from command input to feedback collection. The architecture is well‑described with a clear diagram and a component‑detail table, and no hallucinated or decorative services appear.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The component table lists algorithms and fail‑modes but does not explore any component in depth with concrete mechanisms (e.g., sharding, replication, indexing). The Sandbox Runner mention of Docker API is shallow and does not dive into tradeoffs or edge cases.",
+        "score": 2
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "A quantified trade‑off comparison between cloud and local LLMs leads to a concrete recommendation. The extensive failure‑modes table lists many scenarios with specific mitigations, and disaster‑recovery strategies (idempotency, watchdog) are included.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The design begins with a clear problem statement and describes both functional (code generation, testing, VCS) and non-functional aspects (modular, low cost, safe, extensible). It states explicit assumptions in the capacity section (token counts, requests/hour, pricing) but does not set quantified SLAs like p99 latency or availability targets.\", \"score\": 3}, \"capacity_estimation\": {\"reasoning\": \"A detailed capacity table derives token consumption and cost per hour from assumptions about prompt length and request rate. Numbers are roughly correct and used in the cloud vs. local trade-off, but they do not propagate significantly into architectural component sizing beyond the cost recommendation.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"Every component (CLI, Parser, NLP, LLM, Sandbox, etc.) directly supports a stated requirement, and the data flow is traceable from command input to feedback collection. The architecture is well‑described with a clear diagram and a component‑detail table, and no hallucinated or decorative services appear.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"The component table lists algorithms and fail‑modes but does not explore any component in depth with concrete mechanisms (e.g., sharding, replication, indexing). The Sandbox Runner mention of Docker API is shallow and does not dive into tradeoffs or edge cases.\", \"score\": 2}, \"tradeoffs_failure_modes\": {\"reasoning\": \"A quantified trade‑off comparison between cloud and local LLMs leads to a concrete recommendation. The extensive failure‑modes table lists many scenarios with specific mitigations, and disaster‑recovery strategies (idempotency, watchdog) are included.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

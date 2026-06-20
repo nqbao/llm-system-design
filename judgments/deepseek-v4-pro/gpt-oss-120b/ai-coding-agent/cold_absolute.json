@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gpt-oss-120b/ai-coding-agent_cold.json",
+  "question_id": "ai-coding-agent",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T03:51:43.999546+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The design starts with a clear problem statement, lists functional and non-functional requirements. Non-functionals are quantified with specific targets (latency ≤2s, availability 99.9%, etc.). Assumptions are stated (100 concurrent sessions, 2M LOC codebase) and justified in capacity calculations.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Thorough capacity estimation derives QPS, storage, and cost from assumptions. Numbers drive component sizing (e.g., A100 GPU count based on RPS needs, storage for vector DB). Sanity-checks cost of remote API vs local GPU. No explicit flagging of fragile assumptions.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is listed with clear responsibilities and connections via the diagram. No hallucinations; tech choices are real. Component details tie to sizing and requirements, though explicit justification per requirement number is missing. Data flow is traceable end-to-end.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "The document provides specifics (MiniLM-v2, ONNX Runtime, tiktoken, gVisor) but lacks concrete mechanism or tradeoffs in a deep dive. No sharding key, index design, or replication strategy. The descriptions remain high-level; no component is explored deeply.",
+        "score": 2
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Dedicated sections present multiple tradeoffs tied to decisions (remote vs local LLM, Docker vs Firecracker) with pros/cons. Failure modes are listed with detection and specific mitigations (regex redaction, sandbox hardening). Not quantified but reasonably detailed.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The design starts with a clear problem statement, lists functional and non-functional requirements. Non-functionals are quantified with specific targets (latency ≤2s, availability 99.9%, etc.). Assumptions are stated (100 concurrent sessions, 2M LOC codebase) and justified in capacity calculations.\",\n    \"score\": 4\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"Thorough capacity estimation derives QPS, storage, and cost from assumptions. Numbers drive component sizing (e.g., A100 GPU count based on RPS needs, storage for vector DB). Sanity-checks cost of remote API vs local GPU. No explicit flagging of fragile assumptions.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component is listed with clear responsibilities and connections via the diagram. No hallucinations; tech choices are real. Component details tie to sizing and requirements, though explicit justification per requirement number is missing. Data flow is traceable end-to-end.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The document provides specifics (MiniLM-v2, ONNX Runtime, tiktoken, gVisor) but lacks concrete mechanism or tradeoffs in a deep dive. No sharding key, index design, or replication strategy. The descriptions remain high-level; no component is explored deeply.\",\n    \"score\": 2\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"Dedicated sections present multiple tradeoffs tied to decisions (remote vs local LLM, Docker vs Firecracker) with pros/cons. Failure modes are listed with detection and specific mitigations (regex redaction, sandbox hardening). Not quantified but reasonably detailed.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

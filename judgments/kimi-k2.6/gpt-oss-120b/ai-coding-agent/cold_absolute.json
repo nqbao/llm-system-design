@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/gpt-oss-120b/ai-coding-agent_cold.json",
+  "question_id": "ai-coding-agent",
+  "variant": "cold",
+  "model_under_test": "gpt-oss-120b",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T03:51:43.999546+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The document opens with a scoped goal and lists eight functional requirements alongside eight quantified non-functional targets (e.g., ≤2s latency, 99.9% availability, ≤$0.10/user-hour). Assumptions such as a 2M LOC codebase and 500-line chunks are stated and justified in the capacity section. It lacks explicit non-goals or resolution of prompt ambiguities, keeping it from a 5.",
+        "score": 4
+      },
+      "capacity_estimation": {
+        "reasoning": "Derives a full chain: 2M LOC → 7,500 chunks → ~11MB vectors → 3.5k tokens/request → 200 RPS → component sizing (7 A100s, 0.5TB storage) and AWS cost ($33.5/hr). Numbers demonstrably drive decisions, such as preferring local inference because remote LLM costs would be prohibitive. However, the remote-LLM cost line contains a unit error (treating per-second throughput as per-hour), and the Redis capacity claim is inconsistent, preventing a 5.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component is explicitly tied to a requirement or NFR (e.g., Execution Sandbox to test execution and safety, Code-Base Manager to project understanding). The mermaid diagram and the 10-step example interaction flow trace data end-to-end. No hallucinated services; each tech choice includes concrete pros and cons.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple components receive concrete mechanisms: the Execution Sandbox specifies gVisor+seccomp+cgroup limits with a container-reuse pool; the LLM layer details 8-bit quantization, A100 throughput (~30 RPS), and per-key rate limits; the Prompt Builder cites tiktoken-aware truncation. Section 6 provides named tradeoffs (Docker vs Firecracker, truncation vs summarization) with reasoning. The failure-mode analysis is relegated to a separate table rather than surfacing hidden edge cases inside a component deep-dive, so it does not reach a 5.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 6 presents seven specific decisions with pros, cons, and selection criteria (remote vs local LLM, full-repo embedding vs on-the-fly, Docker vs micro-VM). Section 7 lists eight failure scenarios with concrete detection mechanisms and mitigations (exponential backoff for API rate limits, gVisor for sandbox escape, redaction engine for secret leakage). Tradeoffs are quantified (e.g., $0.10/user-hour cost target, >5s latency alert). It does not explicitly state a hard design limit (e.g., 'this design cannot handle X'), so it scores a 4.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The document opens with a scoped goal and lists eight functional requirements alongside eight quantified non-functional targets (e.g., ≤2s latency, 99.9% availability, ≤$0.10/user-hour). Assumptions such as a 2M LOC codebase and 500-line chunks are stated and justified in the capacity section. It lacks explicit non-goals or resolution of prompt ambiguities, keeping it from a 5.\", \"score\": 4}, \"capacity_estimation\": {\"reasoning\": \"Derives a full chain: 2M LOC → 7,500 chunks → ~11MB vectors → 3.5k tokens/request → 200 RPS → component sizing (7 A100s, 0.5TB storage) and AWS cost ($33.5/hr). Numbers demonstrably drive decisions, such as preferring local inference because remote LLM costs would be prohibitive. However, the remote-LLM cost line contains a unit error (treating per-second throughput as per-hour), and the Redis capacity claim is inconsistent, preventing a 5.\", \"score\": 4}, \"architecture_coherence\": {\"reasoning\": \"Every component is explicitly tied to a requirement or NFR (e.g., Execution Sandbox to test execution and safety, Code-Base Manager to project understanding). The mermaid diagram and the 10-step example interaction flow trace data end-to-end. No hallucinated services; each tech choice includes concrete pros and cons.\", \"score\": 4}, \"deep_dive_depth\": {\"reasoning\": \"Multiple components receive concrete mechanisms: the Execution Sandbox specifies gVisor+seccomp+cgroup limits with a container-reuse pool; the LLM layer details 8-bit quantization, A100 throughput (~30 RPS), and per-key rate limits; the Prompt Builder cites tiktoken-aware truncation. Section 6 provides named tradeoffs (Docker vs Firecracker, truncation vs summarization) with reasoning. The failure-mode analysis is relegated to a separate table rather than surfacing hidden edge cases inside a component deep-dive, so it does not reach a 5.\", \"score\": 4}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 6 presents seven specific decisions with pros, cons, and selection criteria (remote vs local LLM, full-repo embedding vs on-the-fly, Docker vs micro-VM). Section 7 lists eight failure scenarios with concrete detection mechanisms and mitigations (exponential backoff for API rate limits, gVisor for sandbox escape, redaction engine for secret leakage). Tradeoffs are quantified (e.g., $0.10/user-hour cost target, >5s latency alert). It does not explicitly state a hard design limit (e.g., 'this design cannot handle X'), so it scores a 4.\", \"score\": 4}}"
+  },
+  "attempts": {
+    "system_design": 2
+  }
+}

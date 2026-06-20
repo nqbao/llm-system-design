@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/minimax-m2.7/ai-coding-agent_cold.json",
+  "question_id": "ai-coding-agent",
+  "variant": "cold",
+  "model_under_test": "minimax-m2.7",
+  "judge_model": "kimi-k2.6",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T03:54:57.143932+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response jumps directly into a high-level architecture diagram and component descriptions without any upfront requirements section, problem statement, or explicit assumptions. There are no functional or non-functional requirements listed, no quantified SLAs, no stated assumptions about scale or user behavior, and no non-goals.",
+        "score": 1
+      },
+      "capacity_estimation": {
+        "reasoning": "Section 4 provides a concrete token budget breakdown (200K total) and a cost analysis derived from Claude 3.5 Sonnet pricing for specific scenarios (bug fix, API implementation). The numbers connect to the ContextManager design and tool costs, but the 200K budget itself is stated rather than derived from first-principles assumptions (e.g., no user/task rate assumptions). Performance targets are listed but not sanity-checked.",
+        "score": 3
+      },
+      "architecture_coherence": {
+        "reasoning": "The architecture is sensible and free of hallucinations: CLI, PTY, planning, reasoning, memory, context management, tool registry, sandbox, and safety layers all map clearly to the implied needs of a terminal coding agent. A Mermaid diagram and end-to-end data flows are present. However, without explicit requirements, components cannot be justified against specific scoped requirements or capacity numbers.",
+        "score": 3
+      },
+      "deep_dive_depth": {
+        "reasoning": "The response includes multiple concrete deep-dives: ContextManager with token allocations and line-range loading logic (±20/±30 lines), SandboxManager with specific resource limits (512MB, 30s CPU), RollbackManager with git soft-reset mechanics, and risk scoring with explicit weights (destructiveness 0.4, scope 0.3). However, none of the deep-dives contain named tradeoffs or surface non-obvious edge cases.",
+        "score": 3
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "Section 5 provides five specific tradeoffs in a structured table (hierarchical indexing vs full-file loading, registry vs direct embedding, on-demand vs full pre-planning, etc.) and five failure modes with concrete symptoms, mitigations, and detection mechanisms (context overflow, infinite loop, shell injection, context poisoning, rollout failure). However, the tradeoffs are not quantified or scoped, the design does not explicitly acknowledge its own limits, and the failure modes are fairly standard.",
+        "score": 3
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\"requirements_scoping\": {\"reasoning\": \"The response jumps directly into a high-level architecture diagram and component descriptions without any upfront requirements section, problem statement, or explicit assumptions. There are no functional or non-functional requirements listed, no quantified SLAs, no stated assumptions about scale or user behavior, and no non-goals.\", \"score\": 1}, \"capacity_estimation\": {\"reasoning\": \"Section 4 provides a concrete token budget breakdown (200K total) and a cost analysis derived from Claude 3.5 Sonnet pricing for specific scenarios (bug fix, API implementation). The numbers connect to the ContextManager design and tool costs, but the 200K budget itself is stated rather than derived from first-principles assumptions (e.g., no user/task rate assumptions). Performance targets are listed but not sanity-checked.\", \"score\": 3}, \"architecture_coherence\": {\"reasoning\": \"The architecture is sensible and free of hallucinations: CLI, PTY, planning, reasoning, memory, context management, tool registry, sandbox, and safety layers all map clearly to the implied needs of a terminal coding agent. A Mermaid diagram and end-to-end data flows are present. However, without explicit requirements, components cannot be justified against specific scoped requirements or capacity numbers.\", \"score\": 3}, \"deep_dive_depth\": {\"reasoning\": \"The response includes multiple concrete deep-dives: ContextManager with token allocations and line-range loading logic (±20/±30 lines), SandboxManager with specific resource limits (512MB, 30s CPU), RollbackManager with git soft-reset mechanics, and risk scoring with explicit weights (destructiveness 0.4, scope 0.3). However, none of the deep-dives contain named tradeoffs or surface non-obvious edge cases.\", \"score\": 3}, \"tradeoffs_failure_modes\": {\"reasoning\": \"Section 5 provides five specific tradeoffs in a structured table (hierarchical indexing vs full-file loading, registry vs direct embedding, on-demand vs full pre-planning, etc.) and five failure modes with concrete symptoms, mitigations, and detection mechanisms (context overflow, infinite loop, shell injection, context poisoning, rollout failure). However, the tradeoffs are not quantified or scoped, the design does not explicitly acknowledge its own limits, and the failure modes are fairly standard.\", \"score\": 3}}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

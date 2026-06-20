@@ -3,10 +3,10 @@
   --score-excellent-bg: rgba(16, 185, 129, 0.12);
   --score-good: #3b82f6;
   --score-good-bg: rgba(59, 130, 246, 0.12);
-  --score-above: #6366f1;
-  --score-above-bg: rgba(99, 102, 241, 0.12);
-  --score-okay: #f59e0b;
-  --score-okay-bg: rgba(245, 158, 11, 0.12);
+  --score-above: #ca8a04;
+  --score-above-bg: rgba(202, 138, 4, 0.12);
+  --score-okay: #ea580c;
+  --score-okay-bg: rgba(234, 88, 12, 0.12);
   --score-weak: #f97316;
   --score-weak-bg: rgba(249, 115, 22, 0.12);
   --score-poor: #ef4444;
@@ -20,10 +20,10 @@
   --score-excellent-bg: rgba(16, 185, 129, 0.15);
   --score-good: #60a5fa;
   --score-good-bg: rgba(59, 130, 246, 0.15);
-  --score-above: #818cf8;
-  --score-above-bg: rgba(99, 102, 241, 0.15);
-  --score-okay: #fbbf24;
-  --score-okay-bg: rgba(234, 179, 8, 0.15);
+  --score-above: #eab308;
+  --score-above-bg: rgba(234, 179, 8, 0.15);
+  --score-okay: #f97316;
+  --score-okay-bg: rgba(249, 115, 22, 0.15);
   --score-weak: #fb923c;
   --score-weak-bg: rgba(249, 115, 22, 0.15);
   --score-poor: #f87171;
@@ -180,4 +180,82 @@
 .sl-markdown-content table:not(:where(.not-content *)) {
   display: table !important;
   width: 100% !important;
+}
+
+/* Mermaid zoom overlay */
+#mermaid-zoom-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+#mermaid-zoom-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mermaid-zoom-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.mermaid-zoom-container {
+  position: relative;
+  max-width: 95vw;
+  max-height: 95vh;
+  background: var(--sl-color-white, #fff);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  transform: scale(0.95);
+  transition: transform 0.25s ease;
+}
+
+#mermaid-zoom-overlay.open .mermaid-zoom-container {
+  transform: scale(1);
+}
+
+.mermaid-zoom-close {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--sl-color-gray-3, #666);
+  z-index: 1;
+  padding: 0.25rem;
+}
+
+.mermaid-zoom-close:hover {
+  color: var(--sl-color-white, #000);
+}
+
+.mermaid-zoom-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  max-height: 85vh;
+}
+
+.mermaid-zoom-content svg {
+  display: block;
+}
+
+[data-theme="dark"] .mermaid-zoom-container {
+  background: var(--sl-color-gray-7, #1a1a2e);
+}
+
+[data-theme="dark"] .mermaid-zoom-close:hover {
+  color: var(--sl-color-white, #fff);
 }

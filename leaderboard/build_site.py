@@ -76,18 +76,14 @@ def _badge(score: float, label: str | None = None) -> str:
 
 
 def _score_class(score: float) -> str:
-    if score >= 4.5:
+    if score >= 4.25:
         return "score-excellent"
     elif score >= 3.75:
         return "score-good"
-    elif score >= 3.5:
+    elif score >= 3.0:
         return "score-above"
-    elif score >= 2.5:
-        return "score-okay"
-    elif score >= 1.5:
-        return "score-weak"
     else:
-        return "score-poor"
+        return "score-okay"
 
 
 def _rank_badge(rank: int) -> str:

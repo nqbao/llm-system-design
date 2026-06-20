@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/minimax-m2.7/ai-coding-agent_cold.json",
+  "question_id": "ai-coding-agent",
+  "variant": "cold",
+  "model_under_test": "minimax-m2.7",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T03:54:57.143932+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The response opens with high-level architecture without a requirements section. There is no explicit listing of functional or non-functional requirements, no stated assumptions, and no quantified SLAs. While some performance targets appear later, they are not framed as requirements. This lack of scoping drops the score significantly.",
+        "score": 2
+      },
+      "capacity_estimation": {
+        "reasoning": "The design includes a token budget breakdown with derived allocations, cost analysis for specific tasks using published model pricing, and performance targets. These numbers directly feed into the context manager and other components, forming a clear estimation chain. No fragile assumptions are flagged, but the estimation is thorough and relevant.",
+        "score": 4
+      },
+      "architecture_coherence": {
+        "reasoning": "Every component serves the coding agent's goal, with clear connections and data flow. The diagram and subsequent sections show a logical decomposition into UI, agent core, context management, tools, and safety. No hallucinations or dead weight are present; the architecture is informative and coherent.",
+        "score": 4
+      },
+      "deep_dive_depth": {
+        "reasoning": "Multiple components are explored in depth, including the context manager with dynamic token allocation, sandboxed tool execution with resource limits, and the planning module with hierarchical decomposition. Concrete mechanisms are shown, and the overall tradeoff table provides reasoning for design choices. Two or more deep-dives demonstrate depth.",
+        "score": 4
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The response explicitly presents a tradeoff table with alternatives and reasoning, and lists failure modes with specific mitigations and detection methods. Tradeoffs are concretely scoped (e.g., 'handles 1M+ LOC'), and failure scenarios are addressed. This meets the criteria for a score of 4.",
+        "score": 4
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The response opens with high-level architecture without a requirements section. There is no explicit listing of functional or non-functional requirements, no stated assumptions, and no quantified SLAs. While some performance targets appear later, they are not framed as requirements. This lack of scoping drops the score significantly.\",\n    \"score\": 2\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The design includes a token budget breakdown with derived allocations, cost analysis for specific tasks using published model pricing, and performance targets. These numbers directly feed into the context manager and other components, forming a clear estimation chain. No fragile assumptions are flagged, but the estimation is thorough and relevant.\",\n    \"score\": 4\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"Every component serves the coding agent's goal, with clear connections and data flow. The diagram and subsequent sections show a logical decomposition into UI, agent core, context management, tools, and safety. No hallucinations or dead weight are present; the architecture is informative and coherent.\",\n    \"score\": 4\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"Multiple components are explored in depth, including the context manager with dynamic token allocation, sandboxed tool execution with resource limits, and the planning module with hierarchical decomposition. Concrete mechanisms are shown, and the overall tradeoff table provides reasoning for design choices. Two or more deep-dives demonstrate depth.\",\n    \"score\": 4\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The response explicitly presents a tradeoff table with alternatives and reasoning, and lists failure modes with specific mitigations and detection methods. Tradeoffs are concretely scoped (e.g., 'handles 1M+ LOC'), and failure scenarios are addressed. This meets the criteria for a score of 4.\",\n    \"score\": 4\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}

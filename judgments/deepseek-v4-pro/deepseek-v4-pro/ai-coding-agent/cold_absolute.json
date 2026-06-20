@@ -1,0 +1,39 @@
+{
+  "transcript_path": "/workspace/llm-sd/runs/deepseek-v4-pro/ai-coding-agent_cold.json",
+  "question_id": "ai-coding-agent",
+  "variant": "cold",
+  "model_under_test": "deepseek-v4-pro",
+  "judge_model": "deepseek-v4-pro",
+  "mode": "absolute",
+  "timestamp": "2026-06-20T03:10:18.063487+00:00",
+  "scores": {
+    "system_design": {
+      "requirements_scoping": {
+        "reasoning": "The transcript is 'None', meaning there is no response to evaluate. No requirements or scoping are present.",
+        "score": 0
+      },
+      "capacity_estimation": {
+        "reasoning": "The transcript is 'None', meaning there is no response to evaluate. No capacity estimation is performed.",
+        "score": 0
+      },
+      "architecture_coherence": {
+        "reasoning": "The transcript is 'None', meaning there is no response to evaluate. No architecture description exists.",
+        "score": 0
+      },
+      "deep_dive_depth": {
+        "reasoning": "The transcript is 'None', meaning there is no response to evaluate. No deep-dives are present.",
+        "score": 0
+      },
+      "tradeoffs_failure_modes": {
+        "reasoning": "The transcript is 'None', meaning there is no response to evaluate. No tradeoffs or failure modes discussed.",
+        "score": 0
+      }
+    }
+  },
+  "raw": {
+    "system_design": "{\n  \"requirements_scoping\": {\n    \"reasoning\": \"The transcript is 'None', meaning there is no response to evaluate. No requirements or scoping are present.\",\n    \"score\": 0\n  },\n  \"capacity_estimation\": {\n    \"reasoning\": \"The transcript is 'None', meaning there is no response to evaluate. No capacity estimation is performed.\",\n    \"score\": 0\n  },\n  \"architecture_coherence\": {\n    \"reasoning\": \"The transcript is 'None', meaning there is no response to evaluate. No architecture description exists.\",\n    \"score\": 0\n  },\n  \"deep_dive_depth\": {\n    \"reasoning\": \"The transcript is 'None', meaning there is no response to evaluate. No deep-dives are present.\",\n    \"score\": 0\n  },\n  \"tradeoffs_failure_modes\": {\n    \"reasoning\": \"The transcript is 'None', meaning there is no response to evaluate. No tradeoffs or failure modes discussed.\",\n    \"score\": 0\n  }\n}"
+  },
+  "attempts": {
+    "system_design": 1
+  }
+}
