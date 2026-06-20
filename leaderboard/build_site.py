@@ -304,11 +304,7 @@ def build_index(models, questions, leaderboard):
     questions_count = len(scored_questions)
     judge_count = len(judges)
 
-    scored_problems = 0
-    if leaderboard:
-        total_by_model = sum(r["n"] for r in leaderboard)
-        scored_problems = total_by_model // len(leaderboard)
-    total_transcripts = models_count * scored_problems if leaderboard else 0
+    total_transcripts = models_count * questions_count if leaderboard else 0
 
     lb_rows = "\n".join(
         f"| {_rank_badge(i + 1)} | [{row['model']}](models/{_sl(row['model'])}/) | {_badge(row['mean'])} | ±{row['ci']} | {row['n']} |"
